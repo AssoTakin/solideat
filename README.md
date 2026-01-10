@@ -1,2 +1,2 @@
 # solideat
-Plateforme SOLIDEAT (solidarité, dons, actions)
+Plateforme SOLIDEAT (cuisine solidaire, partage et anti-gaspillage)
