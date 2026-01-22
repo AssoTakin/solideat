@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import UserProfile from './pages/UserProfile';
 import MealList from './pages/MealList';
 import MealDetails from './pages/MealDetails';
+import MyReservations from './pages/MyReservations';
+import ReserveMeal from './pages/ReserveMeal';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
         <Route path="/users/:id" element={<UserProfile />} />
         <Route path="/meals" element={<MealList />} />
         <Route path="/meals/:id" element={<MealDetails />} />
+        <Route path="/meals/:id/reserve" element={<ReserveMeal />} />
+        <Route path="/reservations" element={<MyReservations />} />
         <Route path="/health" element={<div>Frontend OK</div>} />
       </Routes>
     </div>
