@@ -1,6 +1,5 @@
 import cron from 'node-cron';
 import prisma from '../config/database';
-import { notificationService } from '../services/notification.service';
 
 /**
  * Job : Expiration des bonus donateurs
