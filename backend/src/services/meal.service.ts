@@ -134,18 +134,38 @@ export class MealService {
    */
   async getMeals(filters: {
     status?: string;
-    distance?: number;
-    date?: string;
-    cuisine?: string;
+    distance?: number; // Rayon de recherche en km
+    date?: string; // Date de service ou "today" ou "this-week"
+    timeSlot?: string; // "midi", "soir", "all"
+    cuisine?: string; // Type de cuisine ou ingrédient principal
     portions?: number;
     page?: number;
     limit?: number;
     userLat?: number;
     userLng?: number;
+    userId?: string; // Pour vérifier le statut premium
+    sortBy?: string; // "distance", "date", "rating", "expiration"
+    // Filtres avancés (premium uniquement)
+    minRating?: number;
+    preparationDate?: string;
   }): Promise<{ meals: any[]; total: number; page: number; limit: number }> {
     const page = filters.page || 1;
     const limit = Math.min(filters.limit || 20, 100);
     const skip = (page - 1) * limit;
+
+    // Vérifier le statut premium de l'utilisateur
+    let isPremium = false;
+    if (filters.userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: filters.userId },
+        select: { subscriptionType: true },
+      });
+      isPremium = user?.subscriptionType !== 'FREE';
+    }
+
+    // Limite de distance selon le statut
+    const maxDistance = isPremium ? 20 : 15;
+    const distanceFilter = filters.distance ? Math.min(filters.distance, maxDistance) : maxDistance;
 
     const where: Prisma.MealWhereInput = {
       status: (filters.status as MealStatus) || MealStatus.AVAILABLE,
@@ -156,11 +176,50 @@ export class MealService {
 
     // Filtre par date de service
     if (filters.date) {
-      const serviceDate = new Date(filters.date);
-      where.serviceDate = {
-        gte: new Date(serviceDate.setHours(0, 0, 0, 0)),
-        lt: new Date(serviceDate.setHours(23, 59, 59, 999)),
-      };
+      if (filters.date === 'today') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        where.serviceDate = {
+          gte: today,
+          lt: tomorrow,
+        };
+      } else if (filters.date === 'this-week') {
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        const startOfWeek = new Date(now.setDate(diff));
+        startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 7);
+        where.serviceDate = {
+          gte: startOfWeek,
+          lt: endOfWeek,
+        };
+      } else {
+        const serviceDate = new Date(filters.date);
+        where.serviceDate = {
+          gte: new Date(serviceDate.setHours(0, 0, 0, 0)),
+          lt: new Date(serviceDate.setHours(23, 59, 59, 999)),
+        };
+      }
+    }
+
+    // Filtre par plage horaire (Midi/Soir)
+    if (filters.timeSlot && filters.timeSlot !== 'all') {
+      if (filters.timeSlot === 'midi') {
+        // Midi : entre 11h et 15h
+        where.pickupTimeStart = {
+          gte: new Date('1970-01-01T11:00:00'),
+          lt: new Date('1970-01-01T15:00:00'),
+        };
+      } else if (filters.timeSlot === 'soir') {
+        // Soir : après 18h
+        where.pickupTimeStart = {
+          gte: new Date('1970-01-01T18:00:00'),
+        };
+      }
     }
 
     // Filtre par nombre de parts
@@ -170,52 +229,93 @@ export class MealService {
       };
     }
 
-    const [meals, total] = await Promise.all([
-      prisma.meal.findMany({
-        where,
-        include: {
-          cook: {
-            select: {
-              id: true,
-              username: true,
-              profilePhoto: true,
-              globalRating: true,
-              addressCity: true,
-            },
+    // Filtre par type de cuisine (recherche dans les ingrédients)
+    if (filters.cuisine) {
+      where.ingredients = {
+        array_contains: [filters.cuisine],
+      } as any;
+    }
+
+    // Filtre avancé : date de préparation (premium uniquement)
+    if (isPremium && filters.preparationDate) {
+      const prepDate = new Date(filters.preparationDate);
+      where.preparationDate = {
+        gte: new Date(prepDate.setHours(0, 0, 0, 0)),
+        lt: new Date(prepDate.setHours(23, 59, 59, 999)),
+      };
+    }
+
+    // Déterminer l'ordre de tri
+    let orderBy: Prisma.MealOrderByWithRelationInput = { createdAt: 'desc' };
+    if (filters.sortBy) {
+      switch (filters.sortBy) {
+        case 'date':
+          orderBy = { serviceDate: 'asc' };
+          break;
+        case 'rating':
+          orderBy = { cook: { globalRating: 'desc' } };
+          break;
+        case 'expiration':
+          orderBy = { expirationDate: 'asc' };
+          break;
+        // Distance sera trié après le calcul
+        default:
+          orderBy = { createdAt: 'desc' };
+      }
+    }
+
+    const meals = await prisma.meal.findMany({
+      where,
+      include: {
+        cook: {
+          select: {
+            id: true,
+            username: true,
+            profilePhoto: true,
+            globalRating: true,
+            addressCity: true,
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      prisma.meal.count({ where }),
-    ]);
+      },
+      orderBy,
+      skip,
+      take: limit,
+    });
 
-    // Calculer les distances si coordonnées utilisateur fournies
+    // Calculer les distances et filtrer par rayon si coordonnées utilisateur fournies
     let mealsWithDistance = meals;
     if (filters.userLat && filters.userLng) {
-      mealsWithDistance = meals.map((meal) => {
-        const distance = this.calculateDistance(
-          filters.userLat!,
-          filters.userLng!,
-          meal.pickupLatitude,
-          meal.pickupLongitude
-        );
-        return {
-          ...meal,
-          distance,
-        };
-      });
+      mealsWithDistance = meals
+        .map((meal) => {
+          const distance = geolocationService.calculateDistance(
+            filters.userLat!,
+            filters.userLng!,
+            meal.pickupLatitude,
+            meal.pickupLongitude
+          );
+          return {
+            ...meal,
+            distance,
+          };
+        })
+        .filter((meal: any) => meal.distance <= distanceFilter);
 
-      // Trier par distance
-      mealsWithDistance.sort((a: any, b: any) => a.distance - b.distance);
+      // Trier par distance si demandé
+      if (filters.sortBy === 'distance') {
+        mealsWithDistance.sort((a: any, b: any) => a.distance - b.distance);
+      }
+    }
+
+    // Filtre avancé : note minimale (premium uniquement)
+    if (isPremium && filters.minRating) {
+      mealsWithDistance = mealsWithDistance.filter(
+        (meal: any) => meal.cook.globalRating >= filters.minRating!
+      );
     }
 
     return {
       meals: mealsWithDistance,
-      total,
+      total: mealsWithDistance.length, // Total après filtrage par distance
       page,
       limit,
     };
@@ -258,7 +358,7 @@ export class MealService {
 
     // Calculer la distance si coordonnées utilisateur fournies
     if (userLat && userLng) {
-      const distance = this.calculateDistance(
+      const distance = geolocationService.calculateDistance(
         userLat,
         userLng,
         meal.pickupLatitude,
@@ -371,26 +471,6 @@ export class MealService {
     });
   }
 
-  /**
-   * Calcule la distance entre deux points GPS (formule de Haversine)
-   */
-  calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Rayon de la Terre en km
-    const dLat = this.toRad(lat2 - lat1);
-    const dLon = this.toRad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRad(lat1)) *
-        Math.cos(this.toRad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance en km
-  }
-
-  private toRad(degrees: number): number {
-    return (degrees * Math.PI) / 180;
-  }
 
   /**
    * Formate l'heure de récupération pour l'affichage

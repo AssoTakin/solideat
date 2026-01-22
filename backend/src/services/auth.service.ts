@@ -99,9 +99,13 @@ export class AuthService {
     });
 
     // Envoyer les emails et SMS (en arrière-plan, ne pas bloquer)
-    emailService.sendVerificationEmail(data.email, emailToken).catch(console.error);
+    emailService.sendVerificationEmail(data.email, emailToken).catch(() => {
+      // Erreur silencieuse
+    });
     if (data.phone) {
-      smsService.sendVerificationSMS(data.phone, phoneCode).catch(console.error);
+      smsService.sendVerificationSMS(data.phone, phoneCode).catch(() => {
+        // Erreur silencieuse
+      });
     }
 
     // Stocker le code téléphone dans Redis (pour l'instant, on le retourne)
@@ -144,7 +148,6 @@ export class AuthService {
 
       return true;
     } catch (error) {
-      console.error('Erreur lors de la vérification email:', error);
       throw new Error('Token de vérification invalide ou expiré');
     }
   }

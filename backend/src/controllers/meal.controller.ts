@@ -35,18 +35,31 @@ export class MealController {
       const filters: any = {
         status: req.query.status as string,
         date: req.query.date as string,
+        timeSlot: req.query.timeSlot as string, // "midi", "soir", "all"
+        cuisine: req.query.cuisine as string,
         portions: req.query.portions ? parseInt(req.query.portions as string) : undefined,
+        distance: req.query.distance ? parseFloat(req.query.distance as string) : undefined,
+        sortBy: req.query.sortBy as string, // "distance", "date", "rating", "expiration"
         page: req.query.page ? parseInt(req.query.page as string) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string) : 20,
       };
+
+      // Filtres avancés (premium uniquement)
+      if (req.query.minRating) {
+        filters.minRating = parseFloat(req.query.minRating as string);
+      }
+      if (req.query.preparationDate) {
+        filters.preparationDate = req.query.preparationDate as string;
+      }
 
       // Si l'utilisateur est connecté, récupérer ses coordonnées pour calculer les distances
       if (req.user && 'id' in req.user) {
         const user = await prisma.user.findUnique({
           where: { id: req.user.id },
-          select: { latitude: true, longitude: true },
+          select: { latitude: true, longitude: true, subscriptionType: true },
         });
         if (user) {
+          filters.userId = req.user.id;
           filters.userLat = user.latitude;
           filters.userLng = user.longitude;
         }

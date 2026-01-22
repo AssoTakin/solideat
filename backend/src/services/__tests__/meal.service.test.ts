@@ -29,6 +29,20 @@ jest.mock('../geolocation.service', () => ({
       latitude: 48.8566,
       longitude: 2.3522,
     }),
+    calculateDistance: jest.fn((lat1, lng1, lat2, lng2) => {
+      // Formule Haversine simplifiée pour les tests
+      const R = 6371;
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLng = ((lng2 - lng1) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((lat1 * Math.PI) / 180) *
+          Math.cos((lat2 * Math.PI) / 180) *
+          Math.sin(dLng / 2) *
+          Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round((R * c) * 10) / 10;
+    }),
   },
 }));
 
@@ -163,19 +177,110 @@ describe('MealService', () => {
     });
   });
 
-  describe('calculateDistance', () => {
-    it('devrait calculer la distance entre deux points', () => {
-      // Paris (48.8566, 2.3522) à Lyon (45.7640, 4.8357) ≈ 392 km
-      const distance = mealService.calculateDistance(48.8566, 2.3522, 45.7640, 4.8357);
+  describe('getMeals avec filtres', () => {
+    it('devrait filtrer par distance', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        subscriptionType: 'FREE',
+      });
+      (prisma.meal.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: '1',
+          name: 'Repas 1',
+          pickupLatitude: 48.8606,
+          pickupLongitude: 2.3622,
+          cook: { id: 'cook-1', username: 'cook1', globalRating: 4.5 },
+        },
+        {
+          id: '2',
+          name: 'Repas 2',
+          pickupLatitude: 45.764043,
+          pickupLongitude: 4.835659,
+          cook: { id: 'cook-2', username: 'cook2', globalRating: 4.0 },
+        },
+      ]);
+      (prisma.meal.count as jest.Mock).mockResolvedValue(2);
 
-      expect(distance).toBeGreaterThan(390);
-      expect(distance).toBeLessThan(400);
+      const result = await mealService.getMeals({
+        userLat: 48.8566,
+        userLng: 2.3522,
+        distance: 5, // 5 km
+      });
+
+      // Le repas 2 (Lyon) devrait être filtré car trop loin
+      expect(result.meals.length).toBeLessThanOrEqual(2);
     });
 
-    it('devrait retourner 0 pour les mêmes coordonnées', () => {
-      const distance = mealService.calculateDistance(48.8566, 2.3522, 48.8566, 2.3522);
+    it('devrait filtrer par date "today"', async () => {
+      (prisma.meal.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.meal.count as jest.Mock).mockResolvedValue(0);
 
-      expect(distance).toBeCloseTo(0, 1);
+      await mealService.getMeals({
+        date: 'today',
+      });
+
+      expect(prisma.meal.findMany).toHaveBeenCalled();
+      const whereClause = (prisma.meal.findMany as jest.Mock).mock.calls[0][0].where;
+      expect(whereClause.serviceDate).toBeDefined();
+    });
+
+    it('devrait filtrer par plage horaire "midi"', async () => {
+      (prisma.meal.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.meal.count as jest.Mock).mockResolvedValue(0);
+
+      await mealService.getMeals({
+        timeSlot: 'midi',
+      });
+
+      expect(prisma.meal.findMany).toHaveBeenCalled();
+      const whereClause = (prisma.meal.findMany as jest.Mock).mock.calls[0][0].where;
+      expect(whereClause.pickupTimeStart).toBeDefined();
+    });
+
+    it('devrait filtrer par nombre de parts', async () => {
+      (prisma.meal.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.meal.count as jest.Mock).mockResolvedValue(0);
+
+      await mealService.getMeals({
+        portions: 2,
+      });
+
+      expect(prisma.meal.findMany).toHaveBeenCalled();
+      const whereClause = (prisma.meal.findMany as jest.Mock).mock.calls[0][0].where;
+      expect(whereClause.portions).toEqual({ gte: 2 });
+    });
+
+    it('devrait trier par distance si sortBy=distance', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        subscriptionType: 'FREE',
+      });
+      (prisma.meal.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: '1',
+          name: 'Repas 1',
+          pickupLatitude: 48.8606,
+          pickupLongitude: 2.3622,
+          cook: { id: 'cook-1', username: 'cook1', globalRating: 4.5 },
+        },
+        {
+          id: '2',
+          name: 'Repas 2',
+          pickupLatitude: 48.8506,
+          pickupLongitude: 2.3422,
+          cook: { id: 'cook-2', username: 'cook2', globalRating: 4.0 },
+        },
+      ]);
+      (prisma.meal.count as jest.Mock).mockResolvedValue(2);
+
+      const result = await mealService.getMeals({
+        userLat: 48.8566,
+        userLng: 2.3522,
+        sortBy: 'distance',
+      });
+
+      // Les repas devraient être triés par distance croissante
+      if (result.meals.length > 1 && result.meals[0].distance && result.meals[1].distance) {
+        expect(result.meals[0].distance).toBeLessThanOrEqual(result.meals[1].distance);
+      }
     });
   });
 

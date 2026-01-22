@@ -7,8 +7,6 @@ export class EmailService {
     const apiKey = process.env.SENDGRID_API_KEY;
     if (apiKey && apiKey !== 'SG...') {
       sgMail.setApiKey(apiKey);
-    } else {
-      console.warn('⚠️  SENDGRID_API_KEY non configurée. Les emails ne seront pas envoyés.');
     }
     this.fromEmail = process.env.EMAIL_FROM || 'noreply@solideat.fr';
   }
@@ -19,7 +17,6 @@ export class EmailService {
   async sendVerificationEmail(to: string, token: string): Promise<void> {
     const apiKey = process.env.SENDGRID_API_KEY;
     if (!apiKey || apiKey === 'SG...') {
-      console.log('📧 [DEV] Email de vérification (non envoyé):', { to, token });
       return;
     }
 
@@ -41,9 +38,7 @@ export class EmailService {
 
     try {
       await sgMail.send(msg);
-      console.log('✅ Email de vérification envoyé à', to);
     } catch (error) {
-      console.error('Erreur lors de l\'envoi de l\'email:', error);
       throw new Error('Impossible d\'envoyer l\'email de vérification');
     }
   }

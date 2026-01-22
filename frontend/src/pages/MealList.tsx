@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { mealService, Meal } from '../services/meal.service';
+import MealFiltersComponent, { MealFilters } from '../components/MealFilters';
 
 export default function MealList() {
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -8,18 +9,60 @@ export default function MealList() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [filters, setFilters] = useState<MealFilters>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadMeals();
-  }, [page]);
+  }, [page, filters]);
+
+  // Debounce pour la recherche
+  useEffect(() => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    const timer = setTimeout(() => {
+      if (page === 1) {
+        loadMeals();
+      } else {
+        setPage(1);
+      }
+    }, 500);
+
+    setDebounceTimer(timer);
+
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [searchQuery]);
 
   const loadMeals = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await mealService.getMeals({ page, limit: 20 });
+      const response = await mealService.getMeals({
+        ...filters,
+        page,
+        limit: 20,
+      });
       if (response.success && response.data) {
-        setMeals(response.data.meals);
+        // Filtrer par recherche textuelle si nécessaire
+        let filteredMeals = response.data.meals;
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          filteredMeals = filteredMeals.filter(
+            (meal) =>
+              meal.name.toLowerCase().includes(query) ||
+              meal.description?.toLowerCase().includes(query) ||
+              meal.cook.username.toLowerCase().includes(query) ||
+              meal.cook.addressCity.toLowerCase().includes(query)
+          );
+        }
+        setMeals(filteredMeals);
         setTotal(response.data.total);
       } else {
         setError('Erreur lors du chargement des repas');
@@ -30,6 +73,11 @@ export default function MealList() {
       setLoading(false);
     }
   };
+
+  const handleFiltersChange = useCallback((newFilters: MealFilters) => {
+    setFilters(newFilters);
+    setPage(1); // Reset à la première page lors du changement de filtres
+  }, []);
 
   const formatPickupTime = (start: string, end: string): string => {
     const startDate = new Date(start);
@@ -59,6 +107,26 @@ export default function MealList() {
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <h1>Repas disponibles</h1>
+
+      {/* Barre de recherche */}
+      <div style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Rechercher un repas, un cuisinier, une ville..."
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            fontSize: '16px',
+          }}
+        />
+      </div>
+
+      {/* Filtres */}
+      <MealFiltersComponent filters={filters} onFiltersChange={handleFiltersChange} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '2rem' }}>
         {meals.map((meal) => (

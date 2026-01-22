@@ -1,0 +1,298 @@
+import { useEffect, useState } from 'react';
+import { quotaService, QuotaStatus } from '../services/quota.service';
+
+export default function QuotaStatusComponent() {
+  const [quotaStatus, setQuotaStatus] = useState<QuotaStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadQuotaStatus();
+  }, []);
+
+  const loadQuotaStatus = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await quotaService.getQuotaStatus();
+      if (response.success && response.data) {
+        setQuotaStatus(response.data);
+      } else {
+        setError(response.error || 'Erreur lors du chargement');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Erreur lors du chargement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ padding: '1rem', textAlign: 'center' }}>
+        <p>Chargement des quotas...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '1rem', color: 'red' }}>
+        <p>Erreur : {error}</p>
+        <button onClick={loadQuotaStatus}>Réessayer</button>
+      </div>
+    );
+  }
+
+  if (!quotaStatus) {
+    return null;
+  }
+
+  const getProgressColor = (current: number, limit: number) => {
+    const percentage = (current / limit) * 100;
+    if (percentage >= 100) return '#ff4444';
+    if (percentage >= 80) return '#ffaa00';
+    return '#00aa00';
+  };
+
+  const getProgressPercentage = (current: number, limit: number) => {
+    return Math.min((current / limit) * 100, 100);
+  };
+
+  return (
+    <div style={{ padding: '1rem' }}>
+      <h2 style={{ marginBottom: '1rem' }}>Quotas et restrictions</h2>
+
+      {/* Sanctions actives */}
+      {quotaStatus.sanctions && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          {quotaStatus.sanctions.reservationBlocked && (
+            <div
+              style={{
+                backgroundColor: '#fff5f5',
+                border: '1px solid #ff4444',
+                borderRadius: '8px',
+                padding: '1rem',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <p style={{ margin: 0, color: '#ff4444', fontWeight: 'bold' }}>
+                ⚠️ Vos réservations sont temporairement bloquées
+              </p>
+            </div>
+          )}
+
+          {quotaStatus.sanctions.cancellationBlocked && (
+            <div
+              style={{
+                backgroundColor: '#fff5f5',
+                border: '1px solid #ff4444',
+                borderRadius: '8px',
+                padding: '1rem',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <p style={{ margin: 0, color: '#ff4444', fontWeight: 'bold' }}>
+                ⚠️ Vos annulations sont temporairement bloquées
+              </p>
+            </div>
+          )}
+
+          {quotaStatus.sanctions.activeSanctions.length > 0 && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <h3 style={{ fontSize: '14px', marginBottom: '0.5rem' }}>Sanctions actives :</h3>
+              {quotaStatus.sanctions.activeSanctions.map((sanction) => (
+                <div
+                  key={sanction.id}
+                  style={{
+                    backgroundColor: '#f5f5f5',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    padding: '0.75rem',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>
+                    {sanction.type === 'RESERVATION_BLOCK' && '🚫 Blocage des réservations'}
+                    {sanction.type === 'CANCELLATION_BLOCK' && '🚫 Blocage des annulations'}
+                    {sanction.type === 'QUOTA_REDUCTION' && '📉 Réduction de quota'}
+                  </p>
+                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '12px', color: '#666' }}>
+                    {sanction.reason}
+                  </p>
+                  {sanction.endDate && (
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '12px', color: '#999' }}>
+                      Jusqu'au {new Date(sanction.endDate).toLocaleDateString('fr-FR')}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Quotas hebdomadaires */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '16px', marginBottom: '0.75rem' }}>Quotas hebdomadaires</h3>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '14px' }}>Réservations</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>
+              {quotaStatus.weekly.reservations.current} / {quotaStatus.weekly.reservations.limit}
+            </span>
+          </div>
+          <div
+            style={{
+              width: '100%',
+              height: '8px',
+              backgroundColor: '#e0e0e0',
+              borderRadius: '4px',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${getProgressPercentage(
+                  quotaStatus.weekly.reservations.current,
+                  quotaStatus.weekly.reservations.limit
+                )}%`,
+                height: '100%',
+                backgroundColor: getProgressColor(
+                  quotaStatus.weekly.reservations.current,
+                  quotaStatus.weekly.reservations.limit
+                ),
+                transition: 'width 0.3s',
+              }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '14px' }}>Propositions</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>
+              {quotaStatus.weekly.proposals.current} / {quotaStatus.weekly.proposals.limit}
+            </span>
+          </div>
+          <div
+            style={{
+              width: '100%',
+              height: '8px',
+              backgroundColor: '#e0e0e0',
+              borderRadius: '4px',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${getProgressPercentage(
+                  quotaStatus.weekly.proposals.current,
+                  quotaStatus.weekly.proposals.limit
+                )}%`,
+                height: '100%',
+                backgroundColor: getProgressColor(
+                  quotaStatus.weekly.proposals.current,
+                  quotaStatus.weekly.proposals.limit
+                ),
+                transition: 'width 0.3s',
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Quotas mensuels */}
+      <div>
+        <h3 style={{ fontSize: '16px', marginBottom: '0.75rem' }}>Quotas mensuels</h3>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '14px' }}>
+              Annulations
+              {quotaStatus.monthly.cancellations.isReduced && (
+                <span style={{ color: '#ff4444', marginLeft: '0.5rem', fontSize: '12px' }}>⚠️ Réduit</span>
+              )}
+            </span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>
+              {quotaStatus.monthly.cancellations.current} / {quotaStatus.monthly.cancellations.limit}
+            </span>
+          </div>
+          {quotaStatus.monthly.cancellations.explanation && (
+            <p style={{ fontSize: '12px', color: '#ff4444', marginBottom: '0.25rem' }}>
+              {quotaStatus.monthly.cancellations.explanation}
+            </p>
+          )}
+          <div
+            style={{
+              width: '100%',
+              height: '8px',
+              backgroundColor: '#e0e0e0',
+              borderRadius: '4px',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${getProgressPercentage(
+                  quotaStatus.monthly.cancellations.current,
+                  quotaStatus.monthly.cancellations.limit
+                )}%`,
+                height: '100%',
+                backgroundColor: getProgressColor(
+                  quotaStatus.monthly.cancellations.current,
+                  quotaStatus.monthly.cancellations.limit
+                ),
+                transition: 'width 0.3s',
+              }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '14px' }}>
+              Repas non récupérés
+              {quotaStatus.monthly.notPickedUp.isReduced && (
+                <span style={{ color: '#ff4444', marginLeft: '0.5rem', fontSize: '12px' }}>⚠️ Réduit</span>
+              )}
+            </span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>
+              {quotaStatus.monthly.notPickedUp.current} / {quotaStatus.monthly.notPickedUp.limit}
+            </span>
+          </div>
+          {quotaStatus.monthly.notPickedUp.explanation && (
+            <p style={{ fontSize: '12px', color: '#ff4444', marginBottom: '0.25rem' }}>
+              {quotaStatus.monthly.notPickedUp.explanation}
+            </p>
+          )}
+          <div
+            style={{
+              width: '100%',
+              height: '8px',
+              backgroundColor: '#e0e0e0',
+              borderRadius: '4px',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${getProgressPercentage(
+                  quotaStatus.monthly.notPickedUp.current,
+                  quotaStatus.monthly.notPickedUp.limit
+                )}%`,
+                height: '100%',
+                backgroundColor: getProgressColor(
+                  quotaStatus.monthly.notPickedUp.current,
+                  quotaStatus.monthly.notPickedUp.limit
+                ),
+                transition: 'width 0.3s',
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

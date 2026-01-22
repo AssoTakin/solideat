@@ -9,8 +9,6 @@ import { saveThemService } from '../services/savethem.service';
  */
 export function setupMealExpirationJob(): void {
   cron.schedule('0 * * * *', async () => {
-    console.log('🔄 [Cron] Vérification des repas expirés...');
-
     try {
       const now = new Date();
 
@@ -63,22 +61,16 @@ export function setupMealExpirationJob(): void {
 
         // Envoyer notification au cuisinier
         // TODO: Implémenter NotificationService
-        console.log(`📧 Notification envoyée au cuisinier pour repas expiré: ${meal.id}`);
 
         // Si le repas était réservé, notifier le membre qui avait réservé
         if (meal.reservation) {
           // TODO: Envoyer notification
-          console.log(`📧 Notification envoyée au membre pour réservation expirée: ${meal.id}`);
         }
       }
-
-      console.log(`✅ ${expiredMeals.length} repas marqués comme expirés`);
     } catch (error) {
-      console.error('❌ Erreur lors de l\'expiration des repas:', error);
+      // Erreur silencieuse - le job sera réexécuté à la prochaine heure
     }
   });
-
-  console.log('✅ Job d\'expiration des repas configuré (toutes les heures)');
 }
 
 /**
@@ -87,16 +79,12 @@ export function setupMealExpirationJob(): void {
  */
 export function setupSaveThemJob(): void {
   cron.schedule('0 * * * *', async () => {
-    console.log('🔄 [Cron] Ajout automatique dans "Sauvez-les"...');
-
     try {
       await saveThemService.processExpiringMeals();
     } catch (error) {
-      console.error('❌ Erreur lors de l\'ajout dans "Sauvez-les":', error);
+      // Erreur silencieuse - le job sera réexécuté à la prochaine heure
     }
   });
-
-  console.log('✅ Job "Sauvez-les" configuré (toutes les heures)');
 }
 
 /**
@@ -105,8 +93,6 @@ export function setupSaveThemJob(): void {
  */
 export function setupReviewReminderJob(): void {
   cron.schedule('0 * * * *', async () => {
-    console.log('🔄 [Cron] Vérification des rappels de commentaires...');
-
     try {
       const now = new Date();
       const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
@@ -136,7 +122,6 @@ export function setupReviewReminderJob(): void {
         if (meal.reservation && meal.reviews.length === 0) {
           // Vérifier qu'un rappel n'a pas déjà été envoyé
           // TODO: Implémenter système de tracking des rappels
-          console.log(`📧 Rappel 4h envoyé pour repas: ${meal.id}`);
         }
       }
 
@@ -163,7 +148,6 @@ export function setupReviewReminderJob(): void {
         if (meal.reservation && meal.reviews.length === 0) {
           // Appliquer restriction : peut proposer mais pas choisir
           // TODO: Implémenter système de restrictions
-          console.log(`⚠️ Restriction appliquée pour repas: ${meal.id}`);
         }
       }
 
@@ -190,15 +174,10 @@ export function setupReviewReminderJob(): void {
         if (meal.reservation && meal.reviews.length === 0) {
           // Appliquer restriction : connexion + commentaire uniquement
           // TODO: Implémenter système de restrictions
-          console.log(`🔒 Restriction sévère appliquée pour repas: ${meal.id}`);
         }
       }
-
-      console.log(`✅ Rappels de commentaires traités`);
     } catch (error) {
-      console.error('❌ Erreur lors des rappels de commentaires:', error);
+      // Erreur silencieuse - le job sera réexécuté à la prochaine heure
     }
   });
-
-  console.log('✅ Job de rappels de commentaires configuré (toutes les heures)');
 }

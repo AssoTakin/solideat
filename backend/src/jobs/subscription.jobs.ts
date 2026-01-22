@@ -8,8 +8,6 @@ import { SubscriptionType } from '@prisma/client';
  */
 export function setupSubscriptionRenewalJob(): void {
   cron.schedule('0 0 * * *', async () => {
-    console.log('🔄 [Cron] Vérification des abonnements expirant...');
-
     try {
       const now = new Date();
       const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
@@ -34,10 +32,8 @@ export function setupSubscriptionRenewalJob(): void {
         },
       });
 
-      for (const user of expiringSubscriptions) {
+      for (const _user of expiringSubscriptions) {
         // Envoyer notification
-        console.log(`📧 Notification renouvellement envoyée: ${user.id}`);
-
         // TODO: Tenter renouvellement automatique via Stripe si carte valide
         // Si échec, rétrograder en membre gratuit
       }
@@ -67,13 +63,8 @@ export function setupSubscriptionRenewalJob(): void {
           subscriptionEnd: null,
         },
       });
-
-      console.log(`✅ ${expiringSubscriptions.length} abonnements expirent bientôt`);
-      console.log(`✅ ${expiredSubscriptions.length} abonnements rétrogradés en gratuit`);
     } catch (error) {
-      console.error('❌ Erreur lors du renouvellement des abonnements:', error);
+      // Erreur silencieuse - le job sera réexécuté le lendemain
     }
   });
-
-  console.log('✅ Job de renouvellement d\'abonnements configuré (quotidien)');
 }

@@ -1,4 +1,5 @@
 import prisma from '../config/database';
+import { sanctionService } from './sanction.service';
 
 export type QuotaType = 'weekly' | 'monthly';
 
@@ -7,6 +8,22 @@ export interface QuotaStatus {
   current: number;
   limit: number;
   message?: string;
+}
+
+export interface QuotaStatusDetailed {
+  weekly: {
+    reservations: { current: number; limit: number; isReduced?: boolean };
+    proposals: { current: number; limit: number };
+  };
+  monthly: {
+    cancellations: { current: number; limit: number; isReduced?: boolean; explanation?: string };
+    notPickedUp: { current: number; limit: number; isReduced?: boolean; explanation?: string };
+  };
+  sanctions?: {
+    reservationBlocked: boolean;
+    cancellationBlocked: boolean;
+    activeSanctions: any[];
+  };
 }
 
 export class QuotaService {
@@ -148,7 +165,7 @@ export class QuotaService {
   }
 
   /**
-   * Vérifie le quota d'annulation mensuel
+   * Vérifie le quota d'annulation mensuel (prend en compte les sanctions)
    */
   async checkMonthlyCancellationQuota(userId: string): Promise<QuotaStatus> {
     // Calculer le début du mois
@@ -180,14 +197,17 @@ export class QuotaService {
     ]);
 
     const total = cancellations + notPickedUp;
-    const limit = 4; // Maximum 4 (annulations + non récupérés) par mois
+    
+    // Vérifier si un quota réduit est actif
+    const reducedQuota = await sanctionService.getReducedQuota(userId);
+    const limit = reducedQuota?.cancellations || 4; // Maximum 4 (annulations + non récupérés) par mois, ou quota réduit
 
     if (total >= limit) {
       return {
         allowed: false,
         current: total,
         limit,
-        message: 'Plafond mensuel atteint (4 annulations + repas non récupérés/mois)',
+        message: `Plafond mensuel atteint (${limit} annulations + repas non récupérés/mois)`,
       };
     }
 
@@ -195,6 +215,131 @@ export class QuotaService {
       allowed: true,
       current: total,
       limit,
+    };
+  }
+
+  /**
+   * Récupère le statut détaillé de tous les quotas (US-047)
+   */
+  async getQuotaStatus(userId: string): Promise<QuotaStatusDetailed> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionType: true },
+    });
+
+    if (!user) {
+      throw new Error('Utilisateur non trouvé');
+    }
+
+    const now = new Date();
+    
+    // Calculer le début de la semaine (lundi)
+    const dayOfWeek = now.getDay();
+    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // Calculer le début du mois
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // Compter toutes les métriques
+    const [
+      weeklyReservations,
+      weeklyProposals,
+      monthlyCancellations,
+      monthlyNotPickedUp,
+    ] = await Promise.all([
+      prisma.reservation.count({
+        where: {
+          userId,
+          reservedAt: { gte: startOfWeek },
+          cancelledAt: null,
+        },
+      }),
+      prisma.meal.count({
+        where: {
+          cookId: userId,
+          createdAt: { gte: startOfWeek },
+        },
+      }),
+      prisma.reservation.count({
+        where: {
+          userId,
+          cancelledAt: { gte: startOfMonth },
+        },
+      }),
+      prisma.meal.count({
+        where: {
+          reservation: { userId },
+          status: 'NOT_PICKED_UP',
+          updatedAt: { gte: startOfMonth },
+        },
+      }),
+    ]);
+
+    // Vérifier les quotas réduits
+    const reducedQuota = await sanctionService.getReducedQuota(userId);
+    const isPremium = user.subscriptionType !== 'FREE';
+
+    // Vérifier les sanctions actives
+    const [reservationBlocked, cancellationBlocked, activeSanctions] = await Promise.all([
+      sanctionService.isReservationBlocked(userId),
+      sanctionService.isCancellationBlocked(userId),
+      prisma.sanction.findMany({
+        where: {
+          userId,
+          active: true,
+          OR: [
+            { endDate: null },
+            { endDate: { gte: now } },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      weekly: {
+        reservations: {
+          current: weeklyReservations,
+          limit: isPremium ? 3 : 1,
+        },
+        proposals: {
+          current: weeklyProposals,
+          limit: isPremium ? 3 : 1,
+        },
+      },
+      monthly: {
+        cancellations: {
+          current: monthlyCancellations,
+          limit: reducedQuota?.cancellations || 4,
+          isReduced: !!reducedQuota?.cancellations,
+          explanation: reducedQuota?.cancellations
+            ? `Quota réduit à ${reducedQuota.cancellations} suite à une sanction`
+            : undefined,
+        },
+        notPickedUp: {
+          current: monthlyNotPickedUp,
+          limit: reducedQuota?.notPickedUp || 2,
+          isReduced: !!reducedQuota?.notPickedUp,
+          explanation: reducedQuota?.notPickedUp
+            ? `Quota réduit à ${reducedQuota.notPickedUp} suite à une sanction`
+            : undefined,
+        },
+      },
+      sanctions: {
+        reservationBlocked,
+        cancellationBlocked,
+        activeSanctions: activeSanctions.map((s) => ({
+          id: s.id,
+          type: s.type,
+          reason: s.reason,
+          startDate: s.startDate,
+          endDate: s.endDate,
+        })),
+      },
     };
   }
 }

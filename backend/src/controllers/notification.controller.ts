@@ -123,6 +123,93 @@ export class NotificationController {
       });
     }
   }
+
+  /**
+   * GET /notifications/system
+   * Récupère les messages système (US-044)
+   */
+  async getSystemMessages(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const messages = await prisma.notification.findMany({
+        where: {
+          userId: req.user!.id,
+          type: 'SYSTEM_MESSAGE',
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      // Séparer les messages obligatoires (non lus) et les autres
+      const unreadMessages = messages.filter((m) => !m.read);
+      const readMessages = messages.filter((m) => m.read);
+
+      res.json({
+        success: true,
+        data: {
+          unread: unreadMessages,
+          read: readMessages,
+          unreadCount: unreadMessages.length,
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur lors de la récupération des messages système',
+      });
+    }
+  }
+
+  /**
+   * PUT /notifications/system/:id/read
+   * Marquer un message système comme lu (obligatoire pour les messages obligatoires)
+   */
+  async markSystemMessageAsRead(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      const message = await prisma.notification.findUnique({
+        where: {
+          id,
+          userId: req.user!.id,
+        },
+      });
+
+      if (!message) {
+        res.status(404).json({
+          success: false,
+          error: 'Message non trouvé',
+        });
+        return;
+      }
+
+      if (message.type !== 'SYSTEM_MESSAGE') {
+        res.status(400).json({
+          success: false,
+          error: 'Ce n\'est pas un message système',
+        });
+        return;
+      }
+
+      await prisma.notification.update({
+        where: { id },
+        data: {
+          read: true,
+          readAt: new Date(),
+        },
+      });
+
+      res.json({
+        success: true,
+        message: 'Message marqué comme lu',
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erreur lors du marquage',
+      });
+    }
+  }
 }
 
 export const notificationController = new NotificationController();

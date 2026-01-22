@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../config/database';
+import { dashboardService } from '../services/dashboard.service';
+import { quotaService } from '../services/quota.service';
 
 export class UserController {
   /**
@@ -111,6 +113,46 @@ export class UserController {
       res.status(500).json({
         success: false,
         error: error.message || 'Erreur lors de la récupération du profil',
+      });
+    }
+  }
+
+  /**
+   * GET /users/me/dashboard
+   * Statistiques du tableau de bord
+   */
+  async getDashboardStats(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const stats = await dashboardService.getDashboardStats(req.user!.id);
+
+      res.json({
+        success: true,
+        data: stats,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur lors de la récupération des statistiques',
+      });
+    }
+  }
+
+  /**
+   * GET /users/me/quotas
+   * Statut détaillé des quotas (US-047)
+   */
+  async getQuotas(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const quotaStatus = await quotaService.getQuotaStatus(req.user!.id);
+
+      res.json({
+        success: true,
+        data: quotaStatus,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur lors de la récupération des quotas',
       });
     }
   }

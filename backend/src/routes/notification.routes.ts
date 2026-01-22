@@ -19,4 +19,8 @@ router.put('/read-all', notificationController.markAllAsRead.bind(notificationCo
 // Nombre de notifications non lues
 router.get('/unread-count', notificationController.getUnreadCount.bind(notificationController));
 
+// Messages système (US-044)
+router.get('/system', notificationController.getSystemMessages.bind(notificationController));
+router.put('/system/:id/read', notificationController.markSystemMessageAsRead.bind(notificationController));
+
 export default router;

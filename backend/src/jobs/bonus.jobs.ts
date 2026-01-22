@@ -7,8 +7,6 @@ import prisma from '../config/database';
  */
 export function setupBonusExpirationJob(): void {
   cron.schedule('0 0 * * *', async () => {
-    console.log('🔄 [Cron] Vérification des bonus donateurs expirant...');
-
     try {
       const now = new Date();
       const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
@@ -32,10 +30,9 @@ export function setupBonusExpirationJob(): void {
         },
       });
 
-      for (const bonus of expiringBonuses) {
+      for (const _bonus of expiringBonuses) {
         // Envoyer notification
         // TODO: Implémenter NotificationService
-        console.log(`📧 Notification expiration bonus envoyée: ${bonus.id}`);
       }
 
       // Marquer comme expirés les bonus dont la date est passée
@@ -50,12 +47,8 @@ export function setupBonusExpirationJob(): void {
           // On peut ajouter un champ expired si nécessaire
         },
       });
-
-      console.log(`✅ ${expiringBonuses.length} bonus expirent bientôt`);
     } catch (error) {
-      console.error('❌ Erreur lors de la vérification des bonus:', error);
+      // Erreur silencieuse - le job sera réexécuté le lendemain
     }
   });
-
-  console.log('✅ Job d\'expiration des bonus configuré (quotidien)');
 }

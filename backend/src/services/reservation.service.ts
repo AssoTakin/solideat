@@ -2,6 +2,7 @@ import { MealStatus } from '@prisma/client';
 import prisma from '../config/database';
 import { quotaService } from './quota.service';
 import { emailService } from './email.service';
+import { sanctionService } from './sanction.service';
 
 export class ReservationService {
   /**
@@ -43,6 +44,12 @@ export class ReservationService {
     // Vérifier que l'utilisateur ne réserve pas son propre repas
     if (meal.cookId === userId) {
       throw new Error('Vous ne pouvez pas réserver votre propre repas');
+    }
+
+    // Vérifier si les réservations sont bloquées (sanction)
+    const isReservationBlocked = await sanctionService.isReservationBlocked(userId);
+    if (isReservationBlocked) {
+      throw new Error('Vos réservations sont temporairement bloquées suite à une sanction. Consultez vos messages système pour plus d\'informations.');
     }
 
     // Vérifier les quotas hebdomadaires
@@ -100,7 +107,9 @@ export class ReservationService {
     emailService.sendVerificationEmail(
       meal.cook.email,
       `Nouvelle réservation pour ${meal.name}`
-    ).catch(console.error);
+    ).catch(() => {
+      // Erreur silencieuse
+    });
 
     // Incrémenter le compteur de repas reçus
     const user = await prisma.user.findUnique({
@@ -163,6 +172,12 @@ export class ReservationService {
       throw new Error('Cette réservation est déjà annulée');
     }
 
+    // Vérifier si les annulations sont bloquées (sanction)
+    const isCancellationBlocked = await sanctionService.isCancellationBlocked(userId);
+    if (isCancellationBlocked) {
+      throw new Error('Vos annulations sont temporairement bloquées suite à une sanction. Consultez vos messages système pour plus d\'informations.');
+    }
+
     // Vérifier le délai (7h avant l'heure de récupération)
     const pickupTimeStart = new Date(reservation.meal.pickupTimeStart);
     const now = new Date();
@@ -218,7 +233,9 @@ export class ReservationService {
     emailService.sendVerificationEmail(
       reservation.meal.cook.email,
       `Réservation annulée pour ${reservation.meal.name}`
-    ).catch(console.error);
+    ).catch(() => {
+      // Erreur silencieuse
+    });
   }
 
   /**
@@ -333,11 +350,17 @@ export class ReservationService {
       throw new Error('Le signalement n\'est plus possible (plus de 24h après la fin de récupération)');
     }
 
+    // Vérifier si les annulations sont bloquées (sanction)
+    const isCancellationBlocked = await sanctionService.isCancellationBlocked(reservation.userId);
+    if (isCancellationBlocked) {
+      throw new Error('Vos annulations sont temporairement bloquées suite à une sanction. Consultez vos messages système pour plus d\'informations.');
+    }
+
     // Vérifier le quota mensuel
     const monthlyQuota = await quotaService.checkMonthlyCancellationQuota(reservation.userId);
     if (!monthlyQuota.allowed) {
-      // Appliquer les sanctions
-      // TODO: Implémenter SanctionService
+      // Les sanctions seront appliquées par le job quotidien
+      // On peut quand même signaler le repas non récupéré
     }
 
     // Vérifier le temps restant avant expiration
@@ -366,7 +389,9 @@ export class ReservationService {
     emailService.sendVerificationEmail(
       reservation.user.email,
       `Repas non récupéré : ${reservation.meal.name}`
-    ).catch(console.error);
+    ).catch(() => {
+      // Erreur silencieuse
+    });
   }
 }
 

@@ -6,6 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import { setupMealExpirationJob, setupSaveThemJob, setupReviewReminderJob } from './jobs/meal.jobs';
 import { setupBonusExpirationJob } from './jobs/bonus.jobs';
 import { setupSubscriptionRenewalJob } from './jobs/subscription.jobs';
+import { setupSanctionCheckJob } from './jobs/sanction.jobs';
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -49,6 +50,7 @@ import reservationRoutes from './routes/reservation.routes';
 import messageRoutes from './routes/message.routes';
 import reviewRoutes from './routes/review.routes';
 import notificationRoutes from './routes/notification.routes';
+import subscriptionRoutes from './routes/subscription.routes';
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/meals', mealRoutes);
@@ -56,6 +58,7 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 // etc.
 
 // 404 handler
@@ -68,46 +71,42 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Error:', err);
   res.status(500).json({
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
   });
 });
 
-// Démarrage du serveur
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-
-  // Démarrer les jobs cron (seulement si pas en mode test)
-  if (process.env.NODE_ENV !== 'test') {
+// Démarrage du serveur (seulement si pas en mode test et si le script est exécuté directement)
+if (process.env.NODE_ENV !== 'test' && require.main === module) {
+  const server = app.listen(PORT, () => {
+    // Démarrer les jobs cron
     setupMealExpirationJob();
     setupSaveThemJob();
     setupReviewReminderJob();
     setupBonusExpirationJob();
     setupSubscriptionRenewalJob();
-    console.log('✅ Tous les jobs cron sont configurés');
-  }
-});
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server.close(async () => {
-    console.log('HTTP server closed');
-    await prisma.$disconnect();
-    process.exit(0);
+    setupSanctionCheckJob();
   });
-});
 
-process.on('SIGINT', async () => {
-  console.log('SIGINT signal received: closing HTTP server');
-  server.close(async () => {
-    console.log('HTTP server closed');
-    await prisma.$disconnect();
-    process.exit(0);
+  // Graceful shutdown
+  process.on('SIGTERM', async () => {
+    server.close(async () => {
+      await prisma.$disconnect();
+      process.exit(0);
+    });
   });
-});
+
+  process.on('SIGINT', async () => {
+    server.close(async () => {
+      await prisma.$disconnect();
+      process.exit(0);
+    });
+  });
+} else if (process.env.NODE_ENV === 'test') {
+  // En mode test, ne pas démarrer les jobs cron
+  // Les mocks s'en chargeront
+}
+
 
 export default app;

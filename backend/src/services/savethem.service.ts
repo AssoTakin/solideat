@@ -1,8 +1,6 @@
 import { MealStatus } from '@prisma/client';
 import prisma from '../config/database';
-import { MealService } from './meal.service';
-
-const mealService = new MealService();
+import { geolocationService } from './geolocation.service';
 
 export class SaveThemService {
   /**
@@ -69,7 +67,7 @@ export class SaveThemService {
     let mealsWithDistance = meals;
     if (filters.userLat && filters.userLng) {
       mealsWithDistance = meals.map((meal) => {
-        const distance = mealService.calculateDistance(
+        const distance = geolocationService.calculateDistance(
           filters.userLat!,
           filters.userLng!,
           meal.pickupLatitude,
@@ -172,7 +170,6 @@ export class SaveThemService {
       },
     });
 
-    console.log(`✅ ${expiringMeals.length} repas ajoutés dans "Sauvez-les"`);
   }
 }
 

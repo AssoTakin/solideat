@@ -11,8 +11,6 @@ export class SmsService {
 
     if (accountSid && authToken && accountSid !== 'AC...' && authToken !== '...') {
       this.client = twilio(accountSid, authToken);
-    } else {
-      console.warn('⚠️  Twilio non configuré. Les SMS ne seront pas envoyés.');
     }
   }
 
@@ -28,7 +26,6 @@ export class SmsService {
    */
   async sendVerificationSMS(to: string, code: string): Promise<void> {
     if (!this.client || !this.phoneNumber) {
-      console.log('📱 [DEV] SMS de vérification (non envoyé):', { to, code });
       return;
     }
 
@@ -38,9 +35,7 @@ export class SmsService {
         from: this.phoneNumber,
         to,
       });
-      console.log('✅ SMS de vérification envoyé à', to);
     } catch (error) {
-      console.error('Erreur lors de l\'envoi du SMS:', error);
       throw new Error('Impossible d\'envoyer le SMS de vérification');
     }
   }

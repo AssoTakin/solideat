@@ -12,6 +12,7 @@ import Conversations from './pages/Conversations';
 import Conversation from './pages/Conversation';
 import SaveThem from './pages/SaveThem';
 import CreateReview from './pages/CreateReview';
+import SubscriptionPlans from './pages/SubscriptionPlans';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/reservations" element={<MyReservations />} />
         <Route path="/messages" element={<Conversations />} />
         <Route path="/messages/:mealId" element={<Conversation />} />
+        <Route path="/subscriptions/plans" element={<SubscriptionPlans />} />
         <Route path="/health" element={<div>Frontend OK</div>} />
       </Routes>
     </div>

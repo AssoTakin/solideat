@@ -47,7 +47,9 @@ export class NotificationService {
 
       if (user) {
         // TODO: Utiliser un template d'email approprié selon le type
-        emailService.sendVerificationEmail(user.email, `Notification: ${title}`).catch(console.error);
+        emailService.sendVerificationEmail(user.email, `Notification: ${title}`).catch(() => {
+          // Erreur silencieuse
+        });
       }
     }
   }

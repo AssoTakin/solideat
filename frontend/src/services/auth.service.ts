@@ -76,7 +76,7 @@ export const authService = {
     try {
       await api.post('/auth/logout');
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
+      // Erreur silencieuse
     } finally {
       localStorage.removeItem('token');
     }

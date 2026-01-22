@@ -63,7 +63,7 @@ export const mealService = {
   },
 
   /**
-   * Récupérer la liste des repas
+   * Récupérer la liste des repas avec filtres avancés
    */
   async getMeals(filters?: {
     status?: string;
@@ -71,11 +71,28 @@ export const mealService = {
     portions?: number;
     page?: number;
     limit?: number;
+    // Filtres de base
+    maxDistance?: number;
+    cuisine?: string;
+    hour?: string;
+    // Filtres avancés (premium)
+    minRating?: number;
+    preparationDate?: string;
+    // Tri
+    sortBy?: 'distance' | 'date' | 'rating' | 'expiration';
+    sortOrder?: 'asc' | 'desc';
   }): Promise<MealsResponse> {
     const params = new URLSearchParams();
     if (filters?.status) params.append('status', filters.status);
     if (filters?.date) params.append('date', filters.date);
     if (filters?.portions) params.append('portions', filters.portions.toString());
+    if (filters?.maxDistance) params.append('maxDistance', filters.maxDistance.toString());
+    if (filters?.cuisine) params.append('cuisine', filters.cuisine);
+    if (filters?.hour) params.append('hour', filters.hour);
+    if (filters?.minRating) params.append('minRating', filters.minRating.toString());
+    if (filters?.preparationDate) params.append('preparationDate', filters.preparationDate);
+    if (filters?.sortBy) params.append('sortBy', filters.sortBy);
+    if (filters?.sortOrder) params.append('sortOrder', filters.sortOrder);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
