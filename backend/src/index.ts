@@ -42,9 +42,11 @@ app.get('/health', async (_req, res) => {
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import mealRoutes from './routes/meal.routes';
+import reservationRoutes from './routes/reservation.routes';
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/meals', mealRoutes);
+app.use('/api/reservations', reservationRoutes);
 // etc.
 
 // 404 handler
