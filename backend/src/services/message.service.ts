@@ -8,14 +8,18 @@ export class MessageService {
   detectPhoneNumber(content: string): boolean {
     // Patterns pour détecter les numéros français
     const phonePatterns = [
-      // Format standard : 06 12 34 56 78, 07 12 34 56 78 (avec ou sans espaces)
-      /\b0[67][\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}\b/,
-      // Format international : +33 6 12 34 56 78, +33612345678
-      /\b\+33[\s.-]?[67][\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}\b/,
+      // Format standard : 06 12 34 56 78, 07 12 34 56 78 (avec espaces)
+      /0[67]\s\d{2}\s\d{2}\s\d{2}\s\d{2}\s\d{2}/,
+      // Format avec tirets : 06-12-34-56-78
+      /0[67]-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}/,
       // Format compact : 0612345678, 0712345678
-      /\b0[67]\d{8}\b/,
+      /0[67]\d{8}/,
+      // Format international : +33 6 12 34 56 78
+      /\+33\s?[67]\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}/,
+      // Format avec points : 06.12.34.56.78
+      /0[67]\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2}/,
       // Numéros en toutes lettres (basique)
-      /\b(zéro|zero)\s*(six|sept|huit|neuf)\s*(un|deux|trois|quatre|cinq|six|sept|huit|neuf|zéro|zero)\b/gi,
+      /(zéro|zero)\s*(six|sept|huit|neuf)\s*(un|deux|trois|quatre|cinq|six|sept|huit|neuf|zéro|zero)/i,
     ];
 
     return phonePatterns.some((pattern) => pattern.test(content));
