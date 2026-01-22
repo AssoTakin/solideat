@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Verify from './pages/Verify';
 import Dashboard from './pages/Dashboard';
 import UserProfile from './pages/UserProfile';
+import MealList from './pages/MealList';
+import MealDetails from './pages/MealDetails';
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/verify" element={<Verify />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/users/:id" element={<UserProfile />} />
+        <Route path="/meals" element={<MealList />} />
+        <Route path="/meals/:id" element={<MealDetails />} />
         <Route path="/health" element={<div>Frontend OK</div>} />
       </Routes>
     </div>
