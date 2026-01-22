@@ -55,7 +55,8 @@ model User {
   // Relations
   meals             Meal[]
   reservations      Reservation[]
-  reviews           Review[]
+  reviewsAsReviewer Review[] @relation("ReviewReviewer")
+  reviewsAsCook     Review[] @relation("ReviewCook")
   sentMessages      Message[] @relation("MessageSender")
   receivedMessages  Message[] @relation("MessageReceiver")
   badges            UserBadge[]
@@ -166,9 +167,9 @@ model Review {
   mealId            String
   meal              Meal      @relation(fields: [mealId], references: [id])
   reviewerId        String
-  reviewer          User      @relation(fields: [reviewerId], references: [id])
+  reviewer          User      @relation("ReviewReviewer", fields: [reviewerId], references: [id])
   cookId            String
-  cook              User      @relation(fields: [cookId], references: [id])
+  cook              User      @relation("ReviewCook", fields: [cookId], references: [id])
   
   rating            Int       // 1-5
   comment           String
@@ -210,6 +211,7 @@ model Badge {
   icon              String
   condition         String    // Description de la condition
   premiumOnly       Boolean   @default(false)
+  userBadges        UserBadge[]
 }
 
 model UserBadge {
