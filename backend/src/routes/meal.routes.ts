@@ -22,4 +22,8 @@ router.put('/:id', authenticate, validate(updateMealSchema), mealController.upda
 // Suppression d'un repas (nécessite authentification)
 router.delete('/:id', authenticate, mealController.deleteMeal.bind(mealController));
 
+// Repas "Sauvez-les" (accessible sans authentification, mais avec coordonnées si connecté)
+import { saveThemController } from '../controllers/savethem.controller';
+router.get('/save-them', saveThemController.getSaveThemMeals.bind(saveThemController));
+
 export default router;

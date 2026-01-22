@@ -103,13 +103,27 @@ export class ReservationService {
     ).catch(console.error);
 
     // Incrémenter le compteur de repas reçus
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionType: true },
+    });
+
+    const updateData: any = {
+      mealsReceived: {
+        increment: 1,
+      },
+    };
+
+    // Si le repas était dans "Sauvez-les", incrémenter mealsSaved (premium uniquement)
+    if (meal.inSaveThem && user?.subscriptionType !== 'FREE') {
+      updateData.mealsSaved = {
+        increment: 1,
+      };
+    }
+
     await prisma.user.update({
       where: { id: userId },
-      data: {
-        mealsReceived: {
-          increment: 1,
-        },
-      },
+      data: updateData,
     });
 
     return reservation;
