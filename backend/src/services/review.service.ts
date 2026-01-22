@@ -10,14 +10,7 @@ export class ReviewService {
     const meal = await prisma.meal.findUnique({
       where: { id: data.mealId },
       include: {
-        reservation: {
-          where: {
-            userId,
-            pickedUpAt: {
-              not: null,
-            },
-          },
-        },
+        reservation: true,
         cook: true,
       },
     });
@@ -26,7 +19,8 @@ export class ReviewService {
       throw new Error('Repas non trouvé');
     }
 
-    if (!meal.reservation || meal.reservation.length === 0) {
+    // Vérifier que l'utilisateur a réservé et récupéré ce repas
+    if (!meal.reservation || meal.reservation.userId !== userId || !meal.reservation.pickedUpAt) {
       throw new Error('Vous n\'avez pas réservé ce repas ou il n\'a pas été récupéré');
     }
 
