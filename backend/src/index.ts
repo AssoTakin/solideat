@@ -44,11 +44,13 @@ import userRoutes from './routes/user.routes';
 import mealRoutes from './routes/meal.routes';
 import reservationRoutes from './routes/reservation.routes';
 import messageRoutes from './routes/message.routes';
+import reviewRoutes from './routes/review.routes';
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/reviews', reviewRoutes);
 // etc.
 
 // 404 handler
