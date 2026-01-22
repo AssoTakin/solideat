@@ -3,6 +3,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import { setupMealExpirationJob, setupSaveThemJob, setupReviewReminderJob } from './jobs/meal.jobs';
+import { setupBonusExpirationJob } from './jobs/bonus.jobs';
+import { setupSubscriptionRenewalJob } from './jobs/subscription.jobs';
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -74,6 +77,16 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  // Démarrer les jobs cron (seulement si pas en mode test)
+  if (process.env.NODE_ENV !== 'test') {
+    setupMealExpirationJob();
+    setupSaveThemJob();
+    setupReviewReminderJob();
+    setupBonusExpirationJob();
+    setupSubscriptionRenewalJob();
+    console.log('✅ Tous les jobs cron sont configurés');
+  }
 });
 
 // Graceful shutdown
