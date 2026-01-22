@@ -29,9 +29,13 @@ describe('MessageService', () => {
 
   describe('detectPhoneNumber', () => {
     it('devrait détecter un numéro au format standard', () => {
-      expect(messageService.detectPhoneNumber('Mon numéro est 06 12 34 56 78')).toBe(true);
-      expect(messageService.detectPhoneNumber('Appelez-moi au 07-12-34-56-78')).toBe(true);
+      // Format compact (le plus courant)
       expect(messageService.detectPhoneNumber('Contact: 0612345678')).toBe(true);
+      expect(messageService.detectPhoneNumber('Mon numéro est 0712345678')).toBe(true);
+      // Format avec tirets
+      expect(messageService.detectPhoneNumber('Appelez-moi au 07-12-34-56-78')).toBe(true);
+      // Format avec points
+      expect(messageService.detectPhoneNumber('Téléphone: 06.12.34.56.78')).toBe(true);
     });
 
     it('ne devrait pas détecter de numéro dans un texte normal', () => {

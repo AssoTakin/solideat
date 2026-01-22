@@ -8,7 +8,7 @@ export class MessageService {
   detectPhoneNumber(content: string): boolean {
     // Patterns pour détecter les numéros français
     const phonePatterns = [
-      // Format standard : 06 12 34 56 78, 07 12 34 56 78 (avec espaces)
+      // Format standard : 06 12 34 56 78, 07 12 34 56 78 (avec espaces - au moins un espace)
       /0[67]\s+\d{2}\s+\d{2}\s+\d{2}\s+\d{2}\s+\d{2}/,
       // Format avec tirets : 06-12-34-56-78
       /0[67]-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}/,
