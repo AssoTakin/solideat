@@ -6,8 +6,8 @@ export default function Verify() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const [userId, setUserId] = useState<string | null>(location.state?.userId || null);
-  const [emailToken, setEmailToken] = useState<string | null>(searchParams.get('token') || null);
+  const [userId] = useState<string | null>(location.state?.userId || null);
+  const [emailToken] = useState<string | null>(searchParams.get('token') || null);
   const [phoneCode, setPhoneCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
