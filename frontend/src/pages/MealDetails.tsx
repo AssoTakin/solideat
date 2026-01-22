@@ -115,6 +115,11 @@ export default function MealDetails() {
       </div>
 
       <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+        {meal.status !== 'SERVED' && (
+          <button onClick={() => navigate(`/messages/${meal.id}`)} style={{ padding: '0.75rem 1.5rem', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '0.5rem' }}>
+            Contacter le cuisinier
+          </button>
+        )}
         {meal.status === 'AVAILABLE' && (
           <>
             <button onClick={() => navigate(`/meals/${meal.id}/reserve`)} style={{ padding: '0.75rem 1.5rem', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>

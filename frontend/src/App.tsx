@@ -8,6 +8,8 @@ import MealList from './pages/MealList';
 import MealDetails from './pages/MealDetails';
 import MyReservations from './pages/MyReservations';
 import ReserveMeal from './pages/ReserveMeal';
+import Conversations from './pages/Conversations';
+import Conversation from './pages/Conversation';
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
         <Route path="/meals/:id" element={<MealDetails />} />
         <Route path="/meals/:id/reserve" element={<ReserveMeal />} />
         <Route path="/reservations" element={<MyReservations />} />
+        <Route path="/messages" element={<Conversations />} />
+        <Route path="/messages/:mealId" element={<Conversation />} />
         <Route path="/health" element={<div>Frontend OK</div>} />
       </Routes>
     </div>
