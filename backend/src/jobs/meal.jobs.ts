@@ -2,7 +2,6 @@ import cron from 'node-cron';
 import { MealStatus } from '@prisma/client';
 import prisma from '../config/database';
 import { saveThemService } from '../services/savethem.service';
-import { notificationService } from '../services/notification.service';
 
 /**
  * Job : Expiration automatique des repas
