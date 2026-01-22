@@ -140,6 +140,11 @@ export default function MyReservations() {
                     Annuler
                   </button>
                 )}
+                {reservation.meal.status === 'SERVED' && reservation.pickedUpAt && !reservation.cancelledAt && (
+                  <Link to={`/meals/${reservation.mealId}/review`} style={{ padding: '0.5rem 1rem', background: '#ffc107', color: 'black', textDecoration: 'none', borderRadius: '4px', display: 'inline-block' }}>
+                    Noter ce repas
+                  </Link>
+                )}
               </div>
             </div>
           ))}

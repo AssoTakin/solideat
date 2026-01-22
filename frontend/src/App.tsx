@@ -11,6 +11,7 @@ import ReserveMeal from './pages/ReserveMeal';
 import Conversations from './pages/Conversations';
 import Conversation from './pages/Conversation';
 import SaveThem from './pages/SaveThem';
+import CreateReview from './pages/CreateReview';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/meals" element={<MealList />} />
         <Route path="/meals/:id" element={<MealDetails />} />
         <Route path="/meals/:id/reserve" element={<ReserveMeal />} />
+        <Route path="/meals/:mealId/review" element={<CreateReview />} />
         <Route path="/save-them" element={<SaveThem />} />
         <Route path="/reservations" element={<MyReservations />} />
         <Route path="/messages" element={<Conversations />} />
