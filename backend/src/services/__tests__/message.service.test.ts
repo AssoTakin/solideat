@@ -47,7 +47,7 @@ describe('MessageService', () => {
     });
 
     it('devrait rejeter un message avec numéro de téléphone', () => {
-      const result = messageService.filterContent('Appelez-moi au 06 12 34 56 78');
+      const result = messageService.filterContent('Appelez-moi au 0612345678');
       expect(result.valid).toBe(false);
       expect(result.error).toContain('numéros de téléphone');
     });
@@ -108,7 +108,7 @@ describe('MessageService', () => {
       (prisma.meal.findUnique as jest.Mock).mockResolvedValue(mockMeal);
 
       await expect(
-        messageService.sendMessage('user-123', 'meal-123', 'Appelez-moi au 06 12 34 56 78')
+        messageService.sendMessage('user-123', 'meal-123', 'Appelez-moi au 0612345678')
       ).rejects.toThrow('numéros de téléphone');
     });
   });
