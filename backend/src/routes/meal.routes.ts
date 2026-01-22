@@ -1,6 +1,6 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router } from 'express';
 import { mealController } from '../controllers/meal.controller';
-import { authenticate, AuthRequest } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
 import { createMealSchema, updateMealSchema } from '../validators/meal.validator';
 
