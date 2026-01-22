@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { mealService, Meal } from '../services/meal.service';
+import { Meal } from '../services/meal.service';
 import api from '../services/api';
 
 interface SaveThemMeal extends Meal {
