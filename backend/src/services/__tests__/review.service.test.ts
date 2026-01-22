@@ -37,12 +37,10 @@ describe('ReviewService', () => {
       id: 'meal-123',
       cookId: 'cook-123',
       status: 'SERVED',
-      reservation: [
-        {
-          userId: 'user-123',
-          pickedUpAt: new Date(),
-        },
-      ],
+      reservation: {
+        userId: 'user-123',
+        pickedUpAt: new Date(),
+      },
       cook: {
         id: 'cook-123',
       },
@@ -80,7 +78,7 @@ describe('ReviewService', () => {
     it('devrait échouer si l\'utilisateur n\'a pas réservé le repas', async () => {
       (prisma.meal.findUnique as jest.Mock).mockResolvedValue({
         ...mockMeal,
-        reservation: [],
+        reservation: null,
       });
 
       await expect(reviewService.createReview('user-123', mockReviewData)).rejects.toThrow(
