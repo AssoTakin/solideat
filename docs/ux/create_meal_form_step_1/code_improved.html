@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Solid'Eat - Proposer un repas Étape 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen">
+<div class="relative flex h-full min-h-screen w-full max-w-[480px] mx-auto flex-col bg-white dark:bg-background-dark overflow-x-hidden shadow-xl">
+<div class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800">
+<div class="text-[#181210] dark:text-white flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#181210] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Proposer un repas</h2>
+</div>
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-[#181210] dark:text-white text-base font-medium leading-normal">Infos générales</p>
+<p class="text-[#181210] dark:text-white text-sm font-semibold leading-normal">Étape 1/3</p>
+</div>
+<div class="rounded-full bg-[#e7deda] dark:bg-gray-700 h-2 w-full overflow-hidden">
+<div class="h-full rounded-full bg-primary" style="width: 33.33%;"></div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<div class="flex flex-col p-4">
+<div class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 px-6 py-10 dark:border-primary/20">
+<div class="bg-primary/10 p-4 rounded-full">
+<span class="material-symbols-outlined text-primary text-4xl">add_a_photo</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<p class="text-[#181210] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] text-center">Ajouter une photo</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal text-center">Prenez une photo ou importez de la galerie</p>
+</div>
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
+<span class="truncate">Importer</span>
+</button>
+</div>
+</div>
+<h3 class="text-[#181210] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pt-4">Détails du repas</h3>
+<div class="flex flex-col gap-1 px-4 py-3">
+<label class="flex flex-col w-full">
+<p class="text-[#181210] dark:text-white text-sm font-medium leading-normal pb-2">Nom du repas</p>
+<input class="form-input flex w-full rounded-lg text-[#181210] dark:text-white border border-[#e7deda] dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-1 focus:ring-primary focus:border-primary h-12 placeholder:text-gray-400 p-[15px] text-base" placeholder="ex: Lasagnes de grand-mère" value=""/>
+</label>
+</div>
+<div class="flex flex-col gap-1 px-4 py-3">
+<label class="flex flex-col w-full">
+<p class="text-[#181210] dark:text-white text-sm font-medium leading-normal pb-2">Description</p>
+<textarea class="form-textarea flex w-full rounded-lg text-[#181210] dark:text-white border border-[#e7deda] dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-1 focus:ring-primary focus:border-primary min-h-[100px] placeholder:text-gray-400 p-[15px] text-base" placeholder="Décrivez les ingrédients, allergènes, ou l'histoire du plat..."></textarea>
+</label>
+</div>
+<div class="grid grid-cols-2 gap-4 px-4 py-3">
+<label class="flex flex-col w-full">
+<p class="text-[#181210] dark:text-white text-sm font-medium leading-normal pb-2">Date de préparation</p>
+<div class="relative">
+<input class="form-input w-full rounded-lg text-[#181210] dark:text-white border border-[#e7deda] dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-primary h-12 p-[15px] text-sm" type="date"/>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Généralement identique à la date de publication</p>
+</label>
+<label class="flex flex-col w-full">
+<p class="text-[#181210] dark:text-white text-sm font-medium leading-normal pb-2">Jour de service</p>
+<div class="relative">
+<input class="form-input w-full rounded-lg text-[#181210] dark:text-white border border-[#e7deda] dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-primary h-12 p-[15px] text-sm" type="date"/>
+</div>
+</label>
+</div>
+<div class="flex flex-col gap-1 px-4 py-3">
+<label class="flex flex-col w-full">
+<p class="text-[#181210] dark:text-white text-sm font-medium leading-normal pb-2">Plage horaire de récupération *</p>
+<div class="relative">
+<select class="form-select flex w-full rounded-lg text-[#181210] dark:text-white border border-[#e7deda] dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-1 focus:ring-primary focus:border-primary h-12 px-[15px] text-base appearance-none">
+<option value="">Sélectionner une plage horaire</option>
+<option value="LUNCH">Midi</option>
+<option value="DINNER">Soir</option>
+</select>
+<div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400">schedule</span>
+</div>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Indiquez quand le repas peut être récupéré</p>
+</label>
+</div>
+<div class="flex flex-col gap-1 px-4 py-3">
+<div class="flex items-center gap-2 pb-2">
+<p class="text-[#181210] dark:text-white text-sm font-medium leading-normal">Nombre de parts</p>
+<button class="group relative">
+<span class="material-symbols-outlined text-gray-400 text-lg cursor-help">info</span>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl z-10">
+Les membres gratuits sont limités à 1 part par repas. Passez à Premium pour proposer jusqu'à 4 parts.
+</div>
+</button>
+</div>
+<div class="relative">
+<select class="form-select flex w-full rounded-lg text-gray-500 dark:text-gray-400 border border-[#e7deda] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 h-12 px-[15px] text-base appearance-none opacity-80 cursor-not-allowed" disabled="">
+<option>1 Part (Offre gratuite)</option>
+</select>
+<div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400">lock</span>
+</div>
+</div>
+<div class="mt-2 p-3 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/20">
+<p class="text-xs text-primary font-medium">
+💡 <strong>Passez au Premium</strong> pour partager jusqu'à 4 parts par repas et accéder à plus de fonctionnalités !
+</p>
+</div>
+</div>
+<div class="mx-4 my-4 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-start gap-3">
+<span class="material-symbols-outlined text-blue-600 dark:text-blue-400 mt-0.5">schedule</span>
+<div class="flex-1">
+<p class="text-blue-800 dark:text-blue-200 text-sm font-bold mb-1">⏰ Expiration automatique calculée</p>
+<p class="text-blue-700 dark:text-blue-300 text-xs leading-snug">
+Ce repas expirera automatiquement le <strong>18/01/2026 à 10:00</strong> (72h après la date de préparation) pour garantir la sécurité alimentaire.
+</p>
+<p class="text-blue-600 dark:text-blue-400 text-xs mt-2 italic">
+ℹ️ La date d'expiration sera calculée automatiquement une fois la date de préparation renseignée.
+</p>
+</div>
+</div>
+<div class="mx-4 my-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 flex items-start gap-3">
+<span class="material-symbols-outlined text-amber-600 dark:text-amber-500 mt-0.5">warning</span>
+<div class="flex-1">
+<p class="text-amber-800 dark:text-amber-200 text-sm font-bold mb-1">⚠️ Règle importante</p>
+<p class="text-amber-800 dark:text-amber-200 text-xs leading-snug">
+Si le repas n'est pas réservé avant l'expiration, il sera automatiquement retiré et ajouté dans la rubrique "Sauvez-les" 24h avant expiration.
+</p>
+</div>
+</div>
+<div class="h-24"></div>
+</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-md border-t border-gray-100 dark:border-gray-800">
+<button class="w-full flex items-center justify-center bg-primary text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">
+<span>Étape suivante</span>
+<span class="material-symbols-outlined ml-2">arrow_forward</span>
+</button>
+</div>
+</div>
+
+</body></html>

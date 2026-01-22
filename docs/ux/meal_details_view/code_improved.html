@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Détails du repas - Solid'Eat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#ff6933",
+                "background-light": "#f8f6f5",
+                "background-dark": "#23140f",
+              },
+              fontFamily: {
+                "display": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display">
+<div class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
+<button class="flex items-center justify-center size-10 rounded-full bg-white/20 backdrop-blur-md text-white">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<div class="flex gap-2">
+<button class="flex items-center justify-center size-10 rounded-full bg-white/20 backdrop-blur-md text-white">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-full bg-white/20 backdrop-blur-md text-white">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<main class="pb-32">
+<div class="relative w-full h-80 @container">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover" data-alt="Lasagnes aux légumes dorées avec fromage fondu" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAmW4lJBt7ECvShl7SCCBgi1UTtT_1EE6o1o6D8RBYO54NbCEFYHFQwo7Pom2QKUWqzPvVBELkEyFnKImm-Mhbepy8QQR6SZAbPiHrcQCSP8IShciOW7yK_9cZqzhTI93Gnft2Nbea32wKFxLKhl9LK5vjrHR_RxoiJ1RjX_Wdhdxu2W5Mknb8bb4nfOxBkvBnrX-XTnzb5kAJ5VT3vU9EGtA6L99C3TL7Vm_RIhzsiTg2tG8KcSYUdAS5yB0tdHWACtLlZ4XycTlk");'>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+<div class="absolute bottom-4 left-4 bg-primary text-white px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg animate-pulse">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-xs font-bold uppercase tracking-wider">EXPIRE DANS 8 HEURES</span>
+</div>
+</div>
+<div class="px-4 -mt-4 relative z-10 bg-background-light dark:bg-background-dark rounded-t-3xl pt-6">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h1 class="text-[#181210] dark:text-white text-3xl font-bold leading-tight">Lasagnes aux légumes</h1>
+<div class="flex items-center gap-2 mt-1">
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded uppercase">Sauvez-les</span>
+<span class="text-[#8d6a5e] dark:text-gray-400 text-sm">Fait maison avec amour</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-white/5 p-3 rounded-xl mb-6 shadow-sm border border-gray-100 dark:border-white/10">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14" data-alt="Portrait d'une femme chef souriante" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBTI32xhLZD1CQqEyQsNk1U7MOtl5Pf0j71UvKFnoUfP4A-V9rAAL68MNCH1mGJqJ6UWyGMJX_5c3vd2dxDU3rZsYEV5Q6iOhlCYwmsTEzR4hIc_Jbwsvn-0T7YNMYSTNmZ6Q-fU5d8lH0NmWCQs-rceZ4ILLJKOoowNqsGkiZAmvtsZvGCFR71Xevd4pgj8H8Yu00Aywn6gMmERK1K1gePwLb76m24xNOEZ7J37IHY8-sbfHKuWcf5zK3pKtgNvxcB8RH3c-rCD-s");'></div>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex items-center gap-1.5">
+<p class="text-[#181210] dark:text-white text-base font-bold">Marie L.</p>
+<span class="material-symbols-outlined text-blue-500 text-sm fill-current">verified</span>
+</div>
+<p class="text-[#8d6a5e] dark:text-gray-400 text-xs font-medium uppercase tracking-tight">Chef Cordon Bleu • <span class="text-primary">4.8 ÉTOILES</span></p>
+</div>
+<div class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10">
+<span class="material-symbols-outlined">chat_bubble</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mb-4">
+<div class="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+<span class="material-symbols-outlined text-primary mb-1">calendar_today</span>
+<span class="text-[10px] text-gray-500 uppercase font-bold">DATE</span>
+<span class="text-sm font-semibold text-[#181210] dark:text-white text-center">Demain</span>
+</div>
+<div class="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+<span class="material-symbols-outlined text-primary mb-1">schedule</span>
+<span class="text-[10px] text-gray-500 uppercase font-bold">PLAGE HORAIRE</span>
+<span class="text-sm font-semibold text-[#181210] dark:text-white text-center">Soir</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mb-8">
+<div class="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+<span class="material-symbols-outlined text-primary mb-1">location_on</span>
+<span class="text-[10px] text-gray-500 uppercase font-bold">DISTANCE</span>
+<span class="text-sm font-semibold text-[#181210] dark:text-white">2.5 km</span>
+</div>
+<div class="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+<span class="material-symbols-outlined text-primary mb-1">restaurant</span>
+<span class="text-[10px] text-gray-500 uppercase font-bold text-center">PARTS RESTANTES</span>
+<span class="text-sm font-semibold text-[#181210] dark:text-white">3 restants</span>
+</div>
+</div>
+<div class="mb-8">
+<h3 class="text-lg font-bold text-[#181210] dark:text-white mb-2">Description</h3>
+<p class="text-[#8d6a5e] dark:text-gray-400 text-sm leading-relaxed">
+                    Une délicieuse et copieuse lasagne préparée avec des courgettes fraîches du jardin, des épinards et des poivrons rouges rôtis. Superposée de ricotta artisanale et de la sauce marinara secrète de ma grand-mère. Parfait pour un dîner sain !
+                </p>
+</div>
+<div class="mb-8">
+<h3 class="text-lg font-bold text-[#181210] dark:text-white mb-3">Ingrédients</h3>
+<div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+<div class="flex flex-col items-center min-w-[70px]">
+<div class="size-12 rounded-full bg-[#f5f1f0] dark:bg-white/10 flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#8d6a5e]">egg</span>
+</div>
+<span class="text-[11px] text-[#181210] dark:text-gray-300">Pâtes</span>
+</div>
+<div class="flex flex-col items-center min-w-[70px]">
+<div class="size-12 rounded-full bg-[#f5f1f0] dark:bg-white/10 flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#8d6a5e]">nutrition</span>
+</div>
+<span class="text-[11px] text-[#181210] dark:text-gray-300">Épinards</span>
+</div>
+<div class="flex flex-col items-center min-w-[70px]">
+<div class="size-12 rounded-full bg-[#f5f1f0] dark:bg-white/10 flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#8d6a5e]">opacity</span>
+</div>
+<span class="text-[11px] text-[#181210] dark:text-gray-300">Tomate</span>
+</div>
+<div class="flex flex-col items-center min-w-[70px]">
+<div class="size-12 rounded-full bg-[#f5f1f0] dark:bg-white/10 flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#8d6a5e]">water_drop</span>
+</div>
+<span class="text-[11px] text-[#181210] dark:text-gray-300">Fromage</span>
+</div>
+</div>
+<div class="mt-4 p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg flex items-start gap-3">
+<span class="material-symbols-outlined text-red-500">warning</span>
+<div>
+<p class="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-tight">ALERTE ALLERGÈNES</p>
+<p class="text-xs text-red-600 dark:text-red-300">Contient du lactose, du gluten et du céleri.</p>
+</div>
+</div>
+</div>
+<div class="mb-8">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold text-[#181210] dark:text-white">Avis récents</h3>
+<button class="text-primary text-sm font-bold">Voir tout</button>
+</div>
+<div class="space-y-4">
+<div class="flex gap-3">
+<div class="size-8 rounded-full bg-gray-200 shrink-0 bg-cover" data-alt="Avatar utilisateur" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBpzAcslrU0sigptBDCR2ifeCNQaBHUyrumb5FvG_U3pNB5h1gOdXdOQqsN9ZBRPT2Cr-JJM8i2TRD_p3lYf2zLt9LSfQR8aEZ2KEHxCUc0mq68fL-Ur6TDJboL-xXQF5cLxNJ7siaKAEZ-VCexwVvDH-8AWBiscIcyGBPARK-sn9K0glPA1NqV3xswN7ZzsjFyFlGDGn5smwauzTD0MYb28yhdKpGPizuvvAnBWzhDoQWqjNETi4aj8pgbcRHNo0PTLRs4IFlqFRs");'></div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-sm font-bold text-[#181210] dark:text-white">James K.</span>
+<div class="flex items-center gap-0.5">
+<span class="material-symbols-outlined text-xs text-primary fill-current">star</span>
+<span class="material-symbols-outlined text-xs text-primary fill-current">star</span>
+<span class="material-symbols-outlined text-xs text-primary fill-current">star</span>
+<span class="material-symbols-outlined text-xs text-primary fill-current">star</span>
+<span class="material-symbols-outlined text-xs text-primary fill-current">star</span>
+</div>
+</div>
+<p class="text-xs text-[#8d6a5e] dark:text-gray-400 italic mt-1">"La meilleure lasagne que j'ai mangée depuis des années ! Tellement fraîche et savoureuse."</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<p class="text-sm font-bold text-amber-800 dark:text-amber-200">📊 Votre quota de réservation</p>
+<button class="group relative">
+<span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-sm">info</span>
+<div class="absolute bottom-full right-0 mb-2 hidden group-hover:block w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl z-10">
+Vous avez un quota hebdomadaire de réservation. Les quotas sont réinitialisés chaque lundi. Les repas "Sauvez-les" comptent dans ce quota.
+</div>
+</button>
+</div>
+<span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">1/1 ✅</span>
+</div>
+<div class="rounded-full bg-gray-200 dark:bg-gray-700 h-2 w-full overflow-hidden mb-2">
+<div class="h-full rounded-full bg-green-500" style="width: 100%;"></div>
+</div>
+<p class="text-xs text-amber-700 dark:text-amber-300">
+⚠️ <strong>Quota atteint.</strong> Vous pourrez réserver à nouveau <strong>lundi prochain</strong> (réinitialisation hebdomadaire).
+</p>
+<p class="text-xs text-amber-600 dark:text-amber-400 mt-1">
+💡 Vous pouvez toujours proposer des repas même si votre quota de réservation est atteint.
+</p>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-xl border-t border-gray-100 dark:border-white/5 pb-8">
+<div class="flex gap-4 max-w-md mx-auto">
+<button class="flex items-center justify-center p-4 rounded-xl border-2 border-primary/30 text-primary font-bold transition-colors active:bg-primary/5">
+<span class="material-symbols-outlined">mail</span>
+</button>
+<button class="flex-1 bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-extrabold py-4 px-6 rounded-xl cursor-not-allowed" disabled>
+                QUOTA ATTEINT
+            </button>
+</div>
+</div>
+
+</body></html>

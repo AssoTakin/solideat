@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Solid'Eat - Tableau de bord</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#181210] dark:text-white min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full max-w-[430px] mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl shadow-black/20">
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="flex size-12 shrink-0 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDNjCGeJ3_Wq2Cu_LvtLchDtqudiqPHBM2EoGXMHpEJ7Qtv2cHTNGnqJOneP8BF0PCSY0U0SV7bjkf33b09RFX8A4HQs8TeIkg1JRG_iIHMaFbX2ls_CBiiY5WAdPiE3L4CWWZQ0aeCZp7OtPCodqMtI0pdhBwQFQeSeo0k5r16MEYoBMJ1u9Jxv1CRScUoi76mblhmUpL07aSs-D2t9Drzb6CNk7xPPGMteL2ORoxHQuFf839uhHu2brjhCaUxdAulHhOMm4Ot9cI");'></div>
+</div>
+<h2 class="text-[#181210] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 ml-3">Solid'Eat</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 bg-transparent text-[#181210] dark:text-white gap-2 text-base font-bold">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</div>
+<div class="flex p-4 @container">
+<div class="flex w-full flex-col gap-4">
+<div class="flex gap-4 items-center">
+<div class="flex flex-col justify-center">
+<p class="text-[#181210] dark:text-white text-[28px] font-bold leading-tight tracking-[-0.015em]">Hello @Thomas</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">verified</span>
+<p class="text-[#8d6a5e] dark:text-stone-400 text-sm font-normal">Membre vérifié depuis 2023</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-stone-800 overflow-hidden">
+<div class="w-full bg-center bg-no-repeat aspect-[21/9] bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDbmv1fmv1ELn-feOZQ2UmnIpA-MFeF_eKflcXNOccSJSoEbLJWatzej_UtJ-rtrODTaFyORoM-MHFuuy1O8LNKJ9UpA48nLeOH-sXLBguNYAqulk-AZepA3OPoYlGQEwMPai7lxb9XJ8GBjbwTE08zZnfkktNJowPk8aVsT5dKJETBcTOURhBrZf3RK-USxQyNt8Fyb5rbAYmp5JtEi2ywtCFAPgg-HTB6PX9icuz5KKFwyg-kjkqUm8ffZJMJr7KYAVGVOjsdniw");'></div>
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-2 py-4 px-4">
+<div class="flex justify-between items-start">
+<p class="text-[#181210] dark:text-white text-lg font-bold">Résumé</p>
+<div class="flex items-center bg-primary/10 px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-primary text-sm mr-1" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="text-primary font-bold text-sm">4.8</span>
+</div>
+</div>
+<div class="flex items-end gap-3 justify-between">
+<div class="flex flex-col gap-1">
+<p class="text-[#8d6a5e] dark:text-stone-400 text-sm font-normal">Votre activité sur la plateforme</p>
+<p class="text-[#181210] dark:text-stone-200 text-sm font-medium">12 Servis • 8 Reçus</p>
+</div>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-white text-sm font-medium leading-normal hover:bg-primary/90 transition-colors">
+<span class="truncate">Badges</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="px-4">
+<h2 class="text-[#181210] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pt-5 pb-2">QUOTAS</h2>
+<div class="space-y-1">
+<div class="flex flex-col gap-2 py-3">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-[#181210] dark:text-stone-200 text-sm font-medium">Repas réservés</p>
+<p class="text-[#181210] dark:text-stone-200 text-xs font-bold">1 / 1</p>
+</div>
+<div class="rounded-full bg-[#e7deda] dark:bg-stone-700 h-2.5 overflow-hidden">
+<div class="h-full rounded-full bg-emerald-500" style="width: 100%;"></div>
+</div>
+<p class="text-emerald-600 dark:text-emerald-400 text-[11px] font-medium">Limite de réservation atteinte pour aujourd'hui</p>
+</div>
+<div class="flex flex-col gap-2 py-3">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-[#181210] dark:text-stone-200 text-sm font-medium">Repas proposés</p>
+<p class="text-[#181210] dark:text-stone-200 text-xs font-bold">0 / 1</p>
+</div>
+<div class="rounded-full bg-[#e7deda] dark:bg-stone-700 h-2.5 overflow-hidden">
+<div class="h-full rounded-full bg-primary" style="width: 5%;"></div>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[14px]">warning</span>
+<p class="text-primary text-[11px] font-medium">Proposition requise pour débloquer plus de réservations</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 py-3">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-[#181210] dark:text-stone-200 text-sm font-medium">Annulations</p>
+<p class="text-[#181210] dark:text-stone-200 text-xs font-bold">0 / 3</p>
+</div>
+<div class="rounded-full bg-[#e7deda] dark:bg-stone-700 h-2.5 overflow-hidden">
+<div class="h-full rounded-full bg-emerald-500" style="width: 0%;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="px-4 pb-8">
+<h2 class="text-[#181210] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pt-6 pb-4">REPAS EN COURS</h2>
+<div class="space-y-4">
+<div class="flex flex-col gap-2">
+<p class="text-[#8d6a5e] dark:text-stone-400 text-xs font-bold uppercase tracking-wider">PROPOSÉS</p>
+<div class="border-2 border-dashed border-[#e7deda] dark:border-stone-700 rounded-xl p-6 flex flex-col items-center justify-center gap-3 bg-white/50 dark:bg-white/5">
+<p class="text-[#8d6a5e] dark:text-stone-400 text-sm text-center">Vous n'avez rien partagé aujourd'hui</p>
+<button class="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-lg font-bold text-sm">
+<span class="material-symbols-outlined">add_circle</span>
+                            Ajouter un repas
+                        </button>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<p class="text-[#8d6a5e] dark:text-stone-400 text-xs font-bold uppercase tracking-wider">RÉSERVÉS</p>
+<div class="bg-white dark:bg-stone-800 rounded-xl p-4 shadow-sm border border-[#e7deda] dark:border-stone-700">
+<div class="flex gap-4">
+<div class="size-20 rounded-lg bg-cover bg-center shrink-0" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYYP5_qyhniAz-X40T7fifBIBnsEZ2FHJsZO7NBvfOxDuvBNdCi8MjJwKhjgMNt3-0lPY0RtNUmRijnMTAmeolniHL05ME67d63WG5p3skStQJG2vj4G-HyVSoJjKXKZcKbgXgi60HNlcVm1b9kGDZIkg9hxNma1m7rZHpKENRdcv7ImzNyyYStSRuUYSs8gO4Df19GKXekXUlRLSS7pSSCcgr11zSVeBdKP58G-xuiXMVQ6j5zd6iTWdfomh4Jky7UHAQ_x36bYU");'></div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<p class="text-[#181210] dark:text-white font-bold text-base">Lasagnes Maison</p>
+<p class="text-[#8d6a5e] dark:text-stone-400 text-xs">Chef : Marie • à 1.2km</p>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-xs font-bold">Récupération : 19:30</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2 mt-4">
+<button class="flex-1 flex items-center justify-center gap-2 bg-background-light dark:bg-stone-700 text-[#181210] dark:text-white py-2 rounded-lg text-sm font-semibold">
+<span class="material-symbols-outlined text-sm">call</span>
+                                Appeler
+                            </button>
+<button class="flex-1 flex items-center justify-center gap-2 bg-background-light dark:bg-stone-700 text-[#181210] dark:text-white py-2 rounded-lg text-sm font-semibold">
+<span class="material-symbols-outlined text-sm">chat_bubble</span>
+                                Message
+                            </button>
+<button class="flex size-9 items-center justify-center bg-red-50 text-red-500 dark:bg-red-900/20 rounded-lg shrink-0">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto px-4 pb-10 flex flex-col gap-3">
+<button class="w-full flex items-center justify-center gap-2 border border-primary text-primary py-3 rounded-xl font-bold text-sm">
+<span class="material-symbols-outlined text-sm">history</span>
+                Voir l'historique
+            </button>
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-white py-4 rounded-xl font-bold text-base shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-xl">bolt</span>
+                SAUVEZ-LES (FINIT BIENTÔT)
+            </button>
+</div>
+<div class="h-1.5 w-32 bg-stone-300 dark:bg-stone-700 rounded-full mx-auto mb-2 mt-2"></div>
+</div>
+
+</body></html>

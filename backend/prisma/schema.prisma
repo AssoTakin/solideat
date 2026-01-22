@@ -1,0 +1,298 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modèle utilisateur
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String
+  phone             String?   @unique
+  phoneVerified     Boolean   @default(false)
+  emailVerified     Boolean   @default(false)
+  firstName         String
+  lastName          String
+  username          String    @unique
+  profilePhoto      String?
+  description       String?
+  culinaryStyle     String?
+  
+  // Adresse
+  addressStreet     String
+  addressZipCode    String
+  addressCity       String
+  latitude          Float
+  longitude         Float
+  
+  // Abonnement
+  subscriptionType  SubscriptionType @default(FREE)
+  subscriptionStart DateTime?
+  subscriptionEnd   DateTime?
+  stripeCustomerId  String?   @unique
+  
+  // Confidentialité
+  hidePhoneNumber   Boolean   @default(false) // Premium uniquement
+  
+  // Statistiques
+  globalRating      Float     @default(0)
+  mealsServed       Int       @default(0)
+  mealsReceived     Int       @default(0)
+  mealsExpired      Int       @default(0)
+  mealsSaved        Int       @default(0) // Premium uniquement
+  
+  // CGU
+  cguAcceptedAt     DateTime?
+  sanitaryCharterAcceptedAt DateTime?
+  
+  // Relations
+  meals             Meal[]
+  reservations      Reservation[]
+  reviews           Review[]
+  sentMessages      Message[] @relation("MessageSender")
+  receivedMessages  Message[] @relation("MessageReceiver")
+  badges            UserBadge[]
+  bonusDonors       BonusDonor[]
+  sanctions         Sanction[]
+  notifications     Notification[]
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+enum SubscriptionType {
+  FREE
+  PREMIUM_WEEKLY
+  PREMIUM_MONTHLY
+  PREMIUM_YEARLY
+}
+
+// Modèle repas
+model Meal {
+  id                String    @id @default(uuid())
+  name              String
+  photo             String
+  description       String?
+  
+  // Dates
+  preparationDate   DateTime
+  serviceDate       DateTime
+  
+  // Heure de récupération
+  pickupTimeStart   DateTime  // Heure de début (ou heure fixe si égal à pickupTimeEnd)
+  pickupTimeEnd     DateTime  // Heure de fin (peut être égal à pickupTimeStart si heure fixe)
+  
+  // Adresse de récupération
+  pickupAddress     String
+  pickupLatitude    Float
+  pickupLongitude   Float
+  
+  expirationDate    DateTime
+  postedAt          DateTime  @default(now())
+  
+  // Ingrédients
+  ingredients       Json      // Array d'ingrédients avec allergènes
+  
+  // Parts et prix
+  portions          Int       @default(1)
+  price             Float?    // null = gratuit, > 0 = vendu (premium)
+  
+  // Statut
+  status            MealStatus @default(AVAILABLE)
+  inSaveThem        Boolean   @default(false) // Dans "Sauvez-les"
+  
+  // Relations
+  cookId            String
+  cook              User      @relation(fields: [cookId], references: [id])
+  reservation       Reservation?
+  reviews           Review[]
+  messages          Message[]
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@index([cookId])
+  @@index([status])
+  @@index([expirationDate])
+  @@index([inSaveThem])
+  @@index([pickupLatitude, pickupLongitude]) // Pour recherches géographiques
+}
+
+enum MealStatus {
+  AVAILABLE
+  RESERVED
+  SERVED
+  EXPIRED
+  NOT_PICKED_UP
+}
+
+// Modèle réservation
+model Reservation {
+  id                String    @id @default(uuid())
+  mealId            String    @unique
+  meal              Meal      @relation(fields: [mealId], references: [id])
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  
+  // Utilisation bonus donateur
+  usedBonusDonor    Boolean   @default(false)
+  bonusDonorId      String?
+  
+  // Dates
+  reservedAt        DateTime  @default(now())
+  pickedUpAt        DateTime?
+  
+  // Annulation
+  cancelledAt       DateTime?
+  cancellationReason String?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([mealId])
+}
+
+// Modèle avis/notation
+model Review {
+  id                String    @id @default(uuid())
+  mealId            String
+  meal              Meal      @relation(fields: [mealId], references: [id])
+  reviewerId        String
+  reviewer          User      @relation(fields: [reviewerId], references: [id])
+  cookId            String
+  cook              User      @relation(fields: [cookId], references: [id])
+  
+  rating            Int       // 1-5
+  comment           String
+  photos            String[]  // URLs Cloudinary
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@unique([mealId, reviewerId])
+  @@index([cookId])
+}
+
+// Modèle message
+model Message {
+  id                String    @id @default(uuid())
+  mealId            String
+  meal              Meal      @relation(fields: [mealId], references: [id])
+  senderId          String
+  sender            User      @relation("MessageSender", fields: [senderId], references: [id])
+  receiverId        String
+  receiver          User      @relation("MessageReceiver", fields: [receiverId], references: [id])
+  
+  content           String
+  read              Boolean   @default(false)
+  readAt            DateTime?
+  
+  createdAt         DateTime  @default(now())
+  
+  @@index([mealId])
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+// Modèle badge
+model Badge {
+  id                String    @id @default(uuid())
+  name              String    @unique
+  description       String
+  icon              String
+  condition         String    // Description de la condition
+  premiumOnly       Boolean   @default(false)
+}
+
+model UserBadge {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  badgeId           String
+  badge             Badge     @relation(fields: [badgeId], references: [id])
+  earnedAt          DateTime  @default(now())
+  
+  @@unique([userId, badgeId])
+}
+
+// Modèle bonus donateur
+model BonusDonor {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  
+  acquiredAt        DateTime  @default(now())
+  expiresAt         DateTime
+  usedAt            DateTime?
+  transferredToId   String?   // Si transféré (premium uniquement)
+  
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// Modèle sanction
+model Sanction {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  
+  type              SanctionType
+  reason            String
+  startDate         DateTime
+  endDate           DateTime?
+  quotaReduction    Int?      // Réduction du quota mensuel
+  
+  active            Boolean   @default(true)
+  
+  createdAt         DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([active])
+}
+
+enum SanctionType {
+  RESERVATION_BLOCK
+  CANCELLATION_BLOCK
+  QUOTA_REDUCTION
+}
+
+// Modèle notification
+model Notification {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  
+  type              NotificationType
+  title             String
+  message           String
+  read              Boolean   @default(false)
+  readAt            DateTime?
+  link              String?   // URL de redirection
+  
+  createdAt         DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([read])
+}
+
+enum NotificationType {
+  MEAL_RESERVED
+  MEAL_CANCELLED
+  MEAL_EXPIRING
+  MEAL_EXPIRED
+  REVIEW_REMINDER
+  BONUS_DONOR_EXPIRING
+  BONUS_DONOR_RECEIVED
+  BADGE_EARNED
+  SANCTION_APPLIED
+  SUBSCRIPTION_RENEWAL
+  MESSAGE_RECEIVED
+}

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tableau de bord Solid'Eat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "sos-accent": "#4ECDC4",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#181210] dark:text-white min-h-screen pb-24">
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-center bg-cover border-2 border-primary" data-alt="User profile picture of a smiling chef" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBC8n6w76yIz9aGB3Koe0Ry27ODc4rLHFt4UOyuR6XlZs52hl4IGi10NUh87X2GCc8dYqMaPTYYIVXQ6xcX4vHIElCXrE8SdWGDkFF6lVk8tmutwbwljtymeft3043i7CVFbSZw6c17yUNyfAOIomwBZkcsIIPq26MjfrD4LUMnGGEtcmsKyJl8Q8nUIjM0ZD9la-dpHPgaHbxtmnRzSmeHNOjgU1FnskmUPcduj4gzwz2JH_IkP7MIV6c9ik8JAPcAFkckfqh_cuE");'>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-tight">Solid'Eat</h1>
+<p class="text-xs text-[#8d6a5e] dark:text-gray-400">Bienvenue, Alex !</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="relative">
+<button class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<span class="absolute top-2 right-2 flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary border-2 border-white dark:border-background-dark"></span>
+</span>
+</div>
+</div>
+</header>
+<div class="px-4 py-2">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
+<div class="text-[#8d6a5e] flex border-none bg-white dark:bg-gray-800 items-center justify-center pl-4 rounded-l-xl">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-[#181210] dark:text-white focus:outline-0 focus:ring-0 border-none bg-white dark:bg-gray-800 placeholder:text-[#8d6a5e] px-4 pl-2 text-base font-normal" placeholder="Chercher un repas ou un chef" value=""/>
+</div>
+</label>
+</div>
+<div class="px-4 py-3">
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border-l-4 border-green-500">
+<div class="flex gap-6 justify-between items-center mb-2">
+<div class="flex-1">
+<p class="text-[#181210] dark:text-white text-base font-semibold leading-normal">Quota de réservation hebdomadaire</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Réinitialisé chaque lundi</p>
+</div>
+<span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">1/1 ✅</span>
+</div>
+<div class="rounded-full bg-gray-100 dark:bg-gray-700 h-2 w-full overflow-hidden">
+<div class="h-full rounded-full bg-green-500" style="width: 100%;"></div>
+</div>
+<p class="text-[#8d6a5e] dark:text-gray-400 text-sm mt-2 font-medium">
+🎉 Vous avez aidé à réduire le gaspillage cette semaine ! 
+<span class="text-primary font-bold">Prochain reset : lundi</span>
+</p>
+</div>
+</div>
+<section class="mt-4">
+<div class="flex items-center justify-between px-4 pb-2">
+<h2 class="text-sos-accent text-xl font-extrabold tracking-tight uppercase flex items-center gap-2">
+<span class="material-symbols-outlined fill-1">emergency</span>
+            SAUVEZ-LES (SOS)
+        </h2>
+<button class="text-sm font-semibold text-sos-accent">Voir tout</button>
+</div>
+<div class="flex overflow-x-auto hide-scrollbar px-4 pb-4 gap-4">
+<div class="flex-none w-64 bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md border-b-4 border-sos-accent">
+<div class="relative h-44 bg-center bg-cover" data-alt="Appetizing homemade vegetable curry bowl" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCoNw-ybQX3rxWBc4WVNCzEfQaqMIGLR4Zgq20NrFomP0pWYJdYjsnDWKgUUERKr8SPNjmELbKzTvVIRMyB6RlbOb_wqPcLAiaLYBHVj8YGEqY06hoGIl8kRnIOko07JErF7sBe-vo4HbwRBpk2Z6TL6xh2xbo-aSU2tCFXGDTINzCTwuH5Hn5csNCa7W7_9VIRhd6hRYc6KQofxuNf_VRGg_hBRF7qAcMa7aOjFtc-YoJm0eA12I2xtzLlPFTayw0jSotU7niO898");'>
+<div class="absolute top-2 right-2 bg-sos-accent text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">timer</span> Finit dans 5h
+                </div>
+</div>
+<div class="p-3">
+<p class="text-[#181210] dark:text-white text-base font-bold truncate">Curry de légumes</p>
+<div class="flex items-center gap-2 text-[#8d6a5e] dark:text-gray-400 text-sm mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>0.5 km • Fait maison</span>
+</div>
+</div>
+</div>
+<div class="flex-none w-64 bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md border-b-4 border-sos-accent">
+<div class="relative h-44 bg-center bg-cover" data-alt="Fresh pasta salad with tomatoes and basil" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuChmAd0HCBhHpGsvWBraEilqWebYPEXqLobB74BYCbWhcdP0WG0gLGq32aJ8eBarjQXKLxGwJ-UUkWEK_zI-nP4mv0D14yCL8zJJWYiuiDcyYs5IfvmzMJKrSGrZps2wFU_2SSaezVPDWJQx67MwnBZRftqeq-LYq9dLv_r0MVZUVTGbj7mhqWVk1N1nGvPCxOEfLhW2D-oUVywIGCPYNau2czQ09MXJhiBvxZhlVtE4nhkA8E181IrmYoVeKsTW4ngs9ejiJ82kG8");'>
+<div class="absolute top-2 right-2 bg-sos-accent text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">timer</span> Finit dans 3h
+                </div>
+</div>
+<div class="p-3">
+<p class="text-[#181210] dark:text-white text-base font-bold truncate">Pâtes Méditerranéennes</p>
+<div class="flex items-center gap-2 text-[#8d6a5e] dark:text-gray-400 text-sm mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>1.2 km • Équilibré</span>
+</div>
+</div>
+</div>
+<div class="flex-none w-64 bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md border-b-4 border-sos-accent">
+<div class="relative h-44 bg-center bg-cover" data-alt="Grilled chicken wrap with greens" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCwaGTH9S97v8g7Q6F1TivT7tR0XWICSrTwNysuTGMmLO-vbxf_lDPMvRjlmhnLE37Uue_w9ZR2OUgR9xJWtBAoPcayEwdTlH_Hz6VUBOuoGbNAGfq_M4Yiv3Lbv3iZt-TfchikIFsVpdSiF2vzruyqIV1EhpzwC8R90AcIcArK3kpoLXYca-ratTUM4hq_fNbIi_pOV6grQPWM_bpDRi9LxEYy2cXv4VmvpO9SZ3s4qkezFpALWsmtcoI4NozPP4YvJDwFB3agJsU");'>
+<div class="absolute top-2 right-2 bg-sos-accent text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">timer</span> Finit dans 2h
+                </div>
+</div>
+<div class="p-3">
+<p class="text-[#181210] dark:text-white text-base font-bold truncate">Wrap au Poulet</p>
+<div class="flex items-center gap-2 text-[#8d6a5e] dark:text-gray-400 text-sm mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>0.8 km • Riche en Protéines</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="mt-6 px-4">
+<div class="flex items-center justify-between pb-4">
+<h2 class="text-[#181210] dark:text-white text-xl font-bold">Repas disponibles</h2>
+<button class="text-sm font-semibold text-primary">Filtres</button>
+</div>
+<div class="flex flex-col gap-4">
+<div class="flex gap-4 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+<div class="w-24 h-24 bg-center bg-cover rounded-lg flex-shrink-0" data-alt="Juicy gourmet burger on a wooden board" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA3zuLxean9KdH2Rk6lyZ_NjZWePxKwKvCOAtkEK9XktRu0Y1bSri4SINzjJ3nCgSPHkixHtYKQjEVKFITGcaoGb-JypaDWcYMozcsGkT7sJtXNug92Gde5n552715w4jzRffXF-3GQX3ZOv2NMp-KY6ANj_rhNNt5aRFIhqEOXV029NvGBcwqfuKCuHan2PmeU0YLtO3VOp-9bdNVqwYmLCj6_tzBHVHNPZEuRY4SJePJs4JiupzG_z2XFB5wPKaWDh0nKKuedDsA");'>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<p class="text-[#181210] dark:text-white font-bold text-base">Burger de bœuf Gourmet</p>
+<span class="text-green-600 dark:text-green-400 font-bold text-sm">Gratuit</span>
+</div>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-yellow-500 text-xs fill-1">star</span>
+<span class="text-xs font-medium dark:text-gray-300">4.9 (24) • Chef Marco</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-xs text-[#8d6a5e] dark:text-gray-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">map</span> 1.5 km
+                    </span>
+<button class="bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-4 py-1.5 rounded-lg text-sm font-bold cursor-not-allowed" disabled>
+                        Quota atteint
+                    </button>
+</div>
+</div>
+</div>
+<div class="flex gap-4 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+<div class="w-24 h-24 bg-center bg-cover rounded-lg flex-shrink-0" data-alt="Colorful poke bowl with salmon and avocado" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBpmh0krPo0B8iq_jSMhwqQ8W5xU4QUu7Uwsf_ZgEs7iUJKFCKNUDxWzK1NNZfUeuuYrN9w_5eHC-Zi3J0UJAUNaIkvlkiws1DWD5ILYnpHWnOF1V-jvYYUXS4XyHJy2IjMjQiYPPq7iVyPWxFxI8yFDsKaYei5QWAsYw3GNtPLoI8xJiXQjvHNB83-ShATUqsL3GxJbj9tD1qJcFq2fbwF8zDJFw5E_vMVc1OvJYPDgLMGMErmFzxa-TxFhqYI2xJ40rpNOTzgc2g");'>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<p class="text-[#181210] dark:text-white font-bold text-base">Salmon Poke Bowl</p>
+<span class="text-primary font-bold text-sm">5€</span>
+</div>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-yellow-500 text-xs fill-1">star</span>
+<span class="text-xs font-medium dark:text-gray-300">4.7 (12) • Sarah L.</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-xs text-[#8d6a5e] dark:text-gray-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">map</span> 0.3 km
+                    </span>
+<button class="bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-4 py-1.5 rounded-lg text-sm font-bold cursor-not-allowed" disabled>
+                        Quota atteint
+                    </button>
+</div>
+</div>
+</div>
+<div class="flex gap-4 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 opacity-80">
+<div class="w-24 h-24 bg-center bg-cover rounded-lg flex-shrink-0 filter grayscale" data-alt="Classic Italian pepperoni pizza" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCOAZwOUdlkY-O0FZQ6c7W-0BC0CdqEXpSdnrapO2p4Srj-le7v9SiEOwDwW70fiUVIj6Yo3EFbH2TSJpaiP6AfmLnSq_6-PF2r6b8fcyO21bftQqD6khxoeVqJqsItrYvkGBuZFQF8XrxXptlQ94-FbpNdKUqAWHijPebiQImCXZlsSUQTEMbaTvGS97DgsDGfqvrKsCZO5C6MhORCXOSv_si-DnNjAEhpowFGJgxQGq7zAlXa-5a_xWfvVIhdmL5T_n1IA-kuGiY");'>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<p class="text-[#181210] dark:text-white font-bold text-base">Pepperoni Pizza</p>
+<span class="text-gray-500 font-bold text-sm">Réservé</span>
+</div>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-yellow-500 text-xs fill-1">star</span>
+<span class="text-xs font-medium dark:text-gray-300">5.0 (56) • Luigi K.</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-xs text-[#8d6a5e] dark:text-gray-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">map</span> 2.1 km
+                    </span>
+<button class="bg-gray-300 dark:bg-gray-700 text-gray-500 px-4 py-1.5 rounded-lg text-sm font-bold cursor-not-allowed" disabled="">
+                        Récupéré
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<nav class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-6 py-2 flex items-center justify-between pb-8">
+<div class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined fill-1">home</span>
+<span class="text-[10px] font-bold">Accueil</span>
+</div>
+<div class="flex flex-col items-center text-gray-400 dark:text-gray-500">
+<span class="material-symbols-outlined">emergency</span>
+<span class="text-[10px] font-medium">Sauvez-les</span>
+</div>
+<div class="relative -top-6">
+<button class="bg-primary text-white size-14 rounded-full shadow-lg flex items-center justify-center border-4 border-background-light dark:border-background-dark">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-medium text-gray-400 dark:text-gray-500">Proposer</span>
+</div>
+<div class="flex flex-col items-center text-gray-400 dark:text-gray-500">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px] font-medium">Messages</span>
+</div>
+<div class="flex flex-col items-center text-gray-400 dark:text-gray-500">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</div>
+</nav>
+
+</body></html>
