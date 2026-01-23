@@ -10,9 +10,9 @@ SOLID'EAT connecte les cuisiniers amateurs qui ont préparé trop de repas avec 
 
 - **Frontend** : React 18+ avec TypeScript, Vite
 - **Backend** : Node.js avec Express.js et TypeScript
-- **Base de données** : PostgreSQL 15+ avec Prisma ORM
-- **Cache/Queue** : Redis 7+
-- **Stockage** : Cloudinary (images)
+- **Base de données** : Supabase PostgreSQL (ou PostgreSQL 15+ avec Prisma ORM)
+- **Cache/Queue** : Redis 7+ (Upstash recommandé)
+- **Stockage** : Cloudinary (images) ou Supabase Storage
 
 ## 📁 Structure du projet
 
@@ -28,21 +28,21 @@ solideat/
 ### Prérequis
 
 - Node.js 18+ installé
-- PostgreSQL 15+ installé et configuré
-- Redis 7+ installé et configuré
+- PostgreSQL 15+ installé et configuré (ou Supabase)
+- Redis 7+ installé et configuré (ou Upstash)
 - Comptes API externes :
   - Google Maps API (géocodage)
   - SendGrid (emails)
   - Twilio (SMS)
   - Cloudinary (images)
-  - Stripe (paiements - optionnel pour MVP)
+  - Stripe (paiements)
 
 ### Installation
 
 1. **Cloner le repository**
    ```bash
-   git clone <repository-url>
-   cd "Solid'Eat 2026"
+   git clone https://github.com/AssoTakin/solideat.git
+   cd solideat
    ```
 
 2. **Installer les dépendances**
@@ -96,6 +96,7 @@ Toute la documentation du projet se trouve dans le dossier `/docs` :
 - **STORY-CREATOR** : User Stories avec critères d'acceptation
 - **UX** : Design System et maquettes
 - **SCRUM** : Planification des sprints
+- **DEV** : Guides de développement et déploiement
 
 ## 🧪 Tests
 
@@ -141,17 +142,16 @@ npm run test:e2e      # Tests E2E (Playwright)
 - **Convention de commits** : `type(scope): description [US-XXX]`
   - Types : `feat`, `fix`, `test`, `docs`, `refactor`, `style`, `chore`
 
-## 🎯 Sprint 1 - En cours
+## 🚀 Déploiement
 
-**Objectif** : Mettre en place les fondations (authentification et gestion des utilisateurs)
+### Production
 
-**User Stories** :
-- US-001 : Inscription d'un nouveau membre
-- US-002 : Vérification de l'email
-- US-003 : Vérification du téléphone
-- US-004 : Connexion à la plateforme
-- US-005 : Déconnexion
-- US-007 : Consultation du profil public
+- **Frontend** : Vercel → `https://solid-eat.com`
+- **Backend** : Railway → `https://api.solid-eat.com`
+- **Base de données** : Supabase PostgreSQL
+- **Cache** : Upstash Redis
+
+Voir `docs/dev/PLAN_PRODUCTION.md` pour les détails complets.
 
 ## 📄 Licence
 
