@@ -18,6 +18,10 @@ jest.mock('../../config/database', () => ({
       findMany: jest.fn(),
       updateMany: jest.fn(),
     },
+    notification: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+    },
     user: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -36,7 +40,8 @@ jest.mock('../notification.service', () => ({
 // Mock emailService
 jest.mock('../email.service', () => ({
   emailService: {
-    sendVerificationEmail: jest.fn(),
+    sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
   },
 }));
 

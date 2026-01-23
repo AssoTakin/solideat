@@ -1,4 +1,6 @@
 import api from './api';
+import { dashboardServiceMock } from './dashboard.service.mock';
+import { USE_MOCK_DATA } from '../data/mockData';
 
 export interface DashboardStats {
   activity: {
@@ -66,6 +68,9 @@ export const dashboardService = {
    * Récupérer les statistiques du tableau de bord
    */
   async getDashboardStats(): Promise<{ success: boolean; data?: DashboardStats; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return dashboardServiceMock.getDashboardStats();
+    }
     const response = await api.get('/users/me/dashboard');
     return response.data;
   },

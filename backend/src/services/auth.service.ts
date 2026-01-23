@@ -250,6 +250,64 @@ export class AuthService {
       throw new Error('Token invalide ou expiré');
     }
   }
+
+  /**
+   * Mot de passe oublié - Génère un token de réinitialisation
+   */
+  async forgotPassword(email: string): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      // Ne pas révéler si l'email existe ou non (sécurité)
+      return;
+    }
+
+    // Générer un token de réinitialisation valide 1 heure
+    const resetToken = jwt.sign(
+      { userId: user.id, email: user.email, type: 'password-reset' },
+      process.env.JWT_SECRET || 'dev-secret',
+      { expiresIn: '1h' }
+    );
+
+    // Envoyer l'email avec le lien de réinitialisation
+    await emailService.sendPasswordResetEmail(user.email, resetToken);
+  }
+
+  /**
+   * Réinitialisation du mot de passe
+   */
+  async resetPassword(token: string, newPassword: string): Promise<boolean> {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret') as any;
+
+      if (decoded.type !== 'password-reset') {
+        throw new Error('Token invalide');
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+      });
+
+      if (!user) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
+      // Hasher le nouveau mot de passe
+      const passwordHash = await bcrypt.hash(newPassword, 12);
+
+      // Mettre à jour le mot de passe
+      await prisma.user.update({
+        where: { id: decoded.userId },
+        data: { passwordHash },
+      });
+
+      return true;
+    } catch (error) {
+      throw new Error('Token de réinitialisation invalide ou expiré');
+    }
+  }
 }
 
 export const authService = new AuthService();

@@ -40,3 +40,18 @@ export const verifyPhoneSchema = z.object({
 });
 
 export type VerifyPhoneDto = z.infer<typeof verifyPhoneSchema>;
+
+// Schéma de validation pour mot de passe oublié
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Email invalide'),
+});
+
+export type ForgotPasswordDto = z.infer<typeof forgotPasswordSchema>;
+
+// Schéma de validation pour réinitialisation de mot de passe
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Le token est requis'),
+  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
+});
+
+export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;

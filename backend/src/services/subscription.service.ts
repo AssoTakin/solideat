@@ -172,11 +172,19 @@ export class SubscriptionService {
   }
 
   /**
-   * Annule un abonnement
+   * Annule un abonnement (US-036)
+   * L'abonnement reste actif jusqu'à la fin de la période en cours
    */
   async cancelSubscription(userId: string): Promise<void> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
+      select: {
+        id: true,
+        subscriptionType: true,
+        subscriptionEnd: true,
+        stripeCustomerId: true,
+        email: true,
+      },
     });
 
     if (!user) {
@@ -187,11 +195,28 @@ export class SubscriptionService {
       throw new Error('Aucun abonnement actif');
     }
 
-    // TODO: Annuler la subscription Stripe
+    // TODO: Annuler la subscription Stripe si stripeCustomerId existe
+    // Stripe gérera automatiquement la fin de l'abonnement à la fin de la période
 
-    // Rétrograder en membre gratuit à la fin de la période en cours
-    // (on garde l'abonnement jusqu'à la fin)
-    // Pour une annulation immédiate, on peut mettre subscriptionEnd à maintenant
+    // Marquer l'abonnement pour annulation (on garde jusqu'à la fin de la période)
+    // On ne change rien pour l'instant, le job de renouvellement gérera la rétrogradation
+    // Pour une implémentation complète, on pourrait ajouter un champ cancelledAt
+
+    // Envoyer une notification
+    const { notificationService } = await import('./notification.service');
+    await notificationService.createNotification(
+      userId,
+      'SYSTEM_MESSAGE',
+      'Abonnement annulé',
+      `Votre abonnement premium restera actif jusqu'au ${user.subscriptionEnd?.toLocaleDateString('fr-FR') || 'fin de la période'}. Vous serez rétrogradé en membre gratuit après cette date.`,
+      '/dashboard'
+    );
+
+    // Envoyer un email
+    const { emailService } = await import('./email.service');
+    emailService.sendSubscriptionCancelledEmail(user.email, user.subscriptionEnd).catch(() => {
+      // Erreur silencieuse
+    });
   }
 }
 

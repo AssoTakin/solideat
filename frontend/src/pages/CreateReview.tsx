@@ -5,6 +5,24 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { mealService, Meal } from '../services/meal.service';
 import { reviewService } from '../services/review.service';
+import Navigation from '../components/Navigation';
+import { USE_MOCK_DATA } from '../data/mockData';
+
+// Design System Colors
+const colors = {
+  primary: '#FF6B35',
+  primaryHover: '#FF8C5A',
+  primaryActive: '#E55A2B',
+  sosAccent: '#4ECDC4',
+  success: '#2ECC71',
+  warning: '#F39C12',
+  error: '#E74C3C',
+  textPrimary: '#2C3E50',
+  textSecondary: '#7F8C8D',
+  backgroundLight: '#ECF0F1',
+  backgroundWhite: '#FFFFFF',
+  premium: '#9B59B6',
+};
 
 const reviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
@@ -69,6 +87,14 @@ export default function CreateReview() {
     setError(null);
 
     try {
+      if (USE_MOCK_DATA) {
+        // Simuler la création d'un avis
+        setTimeout(() => {
+          navigate(`/meals/${mealId}`);
+        }, 500);
+        return;
+      }
+
       const response = await reviewService.createReview({
         mealId,
         rating: data.rating,
@@ -77,7 +103,6 @@ export default function CreateReview() {
       });
 
       if (response.success) {
-        alert('Avis créé avec succès !');
         navigate(`/meals/${mealId}`);
       } else {
         setError(response.error || 'Erreur lors de la création de l\'avis');
@@ -90,102 +115,274 @@ export default function CreateReview() {
   };
 
   if (loading) {
-    return <div style={{ padding: '2rem' }}>Chargement...</div>;
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: colors.backgroundLight,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'Inter, sans-serif',
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+          <p style={{ color: colors.textPrimary }}>Chargement...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error && !meal) {
     return (
-      <div style={{ padding: '2rem' }}>
-        <p style={{ color: 'red' }}>{error}</p>
-        <button onClick={() => navigate('/reservations')}>Retour aux réservations</button>
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: colors.backgroundLight,
+          padding: '2rem',
+          fontFamily: 'Inter, sans-serif',
+        }}
+      >
+        <Navigation showBottomBar={true} />
+        <div style={{ maxWidth: '600px', margin: '0 auto', paddingTop: '80px' }}>
+          <p style={{ color: colors.error, fontSize: '18px', fontWeight: 'bold' }}>{error}</p>
+          <button
+            onClick={() => navigate('/reservations')}
+            style={{
+              marginTop: '16px',
+              padding: '10px 20px',
+              backgroundColor: colors.primary,
+              color: colors.backgroundWhite,
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+            }}
+          >
+            Retour aux réservations
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!meal) {
-    return <div style={{ padding: '2rem' }}>Repas non trouvé</div>;
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: colors.backgroundLight,
+          padding: '2rem',
+          fontFamily: 'Inter, sans-serif',
+        }}
+      >
+        <Navigation showBottomBar={true} />
+        <div style={{ maxWidth: '600px', margin: '0 auto', paddingTop: '80px', textAlign: 'center' }}>
+          <p style={{ color: colors.textPrimary, fontSize: '18px' }}>Repas non trouvé</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>Noter : {meal.name}</h1>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: colors.backgroundLight,
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        paddingBottom: '100px',
+      }}
+    >
+      <Navigation showBottomBar={true} />
 
-      {error && (
-        <div style={{ background: '#fee', color: '#c00', padding: '1rem', marginBottom: '1rem', borderRadius: '4px' }}>
-          {error}
+      {/* Header */}
+      <div
+        style={{
+          backgroundColor: colors.backgroundWhite,
+          padding: '16px',
+          borderBottom: `1px solid ${colors.backgroundLight}`,
+        }}
+      >
+        <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
+          Noter : {meal.name}
+        </h1>
+      </div>
+
+      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+
+        {error && (
+          <div
+            style={{
+              backgroundColor: '#FEE',
+              color: colors.error,
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              fontSize: '14px',
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {/* Aperçu du repas */}
+        <div
+          style={{
+            backgroundColor: colors.backgroundWhite,
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            display: 'flex',
+            gap: '16px',
+          }}
+        >
+          <img
+            src={meal.photo || '/placeholder-meal.jpg'}
+            alt={meal.name}
+            style={{
+              width: '100px',
+              height: '100px',
+              borderRadius: '8px',
+              objectFit: 'cover',
+              flexShrink: 0,
+            }}
+          />
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, margin: '0 0 8px 0' }}>
+              {meal.name}
+            </h3>
+            <p style={{ fontSize: '14px', color: colors.textSecondary, margin: 0 }}>
+              Par {meal.cook.username}
+            </p>
+          </div>
         </div>
-      )}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label>
-            Note (1 à 5 étoiles) *
-            <div style={{ marginTop: '0.5rem' }}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div
+            style={{
+              backgroundColor: colors.backgroundWhite,
+              borderRadius: '12px',
+              padding: '24px',
+              marginBottom: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}
+          >
+            <label style={{ display: 'block', marginBottom: '12px', fontSize: '16px', fontWeight: 'bold', color: colors.textPrimary }}>
+              Note (1 à 5 étoiles) *
+            </label>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
               {[1, 2, 3, 4, 5].map((star) => (
-                <label key={star} style={{ marginRight: '0.5rem', cursor: 'pointer' }}>
+                <label
+                  key={star}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    backgroundColor: colors.backgroundLight,
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = `${colors.primary}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.backgroundLight;
+                  }}
+                >
                   <input
                     type="radio"
                     value={star}
                     {...register('rating', { valueAsNumber: true })}
-                    style={{ marginRight: '0.25rem' }}
+                    style={{ display: 'none' }}
                   />
-                  {'⭐'.repeat(star)}
+                  <span style={{ fontSize: '32px' }}>⭐</span>
                 </label>
               ))}
             </div>
-          </label>
-          {errors.rating && <span style={{ color: 'red', display: 'block' }}>{errors.rating.message}</span>}
-        </div>
+            {errors.rating && (
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.rating.message}</p>
+            )}
+          </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label>
-            Commentaire * (min 20, max 500 caractères)
+          <div
+            style={{
+              backgroundColor: colors.backgroundWhite,
+              borderRadius: '12px',
+              padding: '24px',
+              marginBottom: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}
+          >
+            <label style={{ display: 'block', marginBottom: '12px', fontSize: '16px', fontWeight: 'bold', color: colors.textPrimary }}>
+              Commentaire * (min 20, max 500 caractères)
+            </label>
             <textarea
               {...register('comment')}
               rows={6}
-              style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+              placeholder="Décrivez votre expérience avec ce repas..."
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: `1px solid ${errors.comment ? colors.error : colors.backgroundLight}`,
+                fontSize: '16px',
+                fontFamily: 'inherit',
+                resize: 'vertical',
+                outline: 'none',
+              }}
             />
-          </label>
-          <div style={{ fontSize: '0.8rem', color: commentLength < 20 ? 'red' : '#666' }}>
-            {commentLength}/500 caractères (minimum 20 requis)
+            <div
+              style={{
+                fontSize: '12px',
+                color: commentLength < 20 ? colors.error : colors.textSecondary,
+                marginTop: '8px',
+                textAlign: 'right',
+              }}
+            >
+              {commentLength}/500 caractères (minimum 20 requis)
+            </div>
+            {errors.comment && (
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.comment.message}</p>
+            )}
           </div>
-          {errors.comment && <span style={{ color: 'red', display: 'block' }}>{errors.comment.message}</span>}
-        </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label>
-            Photos (optionnel, max 3)
-            <input type="text" placeholder="URL de la photo" style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-            <small style={{ display: 'block', color: '#666', marginTop: '0.25rem' }}>
-              Note: Upload de photos à implémenter avec Cloudinary
-            </small>
-          </label>
-        </div>
-
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button
-            type="submit"
-            disabled={submitting || commentLength < 20}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: submitting || commentLength < 20 ? '#ccc' : '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: submitting || commentLength < 20 ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {submitting ? 'Envoi...' : 'Publier l\'avis'}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate(`/meals/${mealId}`)}
-            style={{ padding: '0.75rem 1.5rem', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-          >
-            Annuler
-          </button>
-        </div>
-      </form>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              type="submit"
+              disabled={submitting || commentLength < 20}
+              style={{
+                flex: 1,
+                padding: '14px',
+                backgroundColor: submitting || commentLength < 20 ? colors.textSecondary : colors.success,
+                color: colors.backgroundWhite,
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: submitting || commentLength < 20 ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {submitting ? 'Envoi...' : '⭐ Publier l\'avis'}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(`/meals/${mealId}`)}
+              style={{
+                padding: '14px 24px',
+                backgroundColor: colors.backgroundLight,
+                color: colors.textPrimary,
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+              }}
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+      </main>
     </div>
   );
 }

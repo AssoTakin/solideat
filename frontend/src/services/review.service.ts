@@ -1,4 +1,6 @@
 import api from './api';
+import { reviewServiceMock } from './review.service.mock';
+import { USE_MOCK_DATA } from '../data/mockData';
 
 export interface Review {
   id: string;
@@ -41,6 +43,9 @@ export const reviewService = {
    * Récupérer les avis d'un cuisinier
    */
   async getCookReviews(cookId: string, page: number = 1, limit: number = 20): Promise<{ success: boolean; data?: { reviews: Review[]; total: number }; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return reviewServiceMock.getCookReviews(cookId, page, limit);
+    }
     const response = await api.get(`/reviews/cook/${cookId}?page=${page}&limit=${limit}`);
     return response.data;
   },

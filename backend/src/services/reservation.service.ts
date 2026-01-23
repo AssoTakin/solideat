@@ -3,6 +3,7 @@ import prisma from '../config/database';
 import { quotaService } from './quota.service';
 import { emailService } from './email.service';
 import { sanctionService } from './sanction.service';
+import { bonusDonorService } from './bonus-donor.service';
 
 export class ReservationService {
   /**
@@ -58,11 +59,19 @@ export class ReservationService {
       throw new Error(weeklyQuota.message || 'Quota hebdomadaire atteint');
     }
 
-    // TODO: Vérifier et utiliser un bonus donateur si demandé
+    // Vérifier et utiliser un bonus donateur si demandé (US-028)
     let bonusDonorId: string | null = null;
     if (useBonusDonor) {
-      // Implémenter la logique de bonus donateur
-      // bonusDonorId = await this.useBonusDonor(userId);
+      // Récupérer un bonus disponible
+      const availableBonuses = await bonusDonorService.getAvailableBonuses(userId);
+      if (availableBonuses.length === 0) {
+        throw new Error('Aucun bonus donateur disponible');
+      }
+
+      // Utiliser le premier bonus disponible
+      const bonusToUse = availableBonuses[0];
+      await bonusDonorService.useBonusDonor(userId, bonusToUse.id);
+      bonusDonorId = bonusToUse.id;
     }
 
     // Créer la réservation

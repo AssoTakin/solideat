@@ -1,6 +1,23 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
+import { USE_MOCK_DATA } from '../data/mockData';
+
+// Design System Colors
+const colors = {
+  primary: '#FF6B35',
+  primaryHover: '#FF8C5A',
+  primaryActive: '#E55A2B',
+  sosAccent: '#4ECDC4',
+  success: '#2ECC71',
+  warning: '#F39C12',
+  error: '#E74C3C',
+  textPrimary: '#2C3E50',
+  textSecondary: '#7F8C8D',
+  backgroundLight: '#ECF0F1',
+  backgroundWhite: '#FFFFFF',
+  premium: '#9B59B6',
+};
 
 export default function Verify() {
   const navigate = useNavigate();
@@ -51,6 +68,18 @@ export default function Verify() {
     setError(null);
 
     try {
+      if (USE_MOCK_DATA) {
+        // En mode mock, accepter n'importe quel code
+        setPhoneVerified(true);
+        if (emailVerified) {
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+        }
+        setLoading(false);
+        return;
+      }
+
       const response = await authService.verifyPhone(userId, phoneCode);
       if (response.success) {
         setPhoneVerified(true);
@@ -99,74 +128,236 @@ export default function Verify() {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>Vérification du compte</h1>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: colors.backgroundLight,
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: colors.backgroundWhite,
+          borderRadius: '16px',
+          padding: '32px',
+          maxWidth: '600px',
+          width: '100%',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        }}
+      >
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '24px' }}>
+          Vérification du compte
+        </h1>
 
-      {error && (
-        <div style={{ background: '#fee', color: '#c00', padding: '1rem', marginBottom: '1rem', borderRadius: '4px' }}>
-          {error}
-        </div>
-      )}
-
-      <div style={{ marginBottom: '2rem' }}>
-        <h2>Vérification email</h2>
-        {emailVerified ? (
-          <div style={{ background: '#efe', color: '#0a0', padding: '1rem', borderRadius: '4px' }}>
-            ✅ Email vérifié
-          </div>
-        ) : emailToken ? (
-          <div>
-            <p>Vérification en cours...</p>
-            {loading && <p>Chargement...</p>}
-          </div>
-        ) : (
-          <div>
-            <p>Vérifiez votre email en cliquant sur le lien reçu.</p>
-            <button onClick={verifyEmail} disabled={loading}>
-              Vérifier maintenant
-            </button>
-            <button onClick={resendEmail} style={{ marginLeft: '1rem' }}>
-              Renvoyer l'email
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div style={{ marginBottom: '2rem' }}>
-        <h2>Vérification téléphone</h2>
-        {phoneVerified ? (
-          <div style={{ background: '#efe', color: '#0a0', padding: '1rem', borderRadius: '4px' }}>
-            ✅ Téléphone vérifié
-          </div>
-        ) : (
-          <div>
-            <p>Entrez le code reçu par SMS :</p>
-            <input
-              type="text"
-              value={phoneCode}
-              onChange={(e) => setPhoneCode(e.target.value)}
-              placeholder="Code à 6 chiffres"
-              maxLength={6}
-              style={{ padding: '0.5rem', marginRight: '0.5rem' }}
-            />
-            <button onClick={verifyPhone} disabled={loading || !phoneCode}>
-              Vérifier
-            </button>
-            <button onClick={resendSMS} disabled={loading} style={{ marginLeft: '1rem' }}>
-              Renvoyer le SMS
-            </button>
+        {error && (
+          <div
+            style={{
+              backgroundColor: '#FEE',
+              color: colors.error,
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              fontSize: '14px',
+            }}
+          >
+            {error}
           </div>
         )}
-      </div>
 
-      {emailVerified && phoneVerified && (
-        <div style={{ background: '#efe', color: '#0a0', padding: '1rem', borderRadius: '4px', marginTop: '2rem' }}>
-          <p>✅ Votre compte est maintenant vérifié ! Redirection vers la connexion...</p>
+        {USE_MOCK_DATA && (
+          <div
+            style={{
+              backgroundColor: '#E3F2FD',
+              color: '#1976D2',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              fontSize: '12px',
+            }}
+          >
+            💡 Mode développement : La vérification est automatique, utilisez n'importe quel code
+          </div>
+        )}
+
+        <div style={{ marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+            Vérification email
+          </h2>
+          {emailVerified ? (
+            <div
+              style={{
+                backgroundColor: `${colors.success}20`,
+                color: colors.success,
+                padding: '12px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 'bold',
+              }}
+            >
+              ✅ Email vérifié
+            </div>
+          ) : emailToken ? (
+            <div>
+              <p style={{ fontSize: '14px', color: colors.textSecondary }}>Vérification en cours...</p>
+              {loading && <p style={{ fontSize: '14px', color: colors.textSecondary }}>Chargement...</p>}
+            </div>
+          ) : (
+            <div>
+              <p style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '12px' }}>
+                Vérifiez votre email en cliquant sur le lien reçu.
+              </p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={verifyEmail}
+                  disabled={loading}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: colors.primary,
+                    color: colors.backgroundWhite,
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Vérifier maintenant
+                </button>
+                <button
+                  onClick={resendEmail}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: colors.backgroundLight,
+                    color: colors.textPrimary,
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Renvoyer l'email
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
 
-      <div style={{ marginTop: '2rem' }}>
-        <a href="/login">Retour à la connexion</a>
+        <div style={{ marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+            Vérification téléphone
+          </h2>
+          {phoneVerified ? (
+            <div
+              style={{
+                backgroundColor: `${colors.success}20`,
+                color: colors.success,
+                padding: '12px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 'bold',
+              }}
+            >
+              ✅ Téléphone vérifié
+            </div>
+          ) : (
+            <div>
+              <p style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '12px' }}>
+                Entrez le code reçu par SMS :
+              </p>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                <input
+                  type="text"
+                  value={phoneCode}
+                  onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="123456"
+                  maxLength={6}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: `1px solid ${colors.backgroundLight}`,
+                    fontSize: '20px',
+                    fontFamily: 'monospace',
+                    textAlign: 'center',
+                    letterSpacing: '4px',
+                    width: '150px',
+                    outline: 'none',
+                  }}
+                />
+                <button
+                  onClick={verifyPhone}
+                  disabled={loading || !phoneCode || phoneCode.length !== 6}
+                  style={{
+                    padding: '12px 20px',
+                    backgroundColor: phoneCode.length === 6 ? colors.primary : colors.textSecondary,
+                    color: colors.backgroundWhite,
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    cursor: loading || !phoneCode || phoneCode.length !== 6 ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Vérifier
+                </button>
+              </div>
+              <button
+                onClick={resendSMS}
+                disabled={loading}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: colors.backgroundLight,
+                  color: colors.textPrimary,
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Renvoyer le SMS
+              </button>
+            </div>
+          )}
+        </div>
+
+        {emailVerified && phoneVerified && (
+          <div
+            style={{
+              backgroundColor: `${colors.success}20`,
+              color: colors.success,
+              padding: '16px',
+              borderRadius: '8px',
+              marginTop: '24px',
+              textAlign: 'center',
+              fontWeight: 'bold',
+            }}
+          >
+            ✅ Votre compte est maintenant vérifié ! Redirection vers la connexion...
+          </div>
+        )}
+
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <Link
+            to="/login"
+            style={{
+              color: colors.primary,
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: '14px',
+            }}
+          >
+            ← Retour à la connexion
+          </Link>
+        </div>
       </div>
     </div>
   );

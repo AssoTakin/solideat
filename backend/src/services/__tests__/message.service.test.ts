@@ -32,7 +32,9 @@ describe('MessageService', () => {
       // Format compact (le plus courant)
       expect(messageService.detectPhoneNumber('Contact: 0612345678')).toBe(true);
       expect(messageService.detectPhoneNumber('Mon numéro est 0712345678')).toBe(true);
-      // Format avec tirets
+      // Format avec tirets (vérifier que le format exact correspond à la regex)
+      // La regex attend: 0[67]-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}
+      // Format: 07-12-34-56-78 (10 chiffres avec tirets)
       expect(messageService.detectPhoneNumber('Appelez-moi au 07-12-34-56-78')).toBe(true);
       // Format avec points
       expect(messageService.detectPhoneNumber('Téléphone: 06.12.34.56.78')).toBe(true);

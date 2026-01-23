@@ -97,4 +97,20 @@ export const authService = {
     const response = await api.post('/auth/resend-verification-sms', { userId });
     return response.data;
   },
+
+  /**
+   * Mot de passe oublié
+   */
+  async forgotPassword(email: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  /**
+   * Réinitialisation du mot de passe
+   */
+  async resetPassword(token: string, password: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    const response = await api.post('/auth/reset-password', { token, password });
+    return response.data;
+  },
 };

@@ -48,4 +48,12 @@ export const subscriptionService = {
     const response = await api.post('/subscriptions', data);
     return response.data;
   },
+
+  /**
+   * Annule l'abonnement actuel (US-036)
+   */
+  async cancelSubscription(): Promise<{ success: boolean; message?: string; error?: string }> {
+    const response = await api.delete('/subscriptions');
+    return response.data;
+  },
 };

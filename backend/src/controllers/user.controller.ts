@@ -3,6 +3,8 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../config/database';
 import { dashboardService } from '../services/dashboard.service';
 import { quotaService } from '../services/quota.service';
+import { userService } from '../services/user.service';
+import { environmentalService } from '../services/environmental.service';
 
 export class UserController {
   /**
@@ -153,6 +155,149 @@ export class UserController {
       res.status(500).json({
         success: false,
         error: error.message || 'Erreur lors de la récupération des quotas',
+      });
+    }
+  }
+
+  /**
+   * PUT /users/me
+   * Mise à jour du profil (US-008)
+   */
+  async updateProfile(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { description, culinaryStyle, profilePhoto } = req.body;
+
+      const updatedUser = await userService.updateProfile(req.user!.id, {
+        description,
+        culinaryStyle,
+        profilePhoto,
+      });
+
+      res.json({
+        success: true,
+        message: 'Profil mis à jour avec succès',
+        data: updatedUser,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erreur lors de la mise à jour du profil',
+      });
+    }
+  }
+
+  /**
+   * PUT /users/me/password
+   * Changement de mot de passe (US-008)
+   */
+  async changePassword(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { oldPassword, newPassword } = req.body;
+
+      if (!oldPassword || !newPassword) {
+        res.status(400).json({
+          success: false,
+          error: 'Ancien et nouveau mot de passe requis',
+        });
+        return;
+      }
+
+      await userService.changePassword(req.user!.id, oldPassword, newPassword);
+
+      res.json({
+        success: true,
+        message: 'Mot de passe modifié avec succès',
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erreur lors du changement de mot de passe',
+      });
+    }
+  }
+
+  /**
+   * PUT /users/me/address
+   * Changement d'adresse (US-008)
+   */
+  async changeAddress(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { addressStreet, addressZipCode, addressCity } = req.body;
+
+      if (!addressStreet || !addressZipCode || !addressCity) {
+        res.status(400).json({
+          success: false,
+          error: 'Tous les champs d\'adresse sont requis',
+        });
+        return;
+      }
+
+      const updatedUser = await userService.changeAddress(req.user!.id, {
+        addressStreet,
+        addressZipCode,
+        addressCity,
+      });
+
+      res.json({
+        success: true,
+        message: 'Adresse mise à jour avec succès',
+        data: updatedUser,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erreur lors du changement d\'adresse',
+      });
+    }
+  }
+
+  /**
+   * PUT /users/me/privacy
+   * Mise à jour des paramètres de confidentialité (US-009)
+   */
+  async updatePrivacy(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { hidePhoneNumber } = req.body;
+
+      if (typeof hidePhoneNumber !== 'boolean') {
+        res.status(400).json({
+          success: false,
+          error: 'hidePhoneNumber doit être un booléen',
+        });
+        return;
+      }
+
+      const updatedUser = await userService.updatePrivacy(req.user!.id, hidePhoneNumber);
+
+      res.json({
+        success: true,
+        message: 'Paramètres de confidentialité mis à jour',
+        data: updatedUser,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erreur lors de la mise à jour des paramètres',
+      });
+    }
+  }
+
+  /**
+   * GET /users/me/environmental-impact
+   * Statistiques d'impact environnemental (US-026) - Premium uniquement
+   */
+  async getEnvironmentalImpact(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const stats = await environmentalService.getEnvironmentalImpact(req.user!.id);
+
+      res.json({
+        success: true,
+        data: stats,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erreur lors de la récupération des statistiques environnementales',
       });
     }
   }

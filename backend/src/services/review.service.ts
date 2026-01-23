@@ -1,5 +1,6 @@
 import prisma from '../config/database';
 import { CreateReviewDto } from '../validators/review.validator';
+import { badgeService } from './badge.service';
 
 export class ReviewService {
   /**
@@ -69,8 +70,10 @@ export class ReviewService {
     // Recalculer la note globale du cuisinier
     await this.calculateGlobalRating(meal.cookId);
 
-    // TODO: Vérifier l'éligibilité aux badges
-    // TODO: Envoyer notifications
+    // Vérifier l'éligibilité aux badges (US-032)
+    badgeService.checkAndAwardBadges(meal.cookId).catch(() => {
+      // Erreur silencieuse
+    });
 
     return review;
   }

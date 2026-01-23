@@ -51,6 +51,8 @@ import messageRoutes from './routes/message.routes';
 import reviewRoutes from './routes/review.routes';
 import notificationRoutes from './routes/notification.routes';
 import subscriptionRoutes from './routes/subscription.routes';
+import bonusDonorRoutes from './routes/bonus-donor.routes';
+import badgeRoutes from './routes/badge.routes';
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/meals', mealRoutes);
@@ -59,6 +61,8 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/bonus-donors', bonusDonorRoutes);
+app.use('/api/badges', badgeRoutes);
 // etc.
 
 // 404 handler

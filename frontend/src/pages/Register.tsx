@@ -1,10 +1,27 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authService } from '../services/auth.service';
 import { RegisterDto } from '../types/auth';
+import { USE_MOCK_DATA } from '../data/mockData';
+
+// Design System Colors
+const colors = {
+  primary: '#FF6B35',
+  primaryHover: '#FF8C5A',
+  primaryActive: '#E55A2B',
+  sosAccent: '#4ECDC4',
+  success: '#2ECC71',
+  warning: '#F39C12',
+  error: '#E74C3C',
+  textPrimary: '#2C3E50',
+  textSecondary: '#7F8C8D',
+  backgroundLight: '#ECF0F1',
+  backgroundWhite: '#FFFFFF',
+  premium: '#9B59B6',
+};
 
 const registerSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -45,6 +62,17 @@ export default function Register() {
     setError(null);
 
     try {
+      if (USE_MOCK_DATA) {
+        // En mode mock, simuler une inscription réussie
+        setTimeout(() => {
+          setSuccess(true);
+          setUserId('mock-user-' + Date.now());
+          setPhoneCode('123456');
+        }, 500);
+        setLoading(false);
+        return;
+      }
+
       const response = await authService.register(data as RegisterDto);
 
       if (response.success && response.data) {
@@ -65,16 +93,66 @@ export default function Register() {
 
   if (success && userId) {
     return (
-      <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-        <h1>Inscription réussie !</h1>
-        <p>Veuillez vérifier votre email et votre téléphone pour activer votre compte.</p>
-        {phoneCode && (
-          <div style={{ background: '#f0f0f0', padding: '1rem', marginTop: '1rem', borderRadius: '4px' }}>
-            <p><strong>Code de vérification téléphone (développement) :</strong> {phoneCode}</p>
-          </div>
-        )}
-        <div style={{ marginTop: '2rem' }}>
-          <button onClick={() => navigate('/verify', { state: { userId } })}>
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: colors.backgroundLight,
+          fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: colors.backgroundWhite,
+            borderRadius: '16px',
+            padding: '32px',
+            maxWidth: '500px',
+            width: '100%',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '16px' }}>
+            Inscription réussie !
+          </h1>
+          <p style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '24px' }}>
+            Veuillez vérifier votre email et votre téléphone pour activer votre compte.
+          </p>
+          {phoneCode && (
+            <div
+              style={{
+                backgroundColor: colors.backgroundLight,
+                padding: '16px',
+                borderRadius: '8px',
+                marginBottom: '24px',
+              }}
+            >
+              <p style={{ fontSize: '12px', color: colors.textSecondary, marginBottom: '8px' }}>
+                Code de vérification téléphone (développement)
+              </p>
+              <p style={{ fontSize: '20px', fontWeight: 'bold', color: colors.primary, fontFamily: 'monospace' }}>
+                {phoneCode}
+              </p>
+            </div>
+          )}
+          <button
+            onClick={() => navigate('/verify', { state: { userId } })}
+            style={{
+              width: '100%',
+              padding: '14px',
+              backgroundColor: colors.primary,
+              color: colors.backgroundWhite,
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+          >
             Vérifier mon compte
           </button>
         </div>
@@ -83,125 +161,408 @@ export default function Register() {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>Inscription</h1>
-
-      {error && (
-        <div style={{ background: '#fee', color: '#c00', padding: '1rem', marginBottom: '1rem', borderRadius: '4px' }}>
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Email *
-            <input type="email" {...register('email')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-          {errors.email && <span style={{ color: 'red' }}>{errors.email.message}</span>}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Mot de passe * (min 8 caractères)
-            <input type="password" {...register('password')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-          {errors.password && <span style={{ color: 'red' }}>{errors.password.message}</span>}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Téléphone * (format: +33XXXXXXXXX)
-            <input type="tel" {...register('phone')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-          {errors.phone && <span style={{ color: 'red' }}>{errors.phone.message}</span>}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Prénom *
-            <input type="text" {...register('firstName')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-          {errors.firstName && <span style={{ color: 'red' }}>{errors.firstName.message}</span>}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Nom *
-            <input type="text" {...register('lastName')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-          {errors.lastName && <span style={{ color: 'red' }}>{errors.lastName.message}</span>}
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: colors.backgroundLight,
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        padding: '16px',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: colors.backgroundWhite,
+          borderRadius: '16px',
+          padding: '32px',
+          maxWidth: '600px',
+          margin: '0 auto',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <Link to="/" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
+            <img
+              src="/logo.png"
+              alt="SOLID'EAT"
+              style={{
+                height: '48px',
+                width: 'auto',
+              }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                const parent = (e.target as HTMLImageElement).parentElement;
+                if (parent) {
+                  const span = document.createElement('span');
+                  span.style.cssText = `font-size: 24px; font-weight: bold; color: ${colors.primary}`;
+                  span.textContent = "SOLID'EAT";
+                  parent.appendChild(span);
+                }
+              }}
+            />
+          </Link>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: colors.textPrimary, margin: '16px 0 8px 0' }}>
+            Inscription
+          </h1>
+          <p style={{ fontSize: '14px', color: colors.textSecondary }}>Rejoignez la communauté SOLID'EAT</p>
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Pseudo * (3-20 caractères)
-            <input type="text" {...register('username')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-          {errors.username && <span style={{ color: 'red' }}>{errors.username.message}</span>}
+        {error && (
+          <div
+            style={{
+              backgroundColor: '#FEE',
+              color: colors.error,
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              fontSize: '14px',
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {USE_MOCK_DATA && (
+          <div
+            style={{
+              backgroundColor: '#E3F2FD',
+              color: '#1976D2',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              fontSize: '12px',
+            }}
+          >
+            💡 Mode développement : L'inscription sera simulée, vous pourrez vous connecter immédiatement
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              Email *
+            </label>
+            <input
+              type="email"
+              {...register('email')}
+              placeholder="votre@email.com"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: `1px solid ${errors.email ? colors.error : colors.backgroundLight}`,
+                fontSize: '16px',
+                backgroundColor: colors.backgroundWhite,
+                outline: 'none',
+              }}
+            />
+            {errors.email && (
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.email.message}</p>
+            )}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                Prénom *
+              </label>
+              <input
+                type="text"
+                {...register('firstName')}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${errors.firstName ? colors.error : colors.backgroundLight}`,
+                  fontSize: '16px',
+                  backgroundColor: colors.backgroundWhite,
+                  outline: 'none',
+                }}
+              />
+              {errors.firstName && (
+                <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.firstName.message}</p>
+              )}
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                Nom *
+              </label>
+              <input
+                type="text"
+                {...register('lastName')}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${errors.lastName ? colors.error : colors.backgroundLight}`,
+                  fontSize: '16px',
+                  backgroundColor: colors.backgroundWhite,
+                  outline: 'none',
+                }}
+              />
+              {errors.lastName && (
+                <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.lastName.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              Mot de passe * (min 8 caractères)
+            </label>
+            <input
+              type="password"
+              {...register('password')}
+              placeholder="••••••••"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: `1px solid ${errors.password ? colors.error : colors.backgroundLight}`,
+                fontSize: '16px',
+                backgroundColor: colors.backgroundWhite,
+                outline: 'none',
+              }}
+            />
+            {errors.password && (
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.password.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              Téléphone * (format: +33XXXXXXXXX)
+            </label>
+            <input
+              type="tel"
+              {...register('phone')}
+              placeholder="+33123456789"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: `1px solid ${errors.phone ? colors.error : colors.backgroundLight}`,
+                fontSize: '16px',
+                backgroundColor: colors.backgroundWhite,
+                outline: 'none',
+              }}
+            />
+            {errors.phone && (
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.phone.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              Pseudo * (3-20 caractères)
+            </label>
+            <input
+              type="text"
+              {...register('username')}
+              placeholder="Votre pseudo"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: `1px solid ${errors.username ? colors.error : colors.backgroundLight}`,
+                fontSize: '16px',
+                backgroundColor: colors.backgroundWhite,
+                outline: 'none',
+              }}
+            />
+            {errors.username && (
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.username.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              Rue *
+            </label>
+            <input
+              type="text"
+              {...register('addressStreet')}
+              placeholder="123 Rue de la Paix"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: `1px solid ${errors.addressStreet ? colors.error : colors.backgroundLight}`,
+                fontSize: '16px',
+                backgroundColor: colors.backgroundWhite,
+                outline: 'none',
+              }}
+            />
+            {errors.addressStreet && (
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.addressStreet.message}</p>
+            )}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                Code postal *
+              </label>
+              <input
+                type="text"
+                {...register('addressZipCode')}
+                placeholder="75001"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${errors.addressZipCode ? colors.error : colors.backgroundLight}`,
+                  fontSize: '16px',
+                  backgroundColor: colors.backgroundWhite,
+                  outline: 'none',
+                }}
+              />
+              {errors.addressZipCode && (
+                <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.addressZipCode.message}</p>
+              )}
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                Ville *
+              </label>
+              <input
+                type="text"
+                {...register('addressCity')}
+                placeholder="Paris"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${errors.addressCity ? colors.error : colors.backgroundLight}`,
+                  fontSize: '16px',
+                  backgroundColor: colors.backgroundWhite,
+                  outline: 'none',
+                }}
+              />
+              {errors.addressCity && (
+                <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.addressCity.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              Description (optionnel)
+            </label>
+            <textarea
+              {...register('description')}
+              placeholder="Parlez-nous de vous..."
+              rows={3}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: `1px solid ${colors.backgroundLight}`,
+                fontSize: '16px',
+                backgroundColor: colors.backgroundWhite,
+                outline: 'none',
+                resize: 'vertical',
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              Style culinaire (optionnel)
+            </label>
+            <input
+              type="text"
+              {...register('culinaryStyle')}
+              placeholder="Cuisine française, italienne..."
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: `1px solid ${colors.backgroundLight}`,
+                fontSize: '16px',
+                backgroundColor: colors.backgroundWhite,
+                outline: 'none',
+              }}
+            />
+          </div>
+
+          <div style={{ padding: '16px', backgroundColor: colors.backgroundLight, borderRadius: '8px' }}>
+            <label style={{ display: 'flex', alignItems: 'start', gap: '12px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                {...register('cguAccepted')}
+                style={{ marginTop: '4px', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '14px', color: colors.textPrimary }}>
+                J'accepte les{' '}
+                <Link to="/help" style={{ color: colors.primary, textDecoration: 'none', fontWeight: 'bold' }}>
+                  Conditions Générales d'Utilisation
+                </Link>{' '}
+                *
+              </span>
+            </label>
+            {errors.cguAccepted && (
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px', marginLeft: '28px' }}>
+                {errors.cguAccepted.message}
+              </p>
+            )}
+          </div>
+
+          <div style={{ padding: '16px', backgroundColor: colors.backgroundLight, borderRadius: '8px' }}>
+            <label style={{ display: 'flex', alignItems: 'start', gap: '12px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                {...register('sanitaryCharterAccepted')}
+                style={{ marginTop: '4px', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '14px', color: colors.textPrimary }}>
+                J'accepte la{' '}
+                <Link to="/help" style={{ color: colors.primary, textDecoration: 'none', fontWeight: 'bold' }}>
+                  Charte sanitaire
+                </Link>{' '}
+                *
+              </span>
+            </label>
+            {errors.sanitaryCharterAccepted && (
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px', marginLeft: '28px' }}>
+                {errors.sanitaryCharterAccepted.message}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '14px',
+              backgroundColor: loading ? colors.textSecondary : colors.primary,
+              color: colors.backgroundWhite,
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: loading ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {loading ? 'Inscription...' : "S'inscrire"}
+          </button>
+        </form>
+
+        <div style={{ textAlign: 'center', marginTop: '24px' }}>
+          <p style={{ fontSize: '14px', color: colors.textSecondary }}>
+            Déjà un compte ?{' '}
+            <Link
+              to="/login"
+              style={{
+                color: colors.primary,
+                textDecoration: 'none',
+                fontWeight: 'bold',
+              }}
+            >
+              Se connecter
+            </Link>
+          </p>
         </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Rue *
-            <input type="text" {...register('addressStreet')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-          {errors.addressStreet && <span style={{ color: 'red' }}>{errors.addressStreet.message}</span>}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Code postal * (5 chiffres)
-            <input type="text" {...register('addressZipCode')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-          {errors.addressZipCode && <span style={{ color: 'red' }}>{errors.addressZipCode.message}</span>}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Ville *
-            <input type="text" {...register('addressCity')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-          {errors.addressCity && <span style={{ color: 'red' }}>{errors.addressCity.message}</span>}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Description (optionnel)
-            <textarea {...register('description')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            Style culinaire (optionnel)
-            <input type="text" {...register('culinaryStyle')} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
-          </label>
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            <input type="checkbox" {...register('cguAccepted')} />
-            J'accepte les CGU *
-          </label>
-          {errors.cguAccepted && <span style={{ color: 'red', display: 'block' }}>{errors.cguAccepted.message}</span>}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label>
-            <input type="checkbox" {...register('sanitaryCharterAccepted')} />
-            J'accepte la charte sanitaire *
-          </label>
-          {errors.sanitaryCharterAccepted && <span style={{ color: 'red', display: 'block' }}>{errors.sanitaryCharterAccepted.message}</span>}
-        </div>
-
-        <button type="submit" disabled={loading} style={{ padding: '0.75rem 1.5rem', fontSize: '1rem', cursor: loading ? 'not-allowed' : 'pointer' }}>
-          {loading ? 'Inscription...' : 'S\'inscrire'}
-        </button>
-      </form>
-
-      <div style={{ marginTop: '1rem' }}>
-        <a href="/login">Déjà un compte ? Se connecter</a>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { Prisma, MealStatus } from '@prisma/client';
 import prisma from '../config/database';
 import { CreateMealDto, UpdateMealDto } from '../validators/meal.validator';
 import { geolocationService } from './geolocation.service';
+import { bonusDonorService } from './bonus-donor.service';
 
 export class MealService {
   /**
@@ -79,6 +80,11 @@ export class MealService {
           increment: 1,
         },
       },
+    });
+
+    // Vérifier l'acquisition de bonus donateurs (US-027)
+    bonusDonorService.checkAndAcquireBonus(userId).catch(() => {
+      // Erreur silencieuse
     });
 
     return meal;

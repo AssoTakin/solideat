@@ -5,6 +5,8 @@ import {
   registerSchema,
   loginSchema,
   verifyEmailSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '../validators/auth.validator';
 
 const router = Router();
@@ -29,5 +31,11 @@ router.post('/resend-verification-email', authController.resendVerificationEmail
 
 // Renvoyer SMS de vérification
 router.post('/resend-verification-sms', authController.resendVerificationSMS.bind(authController));
+
+// Mot de passe oublié
+router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword.bind(authController));
+
+// Réinitialisation du mot de passe
+router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword.bind(authController));
 
 export default router;

@@ -15,7 +15,7 @@ jest.mock('../../config/database', () => ({
     review: {
       findUnique: jest.fn(),
       create: jest.fn(),
-      findMany: jest.fn(),
+      findMany: jest.fn().mockResolvedValue([]),
       count: jest.fn(),
     },
     user: {

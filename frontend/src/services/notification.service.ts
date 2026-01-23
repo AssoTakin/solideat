@@ -1,4 +1,6 @@
 import api from './api';
+import { notificationServiceMock } from './notification.service.mock';
+import { USE_MOCK_DATA } from '../data/mockData';
 
 export interface SystemMessage {
   id: string;
@@ -39,6 +41,9 @@ export const notificationService = {
    * Récupérer toutes les notifications
    */
   async getNotifications(read?: boolean): Promise<{ success: boolean; data?: any[]; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return notificationServiceMock.getNotifications(read);
+    }
     const params = read !== undefined ? { read: read.toString() } : {};
     const response = await api.get('/notifications', { params });
     return response.data;
@@ -48,6 +53,9 @@ export const notificationService = {
    * Marquer une notification comme lue
    */
   async markAsRead(notificationId: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return notificationServiceMock.markAsRead(notificationId);
+    }
     const response = await api.put(`/notifications/${notificationId}/read`);
     return response.data;
   },
@@ -56,6 +64,9 @@ export const notificationService = {
    * Marquer toutes les notifications comme lues
    */
   async markAllAsRead(): Promise<{ success: boolean; message?: string; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return notificationServiceMock.markAllAsRead();
+    }
     const response = await api.put('/notifications/read-all');
     return response.data;
   },

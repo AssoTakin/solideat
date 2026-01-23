@@ -255,6 +255,52 @@ export class AuthController {
       });
     }
   }
+
+  /**
+   * POST /auth/forgot-password
+   * Mot de passe oublié
+   */
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+
+      await authService.forgotPassword(email);
+
+      // Toujours retourner un succès pour ne pas révéler si l'email existe
+      res.json({
+        success: true,
+        message: 'Si cet email existe, un lien de réinitialisation a été envoyé.',
+      });
+    } catch (error: any) {
+      // Même en cas d'erreur, on retourne un succès pour la sécurité
+      res.json({
+        success: true,
+        message: 'Si cet email existe, un lien de réinitialisation a été envoyé.',
+      });
+    }
+  }
+
+  /**
+   * POST /auth/reset-password
+   * Réinitialisation du mot de passe
+   */
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { token, password } = req.body;
+
+      await authService.resetPassword(token, password);
+
+      res.json({
+        success: true,
+        message: 'Mot de passe réinitialisé avec succès',
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erreur lors de la réinitialisation',
+      });
+    }
+  }
 }
 
 export const authController = new AuthController();

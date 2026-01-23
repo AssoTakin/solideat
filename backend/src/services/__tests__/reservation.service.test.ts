@@ -22,6 +22,9 @@ jest.mock('../../config/database', () => ({
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    sanction: {
+      findFirst: jest.fn().mockResolvedValue(null),
+    },
   },
 }));
 

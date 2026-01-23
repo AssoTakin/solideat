@@ -1,4 +1,6 @@
 import api from './api';
+import { mealServiceMock } from './meal.service.mock';
+import { USE_MOCK_DATA } from '../data/mockData';
 
 export interface Meal {
   id: string;
@@ -58,6 +60,9 @@ export const mealService = {
    * Créer un repas
    */
   async createMeal(data: CreateMealDto): Promise<{ success: boolean; data?: Meal; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return mealServiceMock.createMeal(data);
+    }
     const response = await api.post('/meals', data);
     return response.data;
   },
@@ -82,6 +87,9 @@ export const mealService = {
     sortBy?: 'distance' | 'date' | 'rating' | 'expiration';
     sortOrder?: 'asc' | 'desc';
   }): Promise<MealsResponse> {
+    if (USE_MOCK_DATA) {
+      return mealServiceMock.getMeals(filters);
+    }
     const params = new URLSearchParams();
     if (filters?.status) params.append('status', filters.status);
     if (filters?.date) params.append('date', filters.date);
@@ -104,6 +112,9 @@ export const mealService = {
    * Récupérer les détails d'un repas
    */
   async getMealById(id: string): Promise<{ success: boolean; data?: Meal; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return mealServiceMock.getMealById(id);
+    }
     const response = await api.get(`/meals/${id}`);
     return response.data;
   },
