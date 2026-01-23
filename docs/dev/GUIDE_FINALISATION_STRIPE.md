@@ -90,8 +90,8 @@ Une fois les Price IDs et le Webhook Secret récupérés, mettre à jour le fich
 
 ```env
 # Stripe - Mode Test
-STRIPE_SECRET_KEY=sk_test_VOTRE_CLE_SECRETE_ICI
-STRIPE_PUBLISHABLE_KEY=pk_test_VOTRE_CLE_PUBLIQUE_ICI
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 STRIPE_WEBHOOK_SECRET=whsec_xxxxx  # À remplacer par le secret du nouveau webhook
 STRIPE_PRICE_ID_WEEKLY=price_xxxxx  # À remplacer par le Price ID hebdomadaire
 STRIPE_PRICE_ID_MONTHLY=price_xxxxx  # À remplacer par le Price ID mensuel
@@ -100,7 +100,7 @@ STRIPE_PRICE_ID_YEARLY=price_xxxxx  # À remplacer par le Price ID annuel
 
 **Pour le frontend** (si nécessaire) :
 ```env
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_VOTRE_CLE_PUBLIQUE_ICI
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 ---
