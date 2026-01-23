@@ -11,12 +11,12 @@
 
 **Clé Publique (Publishable Key)** :
 ```
-pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+pk_test_VOTRE_CLE_PUBLIQUE_ICI
 ```
 
 **Clé Secrète (Secret Key)** :
 ```
-sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+sk_test_VOTRE_CLE_SECRETE_ICI
 ```
 
 ### 2. Produits Créés
@@ -103,8 +103,8 @@ Une fois les Price IDs et le Webhook Secret récupérés, configurer dans `.env`
 
 ```env
 # Stripe - Mode Test
-STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_SECRET_KEY=sk_test_VOTRE_CLE_SECRETE_ICI
+STRIPE_PUBLISHABLE_KEY=pk_test_VOTRE_CLE_PUBLIQUE_ICI
 STRIPE_WEBHOOK_SECRET=whsec_...  # ⚠️ À récupérer après création du nouveau webhook
 STRIPE_PRICE_ID_WEEKLY=price_...  # ⚠️ À récupérer dans Stripe Dashboard (Product: prod_TqRPlZozHRNuGJ)
 STRIPE_PRICE_ID_MONTHLY=price_...  # ⚠️ À récupérer dans Stripe Dashboard (Product: prod_TqRPRRQq6hB6H9)
