@@ -37,6 +37,7 @@ model User {
   subscriptionStart DateTime?
   subscriptionEnd   DateTime?
   stripeCustomerId  String?   @unique
+  stripeSubscriptionId String? @unique
   
   // Confidentialité
   hidePhoneNumber   Boolean   @default(false) // Premium uniquement

@@ -21,8 +21,27 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
 }));
+// IMPORTANT: Les webhooks Stripe doivent être configurés AVANT express.json()
+// car ils nécessitent le body brut pour la vérification de signature
+import stripeRoutes from './routes/stripe.routes';
+app.use('/webhooks', express.raw({ type: 'application/json' }), stripeRoutes);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Route de base
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    message: 'Solid\'Eat API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      api: '/api',
+      webhooks: '/webhooks/stripe',
+    },
+  });
+});
 
 // Health check
 app.get('/health', async (_req, res) => {
