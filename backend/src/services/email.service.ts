@@ -286,6 +286,80 @@ export class EmailService {
       // Erreur silencieuse
     }
   }
+
+  /**
+   * Envoie un email pour un abonnement créé
+   */
+  async sendSubscriptionCreatedEmail(to: string, planType: string): Promise<void> {
+    const apiKey = process.env.SENDGRID_API_KEY;
+    if (!apiKey || apiKey === 'SG...') {
+      return;
+    }
+
+    const planName = planType.replace('PREMIUM_', '').toLowerCase();
+    const planDisplayName = {
+      weekly: 'Hebdomadaire',
+      monthly: 'Mensuel',
+      yearly: 'Annuel',
+    }[planName] || planName;
+
+    const msg = {
+      to,
+      from: this.fromEmail,
+      subject: 'Abonnement créé avec succès - SOLID\'EAT',
+      html: `
+        <h1>Bienvenue dans Premium !</h1>
+        <p>Votre abonnement premium ${planDisplayName} a été activé avec succès.</p>
+        <p>Vous avez maintenant accès à toutes les fonctionnalités premium :</p>
+        <ul>
+          <li>3 repas réservés par semaine</li>
+          <li>3 repas proposés par semaine</li>
+          <li>Accès à "Sauvez-les"</li>
+          <li>Filtres de recherche avancés</li>
+          <li>Statistiques d'impact environnemental</li>
+          <li>Masquer votre numéro de téléphone</li>
+        </ul>
+        <p><a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard">Accéder à mon tableau de bord</a></p>
+      `,
+      text: `Votre abonnement premium ${planDisplayName} a été activé avec succès.`,
+    };
+
+    try {
+      await sgMail.send(msg);
+    } catch (error) {
+      // Erreur silencieuse
+    }
+  }
+
+  /**
+   * Envoie un email pour un échec de paiement
+   */
+  async sendSubscriptionPaymentFailedEmail(to: string): Promise<void> {
+    const apiKey = process.env.SENDGRID_API_KEY;
+    if (!apiKey || apiKey === 'SG...') {
+      return;
+    }
+
+    const msg = {
+      to,
+      from: this.fromEmail,
+      subject: 'Échec de paiement - SOLID\'EAT',
+      html: `
+        <h1>Échec de paiement</h1>
+        <p>Le paiement de votre abonnement premium a échoué.</p>
+        <p>Veuillez mettre à jour votre méthode de paiement pour continuer à profiter de votre abonnement premium.</p>
+        <p><a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/subscriptions">Mettre à jour ma méthode de paiement</a></p>
+        <p>Si vous ne mettez pas à jour votre méthode de paiement, votre abonnement sera suspendu.</p>
+      `,
+      text: 'Le paiement de votre abonnement premium a échoué. Veuillez mettre à jour votre méthode de paiement.',
+    };
+
+    try {
+      await sgMail.send(msg);
+    } catch (error) {
+      // Erreur silencieuse
+    }
+  }
 }
 
 export const emailService = new EmailService();

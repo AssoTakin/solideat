@@ -23,6 +23,19 @@ jest.mock('../notification.service', () => ({
 jest.mock('../email.service', () => ({
   emailService: {
     sendSubscriptionCancelledEmail: jest.fn().mockResolvedValue(undefined),
+    sendSubscriptionCreatedEmail: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('../stripe.service', () => ({
+  stripeService: {
+    getOrCreateCustomer: jest.fn().mockResolvedValue('cus_123'),
+    getPriceId: jest.fn().mockReturnValue('price_123'),
+    createSubscription: jest.fn().mockResolvedValue({
+      id: 'sub_123',
+      current_period_end: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60, // 7 jours
+    }),
+    getSubscriptionEndDate: jest.fn().mockReturnValue(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
   },
 }));
 
@@ -60,6 +73,7 @@ describe('SubscriptionService', () => {
         subscriptionEnd: endDate,
         email: 'test@example.com',
         stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_123',
       });
 
       await subscriptionService.cancelSubscription('user-id');
@@ -104,16 +118,22 @@ describe('SubscriptionService', () => {
     it('should create weekly subscription', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user-id',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
       });
 
       (prisma.user.update as jest.Mock).mockResolvedValue({
         id: 'user-id',
         subscriptionType: 'PREMIUM_WEEKLY',
+        subscriptionStart: new Date(),
+        subscriptionEnd: new Date(),
       });
 
       const result = await subscriptionService.createSubscription(
         'user-id',
-        SubscriptionType.PREMIUM_WEEKLY
+        SubscriptionType.PREMIUM_WEEKLY,
+        'pm_test_123'
       );
 
       expect(result.subscriptionType).toBe('PREMIUM_WEEKLY');
@@ -122,19 +142,40 @@ describe('SubscriptionService', () => {
     it('should create monthly subscription', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user-id',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
       });
 
       (prisma.user.update as jest.Mock).mockResolvedValue({
         id: 'user-id',
         subscriptionType: 'PREMIUM_MONTHLY',
+        subscriptionStart: new Date(),
+        subscriptionEnd: new Date(),
       });
 
       const result = await subscriptionService.createSubscription(
         'user-id',
-        SubscriptionType.PREMIUM_MONTHLY
+        SubscriptionType.PREMIUM_MONTHLY,
+        'pm_test_123'
       );
 
       expect(result.subscriptionType).toBe('PREMIUM_MONTHLY');
+    });
+
+    it('should throw error if payment method ID is missing', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: 'user-id',
+        email: 'test@example.com',
+      });
+
+      await expect(
+        subscriptionService.createSubscription(
+          'user-id',
+          SubscriptionType.PREMIUM_WEEKLY,
+          '' // Payment method ID manquant
+        )
+      ).rejects.toThrow('Payment method ID requis');
     });
   });
 });

@@ -53,17 +53,60 @@ export function setupSubscriptionRenewalJob(): void {
           // Erreur silencieuse
         });
 
-        // TODO: Tenter renouvellement automatique via Stripe si stripeCustomerId existe
-        // Si échec, rétrograder en membre gratuit
-        // if (user.stripeCustomerId) {
-        //   try {
-        //     // Appeler Stripe API pour renouveler
-        //     // Si succès, mettre à jour subscriptionEnd
-        //     // Si échec, rétrograder
-        //   } catch (error) {
-        //     // Rétrograder en membre gratuit
-        //   }
-        // }
+        // Tenter renouvellement automatique via Stripe si stripeSubscriptionId existe
+        if (user.stripeCustomerId) {
+          try {
+            const { stripeService } = await import('../services/stripe.service');
+            const userFull = await prisma.user.findUnique({
+              where: { id: user.id },
+              select: { stripeSubscriptionId: true },
+            });
+
+            if (userFull?.stripeSubscriptionId) {
+              // Vérifier le statut de la subscription Stripe
+              const stripeSubscription = await stripeService.getSubscription(
+                userFull.stripeSubscriptionId
+              );
+
+              // Si la subscription est active et n'est pas annulée, renouveler
+              if (
+                stripeService.isSubscriptionActive(stripeSubscription) &&
+                !stripeService.isSubscriptionCancelled(stripeSubscription)
+              ) {
+                // Le renouvellement se fait automatiquement via Stripe
+                // On met juste à jour la date de fin dans notre base
+                const newEndDate = stripeService.getSubscriptionEndDate(stripeSubscription);
+                await prisma.user.update({
+                  where: { id: user.id },
+                  data: {
+                    subscriptionEnd: newEndDate,
+                  },
+                });
+              } else {
+                // La subscription est annulée ou inactive, on rétrograde
+                await prisma.user.update({
+                  where: { id: user.id },
+                  data: {
+                    subscriptionType: SubscriptionType.FREE,
+                    subscriptionStart: null,
+                    subscriptionEnd: null,
+                  },
+                });
+              }
+            }
+          } catch (error) {
+            // En cas d'erreur, on rétrograde en membre gratuit
+            console.error(`Erreur lors du renouvellement pour l'utilisateur ${user.id}:`, error);
+            await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                subscriptionType: SubscriptionType.FREE,
+                subscriptionStart: null,
+                subscriptionEnd: null,
+              },
+            });
+          }
+        }
       }
 
       // Vérifier les abonnements expirés et les rétrograder

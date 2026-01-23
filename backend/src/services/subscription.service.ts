@@ -1,5 +1,6 @@
 import prisma from '../config/database';
 import { SubscriptionType } from '@prisma/client';
+import { stripeService } from './stripe.service';
 
 export interface SubscriptionPlan {
   id: string;
@@ -83,6 +84,7 @@ export class SubscriptionService {
         subscriptionStart: true,
         subscriptionEnd: true,
         stripeCustomerId: true,
+        stripeSubscriptionId: true,
       },
     });
 
@@ -106,69 +108,96 @@ export class SubscriptionService {
       endDate: user.subscriptionEnd,
       active: isActive,
       stripeCustomerId: user.stripeCustomerId,
+      stripeSubscriptionId: user.stripeSubscriptionId,
     };
   }
 
   /**
-   * Crée un abonnement (à compléter avec Stripe)
+   * Crée un abonnement avec Stripe
    */
   async createSubscription(
     userId: string,
     planType: SubscriptionType,
-    _stripePaymentMethodId?: string
+    paymentMethodId: string
   ): Promise<any> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+      },
     });
 
     if (!user) {
       throw new Error('Utilisateur non trouvé');
     }
 
-    // Calculer les dates selon le type d'abonnement
-    const now = new Date();
-    let subscriptionEnd: Date;
-
-    switch (planType) {
-      case SubscriptionType.PREMIUM_WEEKLY:
-        subscriptionEnd = new Date(now);
-        subscriptionEnd.setDate(subscriptionEnd.getDate() + 7);
-        break;
-      case SubscriptionType.PREMIUM_MONTHLY:
-        subscriptionEnd = new Date(now);
-        subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
-        break;
-      case SubscriptionType.PREMIUM_YEARLY:
-        subscriptionEnd = new Date(now);
-        subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
-        break;
-      default:
-        throw new Error('Type d\'abonnement invalide');
+    if (!paymentMethodId) {
+      throw new Error('Payment method ID requis');
     }
 
-    // TODO: Intégrer Stripe pour créer la subscription
-    // - Créer ou récupérer le customer Stripe
-    // - Créer la subscription avec le payment method
-    // - Stocker l'ID de la subscription Stripe
+    try {
+      // Créer ou récupérer le customer Stripe
+      const customerId = await stripeService.getOrCreateCustomer(
+        userId,
+        user.email,
+        `${user.firstName} ${user.lastName}`
+      );
 
-    // Mettre à jour l'utilisateur
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        subscriptionType: planType,
-        subscriptionStart: now,
-        subscriptionEnd,
-        // stripeCustomerId sera mis à jour lors de l'intégration Stripe
-      },
-      select: {
-        id: true,
-        subscriptionType: true,
-        subscriptionStart: true,
-        subscriptionEnd: true,
-      },
-    });
+      // Récupérer le price ID
+      const priceId = stripeService.getPriceId(planType);
 
-    return updatedUser;
+      // Créer la subscription Stripe
+      const stripeSubscription = await stripeService.createSubscription(
+        customerId,
+        priceId,
+        paymentMethodId
+      );
+
+      // Calculer les dates selon le type d'abonnement
+      const now = new Date();
+      const subscriptionEnd = stripeService.getSubscriptionEndDate(stripeSubscription);
+
+      // Mettre à jour l'utilisateur
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          subscriptionType: planType,
+          subscriptionStart: now,
+          subscriptionEnd,
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: stripeSubscription.id,
+        },
+        select: {
+          id: true,
+          subscriptionType: true,
+          subscriptionStart: true,
+          subscriptionEnd: true,
+        },
+      });
+
+      // Envoyer une notification
+      const { notificationService } = await import('./notification.service');
+      await notificationService.createNotification(
+        userId,
+        'SYSTEM_MESSAGE',
+        'Abonnement créé',
+        `Votre abonnement premium ${planType.replace('PREMIUM_', '').toLowerCase()} a été activé avec succès !`,
+        '/dashboard'
+      );
+
+      // Envoyer un email
+      const { emailService } = await import('./email.service');
+      emailService.sendSubscriptionCreatedEmail(user.email, planType).catch(() => {
+        // Erreur silencieuse
+      });
+
+      return updatedUser;
+    } catch (error: any) {
+      throw new Error(`Erreur lors de la création de l'abonnement Stripe: ${error.message}`);
+    }
   }
 
   /**
@@ -183,6 +212,7 @@ export class SubscriptionService {
         subscriptionType: true,
         subscriptionEnd: true,
         stripeCustomerId: true,
+        stripeSubscriptionId: true,
         email: true,
       },
     });
@@ -195,12 +225,15 @@ export class SubscriptionService {
       throw new Error('Aucun abonnement actif');
     }
 
-    // TODO: Annuler la subscription Stripe si stripeCustomerId existe
-    // Stripe gérera automatiquement la fin de l'abonnement à la fin de la période
-
-    // Marquer l'abonnement pour annulation (on garde jusqu'à la fin de la période)
-    // On ne change rien pour l'instant, le job de renouvellement gérera la rétrogradation
-    // Pour une implémentation complète, on pourrait ajouter un champ cancelledAt
+    // Annuler la subscription Stripe si elle existe
+    if (user.stripeSubscriptionId) {
+      try {
+        await stripeService.cancelSubscription(user.stripeSubscriptionId);
+      } catch (error: any) {
+        // Si l'abonnement n'existe plus dans Stripe, on continue quand même
+        console.error('Erreur lors de l\'annulation Stripe:', error.message);
+      }
+    }
 
     // Envoyer une notification
     const { notificationService } = await import('./notification.service');
