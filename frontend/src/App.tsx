@@ -21,6 +21,7 @@ import SubscriptionPlans from './pages/SubscriptionPlans';
 import CreateMeal from './pages/CreateMeal';
 import Notifications from './pages/Notifications';
 import Help from './pages/Help';
+import Diagnostic from './pages/Diagnostic';
 import { initializePushNotifications } from './utils/pushNotifications';
 
 function App() {
