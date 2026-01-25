@@ -48,9 +48,17 @@ export const authenticate = async (
       return;
     }
 
-    if (!user.emailVerified || !user.phoneVerified) {
-      res.status(403).json({ error: 'Compte non vérifié' });
+    // Pour le MVP, permettre l'accès avec seulement l'email vérifié
+    // La vérification du téléphone peut être faite plus tard
+    if (!user.emailVerified) {
+      res.status(403).json({ error: 'Email non vérifié. Veuillez vérifier votre email pour accéder à votre compte.' });
       return;
+    }
+
+    // Avertir si le téléphone n'est pas vérifié, mais permettre l'accès
+    if (!user.phoneVerified) {
+      console.warn('[AuthMiddleware] Téléphone non vérifié pour utilisateur:', user.id);
+      // On permet l'accès mais on pourrait ajouter un flag pour demander la vérification plus tard
     }
 
     req.user = {

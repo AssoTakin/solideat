@@ -63,17 +63,28 @@ export default function Home() {
       }
       const token = localStorage.getItem('token');
       if (token) {
-        const userResponse = await api.get('/users/me');
-        if (userResponse.data.success) {
-          setIsAuthenticated(true);
-          
-          try {
-            const quotaResponse = await api.get('/users/me/quotas');
-            if (quotaResponse.data.success) {
-              setQuotaStatus(quotaResponse.data.data);
+        try {
+          const userResponse = await api.get('/users/me');
+          if (userResponse.data.success) {
+            setIsAuthenticated(true);
+            
+            try {
+              const quotaResponse = await api.get('/users/me/quotas');
+              if (quotaResponse.data.success) {
+                setQuotaStatus(quotaResponse.data.data);
+              }
+            } catch (error) {
+              // Quotas non disponibles
             }
-          } catch (error) {
-            // Quotas non disponibles
+          }
+        } catch (error: any) {
+          // Si erreur 403 (compte non vérifié) ou 401 (token invalide), déconnecter
+          if (error.response?.status === 403 || error.response?.status === 401) {
+            localStorage.removeItem('token');
+            setIsAuthenticated(false);
+          } else {
+            // Autre erreur, considérer comme non authentifié
+            setIsAuthenticated(false);
           }
         }
       }
