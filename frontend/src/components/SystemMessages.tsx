@@ -20,6 +20,14 @@ export default function SystemMessages({ onMessageRead }: SystemMessagesProps) {
     setLoading(true);
     setError(null);
     try {
+      // Vérifier que le token est présent
+      const token = localStorage.getItem('token');
+      if (!token) {
+        // Pas de token, l'intercepteur API gérera la redirection
+        setLoading(false);
+        return;
+      }
+
       const response = await notificationService.getSystemMessages();
       if (response.success && response.data) {
         setUnreadMessages(response.data.unread || []);
@@ -28,7 +36,13 @@ export default function SystemMessages({ onMessageRead }: SystemMessagesProps) {
         setError(response.error || 'Erreur lors du chargement');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors du chargement');
+      // Si erreur 401, ne pas afficher d'erreur car l'intercepteur API va rediriger
+      if (err.response?.status === 401) {
+        // L'intercepteur API gère la redirection, ne pas afficher d'erreur
+        setLoading(false);
+        return;
+      }
+      setError(err.response?.data?.error || 'Erreur lors du chargement des messages');
     } finally {
       setLoading(false);
     }
@@ -72,9 +86,40 @@ export default function SystemMessages({ onMessageRead }: SystemMessagesProps) {
 
   if (error) {
     return (
-      <div style={{ padding: '1rem', color: 'red' }}>
-        <p>Erreur : {error}</p>
-        <button onClick={loadMessages}>Réessayer</button>
+      <div style={{ padding: '1rem' }}>
+        <div
+          style={{
+            backgroundColor: '#FEE',
+            color: '#E74C3C',
+            padding: '16px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            border: '2px solid #E74C3C',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
+            <div style={{ flex: 1 }}>
+              <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Erreur de chargement</strong>
+              <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.5' }}>{error}</p>
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={loadMessages}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#FF6B35',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+          }}
+        >
+          Réessayer
+        </button>
       </div>
     );
   }

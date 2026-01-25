@@ -27,7 +27,18 @@ export const quotaService = {
    * Récupérer le statut détaillé des quotas
    */
   async getQuotaStatus(): Promise<{ success: boolean; data?: QuotaStatus; error?: string }> {
-    const response = await api.get('/users/me/quotas');
-    return response.data;
+    try {
+      const response = await api.get('/users/me/quotas');
+      return response.data;
+    } catch (error: any) {
+      // Si erreur 401, l'intercepteur API gère la redirection
+      if (error.response?.status === 401) {
+        throw error; // Laisser l'intercepteur gérer
+      }
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Erreur lors du chargement des quotas',
+      };
+    }
   },
 };

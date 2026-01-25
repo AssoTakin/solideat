@@ -25,8 +25,19 @@ export const notificationService = {
    * Récupérer les messages système
    */
   async getSystemMessages(): Promise<{ success: boolean; data?: SystemMessagesResponse; error?: string }> {
-    const response = await api.get('/notifications/system');
-    return response.data;
+    try {
+      const response = await api.get('/notifications/system');
+      return response.data;
+    } catch (error: any) {
+      // Si erreur 401, l'intercepteur API gère la redirection
+      if (error.response?.status === 401) {
+        throw error; // Laisser l'intercepteur gérer
+      }
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Erreur lors du chargement des messages système',
+      };
+    }
   },
 
   /**
