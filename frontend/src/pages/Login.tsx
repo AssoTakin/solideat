@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,16 +36,21 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Afficher le message de succès si l'utilisateur vient de la page de vérification
   useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
-      // Effacer le message après 10 secondes
+      // Effacer le message après 15 secondes (plus long pour être sûr qu'il soit lu)
       const timer = setTimeout(() => {
         setSuccessMessage(null);
-      }, 10000);
+      }, 15000);
       return () => clearTimeout(timer);
+    }
+    // Nettoyer l'état de navigation pour éviter de réafficher le message si on revient sur la page
+    if (location.state) {
+      window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
@@ -59,7 +64,8 @@ export default function Login() {
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
-    setError(null);
+    // Ne pas effacer l'erreur immédiatement pour qu'elle reste visible
+    // setError(null);
 
     try {
       if (USE_MOCK_DATA) {
@@ -74,12 +80,28 @@ export default function Login() {
       const response = await authService.login(data as LoginDto);
 
       if (response.success) {
+        // Effacer les messages avant la redirection
+        setError(null);
+        setSuccessMessage(null);
+        // Rediriger vers le dashboard
         navigate('/dashboard');
       } else {
-        setError(response.error || 'Erreur lors de la connexion');
+        const errorMessage = response.error || 'Erreur lors de la connexion';
+        setError(errorMessage);
+        // Effacer le message de succès si on a une erreur
+        setSuccessMessage(null);
+        // L'erreur reste visible - pas de timeout automatique
+        // Scroll vers le haut pour voir l'erreur
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de la connexion');
+      const errorMessage = err.response?.data?.error || 'Erreur lors de la connexion';
+      setError(errorMessage);
+      // Effacer le message de succès si on a une erreur
+      setSuccessMessage(null);
+      // L'erreur reste visible - pas de timeout automatique
+      // Scroll vers le haut pour voir l'erreur
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -157,16 +179,48 @@ export default function Login() {
             style={{
               backgroundColor: '#FEE',
               color: colors.error,
-              padding: '12px',
+              padding: '16px',
               borderRadius: '8px',
               marginBottom: '16px',
               fontSize: '14px',
               display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
+              alignItems: 'flex-start',
+              gap: '12px',
+              border: `2px solid ${colors.error}`,
+              boxShadow: '0 2px 8px rgba(231, 76, 60, 0.2)',
             }}
           >
-            ❌ {error}
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>❌</span>
+            <div style={{ flex: 1 }}>
+              <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Erreur de connexion</strong>
+              <p style={{ margin: 0, lineHeight: '1.5' }}>{error}</p>
+              {error.includes('pas encore vérifié') && (
+                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: `1px solid ${colors.error}40` }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: 500 }}>Que faire ?</p>
+                  <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', lineHeight: '1.6' }}>
+                    <li>Vérifiez votre boîte email et cliquez sur le lien de vérification</li>
+                    <li>Vérifiez votre téléphone et entrez le code SMS reçu</li>
+                    <li>Si vous n'avez pas reçu les codes, utilisez les boutons "Renvoyer" sur la page de vérification</li>
+                  </ul>
+                  <Link
+                    to="/verify"
+                    style={{
+                      display: 'inline-block',
+                      marginTop: '12px',
+                      padding: '8px 16px',
+                      backgroundColor: colors.primary,
+                      color: colors.backgroundWhite,
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      fontSize: '13px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    Aller à la page de vérification →
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

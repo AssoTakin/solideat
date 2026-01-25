@@ -48,14 +48,15 @@ export default function Verify() {
           if (response.success) {
             setEmailVerified(true);
             setSuccessMessage('Email vérifié avec succès ! Redirection vers la page de connexion...');
-            // Rediriger vers la page de connexion après 3 secondes
+            // Rediriger vers la page de connexion après 2 secondes (plus rapide)
             setTimeout(() => {
               navigate('/login', { 
                 state: { 
-                  message: 'Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.' 
+                  message: 'Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.',
+                  emailVerified: true
                 } 
               });
-            }, 3000);
+            }, 2000);
           } else {
             setError(response.error || 'Erreur lors de la vérification email');
           }
