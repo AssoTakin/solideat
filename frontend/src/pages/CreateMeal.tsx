@@ -27,9 +27,9 @@ const colors = {
 // Schéma de validation pour l'étape 1
 const step1Schema = z.object({
   name: z.string().min(1, 'Le nom du repas est requis').max(100, 'Le nom ne peut pas dépasser 100 caractères'),
-  photo: z.string().optional().refine(
-    (val) => !val || val.startsWith('data:') || val.startsWith('http://') || val.startsWith('https://'),
-    { message: 'Format de photo invalide' }
+  photo: z.string().min(1, 'Une photo du plat est obligatoire').refine(
+    (val) => val.startsWith('data:') || val.startsWith('http://') || val.startsWith('https://'),
+    { message: 'Format de photo invalide. Veuillez télécharger une vraie photo de votre plat cuisiné.' }
   ),
   description: z.string().max(500, 'La description ne peut pas dépasser 500 caractères').optional().or(z.literal('')),
   preparationDate: z.string().min(1, 'La date de préparation est requise'),
@@ -79,6 +79,7 @@ const step3Schema = z.object({
       message: 'Au moins 3 ingrédients valides sont requis (remplissez les champs d\'ingrédients)',
     }
   ),
+  sellMeal: z.boolean().optional(), // Case à cocher "Vendre ce repas" (premium uniquement)
   price: z.preprocess(
     (val) => {
       // Si la valeur est vide, null, undefined, ou NaN, retourner null
@@ -89,7 +90,7 @@ const step3Schema = z.object({
       const num = typeof val === 'string' ? parseFloat(val) : val;
       return isNaN(num) ? null : num;
     },
-    z.number().min(0).optional().nullable()
+    z.number().optional().nullable()
   ),
 });
 
@@ -123,6 +124,7 @@ export default function CreateMeal() {
     resolver: zodResolver(step3Schema),
     defaultValues: {
       ingredients: [{ name: '', allergens: [] }],
+      sellMeal: false,
       price: null,
     },
   });
@@ -194,6 +196,7 @@ export default function CreateMeal() {
             if (error?.message) {
               const fieldNames: { [key: string]: string } = {
                 name: 'Nom du repas',
+                photo: 'Photo',
                 preparationDate: 'Date de préparation',
                 serviceDate: 'Jour de service',
                 pickupTimeType: 'Type d\'heure',
@@ -208,10 +211,8 @@ export default function CreateMeal() {
         
         if (errorMessages.length > 0) {
           const errorText = `Veuillez corriger les erreurs suivantes :\n${errorMessages.join('\n')}`;
-          console.error('[CreateMeal] Erreurs:', errorText);
           setError(errorText);
         } else {
-          console.error('[CreateMeal] Erreurs de validation non spécifiées');
           setError('Veuillez remplir tous les champs obligatoires avant de continuer.');
         }
         // Scroll vers le haut pour voir les erreurs
@@ -271,6 +272,7 @@ export default function CreateMeal() {
           if (error?.message) {
             const fieldNames: { [key: string]: string } = {
               ingredients: 'Ingrédients',
+              photo: 'Photo',
               price: 'Prix',
             };
             return `${fieldNames[field] || field}: ${error.message}`;
@@ -335,13 +337,10 @@ export default function CreateMeal() {
         return;
       }
 
-      // S'assurer que le prix est un nombre valide ou null
+      // Gérer le prix : si premium et case "Vendre ce repas" cochée, prix fixe à 5€
       let priceValue: number | null = null;
-      if (step3Data.price !== null && step3Data.price !== undefined) {
-        const numPrice = typeof step3Data.price === 'string' ? parseFloat(step3Data.price) : step3Data.price;
-        if (!isNaN(numPrice) && numPrice >= 0) {
-          priceValue = numPrice;
-        }
+      if (isPremium && step3Data.sellMeal) {
+        priceValue = 5; // Prix fixe selon spécifications : 5€ par repas
       }
 
       const mealData: CreateMealDto = {
@@ -539,10 +538,13 @@ export default function CreateMeal() {
                   <div style={{ fontSize: '48px' }}>📷</div>
                   <div style={{ textAlign: 'center' }}>
                     <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '4px' }}>
-                      Ajouter une photo
+                      Ajouter une photo <span style={{ color: colors.error }}>*</span>
                     </p>
-                    <p style={{ fontSize: '14px', color: colors.textSecondary }}>
+                    <p style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '8px' }}>
                       Prenez une photo ou importez de la galerie
+                    </p>
+                    <p style={{ fontSize: '12px', color: colors.warning, fontStyle: 'italic', marginTop: '4px' }}>
+                      📸 Veuillez ajouter une <strong>vraie photo de votre plat cuisiné</strong>. Les photos de stock ou d'illustration ne sont pas acceptées.
                     </p>
                   </div>
                   <label
@@ -565,6 +567,11 @@ export default function CreateMeal() {
                     />
                   </label>
                 </>
+              )}
+              {step1Form.formState.errors.photo && (
+                <p style={{ color: colors.error, fontSize: '12px', marginTop: '8px', textAlign: 'center' }}>
+                  {step1Form.formState.errors.photo.message}
+                </p>
               )}
             </div>
 
@@ -968,42 +975,60 @@ export default function CreateMeal() {
               )}
             </div>
 
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
-                Prix (optionnel, en euros)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                {...step3Form.register('price', { 
-                  valueAsNumber: true,
-                  onChange: (e) => {
-                    const value = e.target.value;
-                    // Si vide, définir à null
-                    if (value === '' || value === null || value === undefined) {
-                      step3Form.setValue('price', null, { shouldValidate: true });
-                    } else {
-                      const num = parseFloat(value);
-                      // Si c'est un nombre valide, l'utiliser, sinon null
-                      step3Form.setValue('price', isNaN(num) ? null : num, { shouldValidate: true });
-                    }
-                  }
-                })}
-                placeholder="0.00"
+            {/* Option "Vendre ce repas" (Premium uniquement) */}
+            {isPremium && (
+              <div
                 style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  border: `1px solid ${colors.backgroundLight}`,
-                  fontSize: '16px',
-                  backgroundColor: colors.backgroundWhite,
+                  padding: '16px',
+                  backgroundColor: `${colors.premium}10`,
+                  borderRadius: '12px',
+                  border: `2px solid ${colors.premium}30`,
                 }}
-              />
-              <p style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '4px' }}>
-                Laissez vide pour un repas gratuit
-              </p>
-            </div>
+              >
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: colors.textPrimary,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    {...step3Form.register('sellMeal')}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer',
+                      marginTop: '2px',
+                    }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span>💰 Vendre ce repas</span>
+                      <span style={{ 
+                        fontSize: '12px', 
+                        padding: '2px 8px', 
+                        backgroundColor: colors.premium, 
+                        color: colors.backgroundWhite, 
+                        borderRadius: '12px',
+                        fontWeight: 'bold'
+                      }}>
+                        PREMIUM
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '4px', lineHeight: '1.5' }}>
+                      Si cette option est cochée, votre repas sera vendu <strong>5€</strong> (frais de service inclus).
+                      <br />
+                      <strong>Vous recevrez 4€</strong> après la livraison du repas. La plateforme perçoit 1€ de frais de service.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -1049,7 +1074,6 @@ export default function CreateMeal() {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('[CreateMeal] Bouton Suivant cliqué');
               handleNextStep();
             }}
             style={{

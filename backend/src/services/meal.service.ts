@@ -15,6 +15,24 @@ export class MealService {
       throw new Error(`Quota hebdomadaire atteint. ${quota.message}`);
     }
 
+    // Vérifier le statut premium si un prix est défini
+    if (data.price !== null && data.price !== undefined && data.price > 0) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { subscriptionType: true },
+      });
+
+      // Seuls les membres premium peuvent vendre des repas
+      if (!user || user.subscriptionType === 'FREE') {
+        throw new Error('Seuls les membres premium peuvent vendre des repas. Passez au Premium pour accéder à cette fonctionnalité.');
+      }
+
+      // Le prix doit être exactement 5€ selon les spécifications
+      if (data.price !== 5) {
+        throw new Error('Le prix de vente est fixé à 5€ par repas (frais de service inclus). Vous recevrez 4€ après la livraison.');
+      }
+    }
+
     // Calculer la date d'expiration (preparationDate + 72h)
     const preparationDate = new Date(data.preparationDate);
     const expirationDate = new Date(preparationDate);
