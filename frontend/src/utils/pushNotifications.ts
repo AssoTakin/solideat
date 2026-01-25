@@ -4,10 +4,10 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   if ('serviceWorker' in navigator) {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker enregistré avec succès:', registration.scope);
       return registration;
     } catch (error) {
-      console.error('Erreur lors de l\'enregistrement du Service Worker:', error);
+      // Erreur silencieuse - le service worker n'est pas obligatoire
+      // Ne pas logger en console pour éviter le bruit dans les erreurs
       return null;
     }
   }
@@ -16,7 +16,6 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (!('Notification' in window)) {
-    console.log('Ce navigateur ne supporte pas les notifications');
     return 'denied';
   }
 
@@ -38,7 +37,6 @@ export async function subscribeToPushNotifications(
   try {
     const vapidKey = process.env.VITE_VAPID_PUBLIC_KEY;
     if (!vapidKey) {
-      console.log('VAPID_PUBLIC_KEY non configuré');
       return null;
     }
 
@@ -53,7 +51,6 @@ export async function subscribeToPushNotifications(
 
     return subscription;
   } catch (error) {
-    console.error('Erreur lors de l\'abonnement aux notifications push:', error);
     return null;
   }
 }

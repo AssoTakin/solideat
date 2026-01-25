@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { bonusDonorService, BonusDonor } from '../services/bonus-donor.service';
 import BonusDonorTransfer from './BonusDonorTransfer';
 import api from '../services/api';
+import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 
 const colors = {
   primary: '#FF6B35',
@@ -25,9 +26,14 @@ export default function BonusDonorList() {
 
   const loadUser = async () => {
     try {
-      const response = await api.get('/users/me');
-      if (response.data.success) {
-        setUser(response.data.data);
+      if (USE_MOCK_DATA) {
+        // Utiliser les données mock
+        setUser(mockUsers[0]);
+      } else {
+        const response = await api.get('/users/me');
+        if (response.data.success) {
+          setUser(response.data.data);
+        }
       }
     } catch (err) {
       // Erreur silencieuse

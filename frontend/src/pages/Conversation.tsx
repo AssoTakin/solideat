@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { messageService, Message } from '../services/message.service';
 import { USE_MOCK_DATA, mockMessages, mockUsers } from '../data/mockData';
 import Navigation from '../components/Navigation';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -149,7 +150,7 @@ export default function Conversation() {
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: '100px',
+        paddingBottom: getPagePaddingBottom(true, false),
       }}
     >
       <Navigation showBottomBar={true} />
@@ -183,7 +184,7 @@ export default function Conversation() {
         </h1>
       </div>
 
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: '600px', margin: '0 auto', width: '100%', padding: '16px' }}>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: '600px', margin: '0 auto', width: '100%', padding: '16px', ...getMainContentStyle(false) }}>
         {error && (
           <div
             style={{

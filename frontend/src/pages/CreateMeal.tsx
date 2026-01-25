@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { mealService, CreateMealDto } from '../services/meal.service';
 import api from '../services/api';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -36,8 +37,20 @@ const step1Schema = z.object({
   pickupTimeType: z.enum(['fixed', 'range'], { required_error: 'Sélectionnez un type d\'heure' }),
   pickupTimeStart: z.string().min(1, 'L\'heure de début est requise'),
   pickupTimeEnd: z.string().optional(),
-  portions: z.number().min(1, 'Le nombre de parts doit être au moins 1').max(4, 'Le nombre de parts ne peut pas dépasser 4'),
-});
+  portions: z.coerce.number().min(1, 'Le nombre de parts doit être au moins 1').max(4, 'Le nombre de parts ne peut pas dépasser 4'),
+}).refine(
+  (data) => {
+    // Si plage horaire, l'heure de fin est requise
+    if (data.pickupTimeType === 'range' && !data.pickupTimeEnd) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: 'L\'heure de fin est requise pour une plage horaire',
+    path: ['pickupTimeEnd'],
+  }
+);
 
 // Schéma de validation pour l'étape 2
 const step2Schema = z.object({
@@ -53,8 +66,31 @@ const step3Schema = z.object({
       name: z.string().min(1, 'Le nom de l\'ingrédient est requis'),
       allergens: z.array(z.string()).optional(),
     })
-  ).min(3, 'Au moins 3 ingrédients sont requis'),
-  price: z.number().min(0).optional().nullable(),
+  )
+  .refine(
+    (ingredients) => {
+      // Filtrer les ingrédients vides et vérifier qu'il en reste au moins 3
+      const validIngredients = ingredients.filter(
+        (ing) => ing.name && ing.name.trim().length > 0
+      );
+      return validIngredients.length >= 3;
+    },
+    {
+      message: 'Au moins 3 ingrédients valides sont requis (remplissez les champs d\'ingrédients)',
+    }
+  ),
+  price: z.preprocess(
+    (val) => {
+      // Si la valeur est vide, null, undefined, ou NaN, retourner null
+      if (val === '' || val === null || val === undefined || (typeof val === 'number' && isNaN(val))) {
+        return null;
+      }
+      // Convertir en nombre
+      const num = typeof val === 'string' ? parseFloat(val) : val;
+      return isNaN(num) ? null : num;
+    },
+    z.number().min(0).optional().nullable()
+  ),
 });
 
 type Step1FormData = z.infer<typeof step1Schema>;
@@ -137,11 +173,15 @@ export default function CreateMeal() {
     setError(null); // Effacer les erreurs précédentes
 
     if (currentStep === 1) {
+      const formValues = step1Form.getValues();
+      
       const isValid = await step1Form.trigger();
+      
       if (isValid) {
-        // Si heure fixe, copier l'heure de début dans l'heure de fin
-        if (step1Form.getValues('pickupTimeType') === 'fixed') {
-          step1Form.setValue('pickupTimeEnd', step1Form.getValues('pickupTimeStart'));
+        // Si heure fixe, copier l'heure de début dans l'heure de fin avant de passer à l'étape suivante
+        const formValues = step1Form.getValues();
+        if (formValues.pickupTimeType === 'fixed' && !formValues.pickupTimeEnd) {
+          step1Form.setValue('pickupTimeEnd', formValues.pickupTimeStart, { shouldValidate: false });
         }
         setCurrentStep(2);
         // Scroll vers le haut pour voir le nouveau contenu
@@ -167,8 +207,11 @@ export default function CreateMeal() {
           .filter(Boolean);
         
         if (errorMessages.length > 0) {
-          setError(`Veuillez corriger les erreurs suivantes :\n${errorMessages.join('\n')}`);
+          const errorText = `Veuillez corriger les erreurs suivantes :\n${errorMessages.join('\n')}`;
+          console.error('[CreateMeal] Erreurs:', errorText);
+          setError(errorText);
         } else {
+          console.error('[CreateMeal] Erreurs de validation non spécifiées');
           setError('Veuillez remplir tous les champs obligatoires avant de continuer.');
         }
         // Scroll vers le haut pour voir les erreurs
@@ -220,7 +263,30 @@ export default function CreateMeal() {
 
   const handleSubmit = async () => {
     const isValid = await step3Form.trigger();
-    if (!isValid) return;
+    
+    if (!isValid) {
+      const errors = step3Form.formState.errors;
+      const errorMessages = Object.entries(errors)
+        .map(([field, error]) => {
+          if (error?.message) {
+            const fieldNames: { [key: string]: string } = {
+              ingredients: 'Ingrédients',
+              price: 'Prix',
+            };
+            return `${fieldNames[field] || field}: ${error.message}`;
+          }
+          return null;
+        })
+        .filter(Boolean);
+      
+      if (errorMessages.length > 0) {
+        setError(`Veuillez corriger les erreurs suivantes :\n${errorMessages.join('\n')}`);
+      } else {
+        setError('Veuillez remplir tous les champs obligatoires avant de publier.');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -257,6 +323,27 @@ export default function CreateMeal() {
         photoUrl = photoPreview || '';
       }
 
+      // Filtrer les ingrédients vides avant de créer le repas
+      const validIngredients = step3Data.ingredients.filter(
+        (ing) => ing.name && ing.name.trim().length > 0
+      );
+      
+      if (validIngredients.length < 3) {
+        setError('Au moins 3 ingrédients valides sont requis. Veuillez remplir les champs d\'ingrédients.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setLoading(false);
+        return;
+      }
+
+      // S'assurer que le prix est un nombre valide ou null
+      let priceValue: number | null = null;
+      if (step3Data.price !== null && step3Data.price !== undefined) {
+        const numPrice = typeof step3Data.price === 'string' ? parseFloat(step3Data.price) : step3Data.price;
+        if (!isNaN(numPrice) && numPrice >= 0) {
+          priceValue = numPrice;
+        }
+      }
+
       const mealData: CreateMealDto = {
         name: step1Data.name,
         photo: photoUrl,
@@ -268,9 +355,9 @@ export default function CreateMeal() {
         pickupAddress: step2Data.pickupAddress,
         pickupLatitude: step2Data.pickupLatitude,
         pickupLongitude: step2Data.pickupLongitude,
-        ingredients: step3Data.ingredients,
+        ingredients: validIngredients,
         portions: step1Data.portions,
-        price: step3Data.price || null,
+        price: priceValue,
       };
 
       const response = await mealService.createMeal(mealData);
@@ -278,10 +365,14 @@ export default function CreateMeal() {
       if (response.success) {
         navigate('/dashboard');
       } else {
-        setError(response.error || 'Erreur lors de la création du repas');
+        const errorMsg = response.error || 'Erreur lors de la création du repas';
+        setError(errorMsg);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de la création du repas');
+      const errorMsg = err.response?.data?.error || err.message || 'Erreur lors de la création du repas';
+      setError(errorMsg);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -295,10 +386,10 @@ export default function CreateMeal() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: '100px', // Espace pour la bottom bar
+        paddingBottom: getPagePaddingBottom(false, true), // Pas de bottom nav mais footer avec boutons
       }}
     >
-      <Navigation showBottomBar={true} />
+      <Navigation showBottomBar={false} />
       {/* Header */}
       <header
         style={{
@@ -363,7 +454,7 @@ export default function CreateMeal() {
       </div>
 
       {/* Main Content */}
-      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', paddingBottom: '100px' }}>
+      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', ...getMainContentStyle(true) }}>
         {error && (
           <div
             style={{
@@ -661,7 +752,13 @@ export default function CreateMeal() {
                 </span>
               </div>
               <select
-                {...step1Form.register('portions', { valueAsNumber: true })}
+                {...step1Form.register('portions', { 
+                  valueAsNumber: true,
+                  onChange: (e) => {
+                    const value = parseInt(e.target.value, 10);
+                    step1Form.setValue('portions', value, { shouldValidate: true });
+                  }
+                })}
                 disabled={!isPremium}
                 style={{
                   width: '100%',
@@ -680,6 +777,11 @@ export default function CreateMeal() {
                   </option>
                 ))}
               </select>
+              {step1Form.formState.errors.portions && (
+                <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>
+                  {step1Form.formState.errors.portions.message}
+                </p>
+              )}
               {!isPremium && (
                 <div
                   style={{
@@ -874,7 +976,20 @@ export default function CreateMeal() {
                 type="number"
                 step="0.01"
                 min="0"
-                {...step3Form.register('price', { valueAsNumber: true })}
+                {...step3Form.register('price', { 
+                  valueAsNumber: true,
+                  onChange: (e) => {
+                    const value = e.target.value;
+                    // Si vide, définir à null
+                    if (value === '' || value === null || value === undefined) {
+                      step3Form.setValue('price', null, { shouldValidate: true });
+                    } else {
+                      const num = parseFloat(value);
+                      // Si c'est un nombre valide, l'utiliser, sinon null
+                      step3Form.setValue('price', isNaN(num) ? null : num, { shouldValidate: true });
+                    }
+                  }
+                })}
                 placeholder="0.00"
                 style={{
                   width: '100%',
@@ -906,6 +1021,8 @@ export default function CreateMeal() {
           borderTop: `1px solid ${colors.backgroundLight}`,
           display: 'flex',
           gap: '12px',
+          zIndex: 150, // Au-dessus de la Navigation (qui a zIndex: 100)
+          boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
         }}
       >
         {currentStep > 1 && (
@@ -928,7 +1045,13 @@ export default function CreateMeal() {
         )}
         {currentStep < 3 ? (
           <button
-            onClick={handleNextStep}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('[CreateMeal] Bouton Suivant cliqué');
+              handleNextStep();
+            }}
             style={{
               flex: 1,
               padding: '14px',
@@ -945,7 +1068,12 @@ export default function CreateMeal() {
           </button>
         ) : (
           <button
-            onClick={handleSubmit}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSubmit();
+            }}
             disabled={loading}
             style={{
               flex: 1,

@@ -11,7 +11,6 @@ export function setupBonusExpirationJob(): void {
       await bonusDonorService.checkExpiringBonuses();
     } catch (error) {
       // Erreur silencieuse - le job sera réexécuté le lendemain
-      console.error('Erreur dans le job d\'expiration des bonus donateurs:', error);
     }
   });
 }

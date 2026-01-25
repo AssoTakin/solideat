@@ -231,7 +231,6 @@ export class SubscriptionService {
         await stripeService.cancelSubscription(user.stripeSubscriptionId);
       } catch (error: any) {
         // Si l'abonnement n'existe plus dans Stripe, on continue quand même
-        console.error('Erreur lors de l\'annulation Stripe:', error.message);
       }
     }
 

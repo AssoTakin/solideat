@@ -187,7 +187,6 @@ export class AuthController {
         { expiresIn: '24h' }
       );
 
-      console.log(`[AuthController] Renvoi d'email de vérification pour ${user.email}`);
       await emailService.resendVerificationEmail(user.email, emailToken);
 
       res.json({
@@ -195,7 +194,6 @@ export class AuthController {
         message: 'Email de vérification renvoyé',
       });
     } catch (error: any) {
-      console.error('[AuthController] Erreur lors du renvoi d\'email de vérification:', error);
       res.status(400).json({
         success: false,
         error: error.message || 'Erreur lors de l\'envoi',

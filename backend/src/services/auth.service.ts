@@ -99,8 +99,8 @@ export class AuthService {
     });
 
     // Envoyer les emails et SMS (en arrière-plan, ne pas bloquer)
-    emailService.sendVerificationEmail(data.email, emailToken).catch((error) => {
-      console.error('[AuthService] Erreur lors de l\'envoi de l\'email de vérification lors de l\'inscription:', error);
+    emailService.sendVerificationEmail(data.email, emailToken).catch(() => {
+      // Erreur silencieuse
     });
     if (data.phone) {
       smsService.sendVerificationSMS(data.phone, phoneCode).catch(() => {
@@ -123,52 +123,31 @@ export class AuthService {
    */
   async verifyEmail(token: string): Promise<boolean> {
     try {
-      console.log('[AuthService] Début de la vérification d\'email avec token');
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret') as any;
 
       if (decoded.type !== 'email-verification') {
-        console.error('[AuthService] Type de token invalide:', decoded.type);
         throw new Error('Token invalide');
       }
-
-      console.log('[AuthService] Token décodé pour email:', decoded.email);
 
       const user = await prisma.user.findUnique({
         where: { email: decoded.email },
       });
 
       if (!user) {
-        console.error('[AuthService] Utilisateur non trouvé pour email:', decoded.email);
         throw new Error('Utilisateur non trouvé');
       }
 
-      console.log('[AuthService] Utilisateur trouvé:', {
-        id: user.id,
-        email: user.email,
-        emailVerified: user.emailVerified,
-        phoneVerified: user.phoneVerified,
-      });
-
       if (user.emailVerified) {
-        console.log('[AuthService] Email déjà vérifié');
         return true; // Déjà vérifié
       }
 
-      console.log('[AuthService] Mise à jour du statut emailVerified à true');
-      const updatedUser = await prisma.user.update({
+      await prisma.user.update({
         where: { email: decoded.email },
         data: { emailVerified: true },
       });
 
-      console.log('[AuthService] Email vérifié avec succès:', {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        emailVerified: updatedUser.emailVerified,
-      });
-
       return true;
     } catch (error: any) {
-      console.error('[AuthService] Erreur lors de la vérification d\'email:', error);
       throw new Error('Token de vérification invalide ou expiré');
     }
   }
@@ -207,49 +186,24 @@ export class AuthService {
    * Connexion
    */
   async login(email: string, password: string): Promise<AuthResult> {
-    console.log('[AuthService] Tentative de connexion pour email:', email);
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
-      console.error('[AuthService] Utilisateur non trouvé pour email:', email);
       throw new Error('Email ou mot de passe incorrect');
     }
 
-    console.log('[AuthService] Utilisateur trouvé:', {
-      id: user.id,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      phoneVerified: user.phoneVerified,
-    });
-
     const passwordValid = await bcrypt.compare(password, user.passwordHash);
     if (!passwordValid) {
-      console.error('[AuthService] Mot de passe incorrect pour email:', email);
       throw new Error('Email ou mot de passe incorrect');
     }
 
     // Pour le MVP, permettre la connexion avec seulement l'email vérifié
     // La vérification du téléphone peut être faite plus tard
     if (!user.emailVerified) {
-      console.warn('[AuthService] Email non vérifié:', {
-        email: user.email,
-        emailVerified: user.emailVerified,
-      });
       throw new Error('Votre email n\'est pas encore vérifié. Veuillez cliquer sur le lien reçu par email pour vérifier votre compte.');
     }
-
-    // Avertir si le téléphone n'est pas vérifié, mais permettre la connexion
-    if (!user.phoneVerified) {
-      console.warn('[AuthService] Téléphone non vérifié (connexion autorisée):', {
-        email: user.email,
-        phoneVerified: user.phoneVerified,
-      });
-      // On permet la connexion mais on pourrait ajouter un flag pour demander la vérification plus tard
-    }
-
-    console.log('[AuthService] Connexion réussie pour email:', email);
 
     // Générer le JWT
     const token = this.generateJWT(user);

@@ -17,7 +17,6 @@ export class EmailService {
   async sendVerificationEmail(to: string, token: string): Promise<void> {
     const apiKey = process.env.SENDGRID_API_KEY;
     if (!apiKey || apiKey === 'SG...') {
-      console.error('[EmailService] SENDGRID_API_KEY non configurée ou invalide');
       throw new Error('Service d\'envoi d\'email non configuré. Veuillez configurer SENDGRID_API_KEY.');
     }
 
@@ -38,17 +37,11 @@ export class EmailService {
     };
 
     try {
-      console.log(`[EmailService] Envoi d'email de vérification à ${to}`);
-      console.log(`[EmailService] Email expéditeur: ${this.fromEmail}`);
       await sgMail.send(msg);
-      console.log(`[EmailService] Email de vérification envoyé avec succès à ${to}`);
     } catch (error: any) {
-      console.error('[EmailService] Erreur lors de l\'envoi de l\'email de vérification:', error);
       if (error.response) {
-        console.error('[EmailService] Détails SendGrid:', JSON.stringify(error.response.body, null, 2));
         // Extraire le message d'erreur SendGrid
         const sendGridError = error.response.body?.errors?.[0]?.message || error.response.body?.message || 'Erreur SendGrid inconnue';
-        console.error('[EmailService] Message SendGrid:', sendGridError);
         throw new Error(`Impossible d'envoyer l'email de vérification: ${sendGridError}`);
       }
       throw new Error(`Impossible d'envoyer l'email de vérification: ${error.message || 'Erreur inconnue'}`);
@@ -155,7 +148,7 @@ export class EmailService {
   async sendPasswordResetEmail(to: string, token: string): Promise<void> {
     const apiKey = process.env.SENDGRID_API_KEY;
     if (!apiKey || apiKey === 'SG...') {
-      console.log(`[DEV] Email de réinitialisation pour ${to}: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/reset-password?token=${token}`);
+      // En développement, ne pas envoyer d'email réel
       return;
     }
 

@@ -96,7 +96,6 @@ export function setupSubscriptionRenewalJob(): void {
             }
           } catch (error) {
             // En cas d'erreur, on rétrograde en membre gratuit
-            console.error(`Erreur lors du renouvellement pour l'utilisateur ${user.id}:`, error);
             await prisma.user.update({
               where: { id: user.id },
               data: {
@@ -152,7 +151,6 @@ export function setupSubscriptionRenewalJob(): void {
       }
     } catch (error) {
       // Erreur silencieuse - le job sera réexécuté le lendemain
-      console.error('Erreur dans le job de renouvellement d\'abonnements:', error);
     }
   });
 }

@@ -27,12 +27,21 @@ import { initializePushNotifications } from './utils/pushNotifications';
 function App() {
   useEffect(() => {
     // Initialiser les notifications push au chargement de l'app
-    const token = localStorage.getItem('token');
-    if (token) {
-      initializePushNotifications().catch(() => {
-        // Erreur silencieuse
-      });
-    }
+    // Fait de manière asynchrone pour ne pas bloquer le chargement
+    const initNotifications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await initializePushNotifications();
+        }
+      } catch (error) {
+        // Erreur silencieuse - les notifications push ne sont pas critiques
+        // Ne pas logger pour éviter le bruit dans la console
+      }
+    };
+    
+    // Démarrer l'initialisation après un court délai pour ne pas bloquer le rendu initial
+    setTimeout(initNotifications, 1000);
   }, []);
 
   return (

@@ -4,6 +4,7 @@ import api from '../services/api';
 import { mealService, Meal } from '../services/meal.service';
 import Navigation from '../components/Navigation';
 import { USE_MOCK_DATA, mockSaveThemMeals } from '../data/mockData';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors EXACTES depuis les maquettes HTML (code_improved.html)
 const colors = {
@@ -79,9 +80,11 @@ export default function Home() {
           }
         } catch (error: any) {
           // Si erreur 403 (compte non vérifié) ou 401 (token invalide), déconnecter
+          // Mais ne pas rediriger depuis la page Home (page publique)
           if (error.response?.status === 403 || error.response?.status === 401) {
             localStorage.removeItem('token');
             setIsAuthenticated(false);
+            // Ne pas rediriger depuis Home, c'est une page publique
           } else {
             // Autre erreur, considérer comme non authentifié
             setIsAuthenticated(false);
@@ -150,7 +153,7 @@ export default function Home() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: isAuthenticated ? '100px' : '0', // Espace pour la bottom bar si authentifié
+        paddingBottom: isAuthenticated ? getPagePaddingBottom(true, false) : '0', // Espace pour la bottom bar si authentifié
       }}
     >
       {isAuthenticated ? (
@@ -221,7 +224,7 @@ export default function Home() {
       )}
 
       {/* Main Content */}
-      <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto', ...getMainContentStyle(false) }}>
         {isAuthenticated ? (
           <>
             {/* Search Bar - Conforme au wireframe */}

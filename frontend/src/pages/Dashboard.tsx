@@ -10,6 +10,7 @@ import Navigation from '../components/Navigation';
 import EnvironmentalStats from '../components/EnvironmentalStats';
 import BonusDonorList from '../components/BonusDonorList';
 import { USE_MOCK_DATA, mockMeals, mockReservations, mockUsers } from '../data/mockData';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors EXACTES depuis UX_DESIGN.md
 const colors = {
@@ -39,6 +40,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    
     if (!token) {
       navigate('/login');
       return;
@@ -58,6 +60,7 @@ export default function Dashboard() {
         setUser(currentUser);
       } else {
         const userResponse = await api.get('/users/me');
+        
         if (userResponse.data.success) {
           currentUser = userResponse.data.data;
           setUser(currentUser);
@@ -90,8 +93,15 @@ export default function Dashboard() {
           setReservedMeals(reservationsResponse.data.slice(0, 5));
         }
       }
-    } catch (error) {
-      navigate('/login');
+    } catch (error: any) {
+      // Ne pas rediriger automatiquement, l'intercepteur API gère déjà les 401
+      // Si c'est une erreur 401, l'intercepteur va rediriger
+      if (error.response?.status === 401) {
+        // L'intercepteur API va gérer la redirection
+        // Ne rien faire ici pour éviter les redirections multiples
+        return;
+      }
+      // Pour les autres erreurs, on reste sur la page mais on affiche un message
     } finally {
       setLoading(false);
     }
@@ -143,7 +153,7 @@ export default function Dashboard() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: '100px', // Espace pour la bottom bar
+        paddingBottom: getPagePaddingBottom(true, false), // Espace pour la bottom bar
       }}
     >
       <Navigation showBottomBar={true} />
@@ -253,7 +263,7 @@ export default function Dashboard() {
       </div>
 
       {/* Contenu des onglets */}
-      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', ...getMainContentStyle(false) }}>
         {activeTab === 'overview' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Carte Résumé */}

@@ -36,6 +36,19 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [diagnosticLogs, setDiagnosticLogs] = useState<any[]>([]);
+
+  // Charger les logs de diagnostic au montage
+  useEffect(() => {
+    const logs = JSON.parse(localStorage.getItem('diagnostic_logs') || '[]');
+    if (logs.length > 0) {
+      setDiagnosticLogs(logs);
+      // Nettoyer les logs après affichage
+      setTimeout(() => {
+        localStorage.removeItem('diagnostic_logs');
+      }, 10000);
+    }
+  }, []);
 
   // Afficher le message de succès si l'utilisateur vient de la page de vérification
   useEffect(() => {
@@ -219,6 +232,36 @@ export default function Login() {
                   </Link>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {diagnosticLogs.length > 0 && (
+          <div
+            style={{
+              backgroundColor: '#FFF3CD',
+              color: '#856404',
+              padding: '16px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              fontSize: '12px',
+              border: '1px solid #FFC107',
+            }}
+          >
+            <strong style={{ display: 'block', marginBottom: '8px' }}>🔍 Logs de diagnostic :</strong>
+            <div style={{ maxHeight: '200px', overflowY: 'auto', fontFamily: 'monospace' }}>
+              {diagnosticLogs.map((log, index) => (
+                <div key={index} style={{ marginBottom: '8px', padding: '8px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                    {new Date(log.timestamp).toLocaleTimeString()} - {log.message}
+                  </div>
+                  {log.data && (
+                    <pre style={{ margin: 0, fontSize: '10px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                      {JSON.stringify(log.data, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}

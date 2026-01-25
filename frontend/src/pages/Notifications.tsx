@@ -4,6 +4,7 @@ import Navigation from '../components/Navigation';
 import api from '../services/api';
 import { notificationService } from '../services/notification.service';
 import { USE_MOCK_DATA, mockNotifications } from '../data/mockData';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -134,7 +135,7 @@ export default function Notifications() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: '100px', // Espace pour la bottom bar
+        paddingBottom: getPagePaddingBottom(true, false), // Espace pour la bottom bar
       }}
     >
       <Navigation showBottomBar={true} />
@@ -231,7 +232,7 @@ export default function Notifications() {
       </div>
 
       {/* Liste des notifications */}
-      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', ...getMainContentStyle(false) }}>
         {error && (
           <div
             style={{

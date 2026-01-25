@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -62,7 +63,7 @@ export default function Help() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: '100px', // Espace pour la bottom bar
+        paddingBottom: getPagePaddingBottom(true, false), // Espace pour la bottom bar
       }}
     >
       <Navigation showBottomBar={true} />
@@ -137,7 +138,7 @@ export default function Help() {
       </div>
 
       {/* Contenu */}
-      <main style={{ padding: '16px', maxWidth: '800px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', maxWidth: '800px', margin: '0 auto', ...getMainContentStyle(false) }}>
         {activeSection === 'faq' && (
           <div>
             <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '24px' }}>

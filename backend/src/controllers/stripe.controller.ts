@@ -33,7 +33,6 @@ export class StripeController {
       }
       event = stripe.webhooks.constructEvent(req.body, sig, stripeWebhookSecret);
     } catch (err: any) {
-      console.error('Erreur de vérification du webhook Stripe:', err.message);
       res.status(400).json({ error: `Webhook Error: ${err.message}` });
       return;
     }
@@ -59,12 +58,12 @@ export class StripeController {
           break;
 
         default:
-          console.log(`Événement non géré: ${event.type}`);
+          // Événement non géré, ignoré
+          break;
       }
 
       res.json({ received: true });
     } catch (error: any) {
-      console.error('Erreur lors du traitement du webhook:', error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -82,7 +81,6 @@ export class StripeController {
     });
 
     if (!user) {
-      console.error(`Utilisateur non trouvé pour le customer Stripe: ${customerId}`);
       return;
     }
 
@@ -97,7 +95,6 @@ export class StripeController {
     } else if (priceId === process.env.STRIPE_PRICE_ID_YEARLY) {
       subscriptionType = SubscriptionType.PREMIUM_YEARLY;
     } else {
-      console.warn(`Price ID non reconnu: ${priceId}`);
       return; // Ne pas mettre à jour si le price ID n'est pas reconnu
     }
 
@@ -141,7 +138,6 @@ export class StripeController {
     });
 
     if (!user) {
-      console.error(`Utilisateur non trouvé pour le customer Stripe: ${customerId}`);
       return;
     }
 
@@ -184,7 +180,6 @@ export class StripeController {
     });
 
     if (!user) {
-      console.error(`Utilisateur non trouvé pour le customer Stripe: ${customerId}`);
       return;
     }
 
@@ -226,7 +221,6 @@ export class StripeController {
     });
 
     if (!user) {
-      console.error(`Utilisateur non trouvé pour le customer Stripe: ${customerId}`);
       return;
     }
 

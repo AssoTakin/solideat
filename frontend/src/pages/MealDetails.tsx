@@ -5,6 +5,7 @@ import { mealService, Meal } from '../services/meal.service';
 import { reviewService, Review } from '../services/review.service';
 import api from '../services/api';
 import { USE_MOCK_DATA } from '../data/mockData';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -117,22 +118,47 @@ export default function MealDetails() {
   };
 
   const getServiceDateLabel = (serviceDate: string): string => {
-    const today = new Date();
-    const service = new Date(serviceDate);
-    const diffTime = service.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (!serviceDate) return 'N/A';
+    
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Réinitialiser l'heure pour la comparaison
+      const service = new Date(serviceDate);
+      service.setHours(0, 0, 0, 0);
+      const diffTime = service.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return "Aujourd'hui";
-    if (diffDays === 1) return 'Demain';
-    if (diffDays === -1) return 'Hier';
-    return service.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+      if (diffDays === 0) return "Aujourd'hui";
+      if (diffDays === 1) return 'Demain';
+      if (diffDays === -1) return 'Hier';
+      return service.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    } catch (error) {
+      return 'N/A';
+    }
   };
 
-  const getTimeOfDay = (start: string): string => {
-    const hour = new Date(start).getHours();
-    if (hour < 12) return 'Matin';
-    if (hour < 18) return 'Midi';
-    return 'Soir';
+  const getTimeOfDay = (start: string, end?: string): string => {
+    if (!start) return 'N/A';
+    
+    try {
+      const startDate = new Date(start);
+      const hour = startDate.getHours();
+      
+      // Si c'est une plage horaire, afficher la plage
+      if (end && end !== start) {
+        const endDate = new Date(end);
+        const startHour = startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const endHour = endDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        return `${startHour} - ${endHour}`;
+      }
+      
+      // Sinon, afficher la période de la journée
+      if (hour < 12) return 'Matin';
+      if (hour < 18) return 'Midi';
+      return 'Soir';
+    } catch (error) {
+      return 'N/A';
+    }
   };
 
   const getAllergens = (): string[] => {
@@ -175,7 +201,7 @@ export default function MealDetails() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: '100px', // Espace pour la bottom bar
+        paddingBottom: getPagePaddingBottom(true, isAuthenticated), // Espace pour bottom bar + footer si authentifié
       }}
     >
       <Navigation showBottomBar={true} />
@@ -290,7 +316,7 @@ export default function MealDetails() {
       </div>
 
       {/* Contenu principal */}
-      <main style={{ padding: '16px', paddingBottom: '140px', maxWidth: '600px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', ...getMainContentStyle(isAuthenticated), maxWidth: '600px', margin: '0 auto' }}>
         {/* Titre et badges */}
         <div style={{ marginBottom: '16px' }}>
           <h1
@@ -419,7 +445,7 @@ export default function MealDetails() {
               PLAGE HORAIRE
             </span>
             <span style={{ fontSize: '14px', fontWeight: 600, color: colors.textPrimary, textAlign: 'center' }}>
-              {getTimeOfDay(meal.pickupTimeStart)}
+              {getTimeOfDay(meal.pickupTimeStart, meal.pickupTimeEnd)}
             </span>
           </div>
         </div>
@@ -460,7 +486,7 @@ export default function MealDetails() {
               PARTS RESTANTES
             </span>
             <span style={{ fontSize: '14px', fontWeight: 600, color: colors.textPrimary }}>
-              {meal.portions} restant{meal.portions > 1 ? 'es' : 'e'}
+              {meal.status === 'RESERVED' ? '0 restante' : `${meal.portions} restant${meal.portions > 1 ? 'es' : 'e'}`}
             </span>
           </div>
         </div>
@@ -674,6 +700,8 @@ export default function MealDetails() {
             backdropFilter: 'blur(12px)',
             borderTop: `1px solid ${colors.backgroundLight}`,
             paddingBottom: '32px',
+            zIndex: 150, // Au-dessus de la Navigation (qui a zIndex: 100)
+            boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
           }}
         >
           <div style={{ display: 'flex', gap: '16px', maxWidth: '600px', margin: '0 auto' }}>

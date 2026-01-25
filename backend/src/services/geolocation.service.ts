@@ -45,11 +45,6 @@ export class GeolocationService {
           longitude: location.lng,
         };
       } else {
-        // Logger le statut exact pour le débogage
-        console.error(`[Geolocation] Échec géocodage: ${response.data.status}`, {
-          status: response.data.status,
-          error_message: response.data.error_message,
-        });
 
         // Messages d'erreur plus explicites
         if (response.data.status === 'ZERO_RESULTS') {
@@ -63,10 +58,6 @@ export class GeolocationService {
         }
       }
     } catch (error: any) {
-      // Logger l'erreur complète
-      console.error('[Geolocation] Erreur lors du géocodage:', {
-        error: error.message,
-        response: error.response?.data,
       });
 
       // Si erreur réseau ou autre, donner un message plus clair

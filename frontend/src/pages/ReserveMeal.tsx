@@ -5,6 +5,7 @@ import { reservationService } from '../services/reservation.service';
 import { bonusDonorService } from '../services/bonus-donor.service';
 import Navigation from '../components/Navigation';
 import { USE_MOCK_DATA } from '../data/mockData';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -179,7 +180,7 @@ export default function ReserveMeal() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: '100px',
+        paddingBottom: getPagePaddingBottom(true, false),
       }}
     >
       <Navigation showBottomBar={true} />
@@ -197,7 +198,7 @@ export default function ReserveMeal() {
         </h1>
       </div>
 
-      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', ...getMainContentStyle(false) }}>
         {error && (
           <div
             style={{

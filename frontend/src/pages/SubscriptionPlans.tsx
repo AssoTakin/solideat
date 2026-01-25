@@ -4,6 +4,7 @@ import { subscriptionService, SubscriptionPlan } from '../services/subscription.
 import api from '../services/api';
 import { USE_MOCK_DATA, mockSubscriptionPlans, mockUsers } from '../data/mockData';
 import Navigation from '../components/Navigation';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -137,7 +138,7 @@ export default function SubscriptionPlans() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: '100px',
+        paddingBottom: getPagePaddingBottom(true, false),
       }}
     >
       <Navigation showBottomBar={true} />
@@ -155,7 +156,7 @@ export default function SubscriptionPlans() {
         </h1>
       </div>
 
-      <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto', ...getMainContentStyle(false) }}>
         {error && (
           <div
             style={{

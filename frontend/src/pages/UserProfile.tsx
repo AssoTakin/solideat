@@ -6,6 +6,7 @@ import { reviewService } from '../services/review.service';
 import { badgeService, UserBadge } from '../services/badge.service';
 import Navigation from '../components/Navigation';
 import BadgeList from '../components/BadgeList';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -143,7 +144,7 @@ export default function UserProfile() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: '100px',
+        paddingBottom: getPagePaddingBottom(true, false),
       }}
     >
       <Navigation showBottomBar={true} />
@@ -206,7 +207,7 @@ export default function UserProfile() {
       </div>
 
       {/* Contenu */}
-      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', ...getMainContentStyle(false) }}>
         {/* Statistiques */}
         <div
           style={{

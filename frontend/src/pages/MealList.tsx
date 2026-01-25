@@ -4,6 +4,7 @@ import { mealService, Meal } from '../services/meal.service';
 import MealFiltersComponent, { MealFilters } from '../components/MealFilters';
 import Navigation from '../components/Navigation';
 import { USE_MOCK_DATA, mockMeals } from '../data/mockData';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -166,7 +167,7 @@ export default function MealList() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: '100px',
+        paddingBottom: getPagePaddingBottom(true, false),
       }}
     >
       <Navigation showBottomBar={true} />
@@ -223,7 +224,7 @@ export default function MealList() {
         </div>
       </div>
 
-      <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto', ...getMainContentStyle(false) }}>
         {error && (
           <div
             style={{

@@ -57,7 +57,6 @@ export const authenticate = async (
 
     // Avertir si le téléphone n'est pas vérifié, mais permettre l'accès
     if (!user.phoneVerified) {
-      console.warn('[AuthMiddleware] Téléphone non vérifié pour utilisateur:', user.id);
       // On permet l'accès mais on pourrait ajouter un flag pour demander la vérification plus tard
     }
 
