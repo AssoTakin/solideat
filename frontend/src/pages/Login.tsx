@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -32,8 +32,22 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Afficher le message de succès si l'utilisateur vient de la page de vérification
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Effacer le message après 10 secondes
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   const {
     register,
@@ -120,6 +134,24 @@ export default function Login() {
           <p style={{ fontSize: '14px', color: colors.textSecondary }}>Connectez-vous à votre compte</p>
         </div>
 
+        {successMessage && (
+          <div
+            style={{
+              backgroundColor: `${colors.success}20`,
+              color: colors.success,
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            ✅ {successMessage}
+          </div>
+        )}
+
         {error && (
           <div
             style={{
@@ -129,9 +161,12 @@ export default function Login() {
               borderRadius: '8px',
               marginBottom: '16px',
               fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            {error}
+            ❌ {error}
           </div>
         )}
 

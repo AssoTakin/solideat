@@ -99,8 +99,8 @@ export class AuthService {
     });
 
     // Envoyer les emails et SMS (en arrière-plan, ne pas bloquer)
-    emailService.sendVerificationEmail(data.email, emailToken).catch(() => {
-      // Erreur silencieuse
+    emailService.sendVerificationEmail(data.email, emailToken).catch((error) => {
+      console.error('[AuthService] Erreur lors de l\'envoi de l\'email de vérification lors de l\'inscription:', error);
     });
     if (data.phone) {
       smsService.sendVerificationSMS(data.phone, phoneCode).catch(() => {

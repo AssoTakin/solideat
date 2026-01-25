@@ -47,7 +47,15 @@ export default function Verify() {
           const response = await authService.verifyEmail(emailToken);
           if (response.success) {
             setEmailVerified(true);
-            setSuccessMessage('Email vérifié avec succès !');
+            setSuccessMessage('Email vérifié avec succès ! Redirection vers la page de connexion...');
+            // Rediriger vers la page de connexion après 3 secondes
+            setTimeout(() => {
+              navigate('/login', { 
+                state: { 
+                  message: 'Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.' 
+                } 
+              });
+            }, 3000);
           } else {
             setError(response.error || 'Erreur lors de la vérification email');
           }
@@ -226,19 +234,25 @@ export default function Verify() {
             Vérification email
           </h2>
           {emailVerified ? (
-            <div
-              style={{
-                backgroundColor: `${colors.success}20`,
-                color: colors.success,
-                padding: '12px',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontWeight: 'bold',
-              }}
-            >
-              ✅ Email vérifié
+            <div>
+              <div
+                style={{
+                  backgroundColor: `${colors.success}20`,
+                  color: colors.success,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 'bold',
+                  marginBottom: '12px',
+                }}
+              >
+                ✅ Email vérifié avec succès !
+              </div>
+              <p style={{ fontSize: '14px', color: colors.textSecondary }}>
+                Vous allez être redirigé vers la page de connexion dans quelques secondes...
+              </p>
             </div>
           ) : emailToken ? (
             <div>
