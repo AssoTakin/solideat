@@ -45,10 +45,41 @@ export class GeolocationService {
           longitude: location.lng,
         };
       } else {
-        throw new Error(`Géocodage échoué: ${response.data.status}`);
+        // Logger le statut exact pour le débogage
+        console.error(`[Geolocation] Échec géocodage: ${response.data.status}`, {
+          status: response.data.status,
+          error_message: response.data.error_message,
+        });
+
+        // Messages d'erreur plus explicites
+        if (response.data.status === 'ZERO_RESULTS') {
+          throw new Error('Adresse introuvable. Vérifiez que l\'adresse est correcte.');
+        } else if (response.data.status === 'OVER_QUERY_LIMIT') {
+          throw new Error('Quota Google Maps dépassé. Veuillez réessayer plus tard.');
+        } else if (response.data.status === 'REQUEST_DENIED') {
+          throw new Error('Clé API Google Maps invalide ou restrictions activées.');
+        } else {
+          throw new Error(`Géocodage échoué: ${response.data.status}${response.data.error_message ? ` - ${response.data.error_message}` : ''}`);
+        }
       }
-    } catch (error) {
-      throw new Error('Impossible de géocoder l\'adresse');
+    } catch (error: any) {
+      // Logger l'erreur complète
+      console.error('[Geolocation] Erreur lors du géocodage:', {
+        error: error.message,
+        response: error.response?.data,
+      });
+
+      // Si erreur réseau ou autre, donner un message plus clair
+      if (error.response) {
+        // Erreur de l'API Google (déjà gérée ci-dessus, mais au cas où)
+        throw new Error(`Erreur Google Maps API: ${error.response.data?.error_message || error.message}`);
+      } else if (error.request) {
+        // Pas de réponse (réseau)
+        throw new Error('Impossible de contacter le service de géocodage. Vérifiez votre connexion.');
+      } else {
+        // Autre erreur (déjà gérée ci-dessus normalement)
+        throw new Error(`Impossible de géocoder l'adresse: ${error.message}`);
+      }
     }
   }
 

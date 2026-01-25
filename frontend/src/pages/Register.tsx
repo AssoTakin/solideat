@@ -47,6 +47,7 @@ export default function Register() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [phoneCode, setPhoneCode] = useState<string | null>(null);
 
   const {
@@ -78,6 +79,7 @@ export default function Register() {
       if (response.success && response.data) {
         setSuccess(true);
         setUserId(response.data.user.id);
+        setUserEmail(response.data.user.email);
         if (response.data.phoneCode) {
           setPhoneCode(response.data.phoneCode);
         }
@@ -140,7 +142,7 @@ export default function Register() {
             </div>
           )}
           <button
-            onClick={() => navigate('/verify', { state: { userId } })}
+            onClick={() => navigate('/verify', { state: { userId, userEmail } })}
             style={{
               width: '100%',
               padding: '14px',

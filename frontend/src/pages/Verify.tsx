@@ -24,39 +24,42 @@ export default function Verify() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [userId] = useState<string | null>(location.state?.userId || null);
+  const [userEmail] = useState<string | null>(location.state?.userEmail || null);
   const [emailToken] = useState<string | null>(searchParams.get('token') || null);
+  const [emailInput, setEmailInput] = useState<string>(location.state?.userEmail || '');
   const [phoneCode, setPhoneCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [emailVerified, setEmailVerified] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
 
   useEffect(() => {
     // Si un token email est présent dans l'URL, vérifier automatiquement
     if (emailToken) {
-      verifyEmail();
+      const autoVerify = async () => {
+        setEmailLoading(true);
+        setError(null);
+        setSuccessMessage(null);
+
+        try {
+          const response = await authService.verifyEmail(emailToken);
+          if (response.success) {
+            setEmailVerified(true);
+            setSuccessMessage('Email vérifié avec succès !');
+          } else {
+            setError(response.error || 'Erreur lors de la vérification email');
+          }
+        } catch (err: any) {
+          setError(err.response?.data?.error || 'Erreur lors de la vérification email');
+        } finally {
+          setEmailLoading(false);
+        }
+      };
+      autoVerify();
     }
   }, [emailToken]);
-
-  const verifyEmail = async () => {
-    if (!emailToken) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await authService.verifyEmail(emailToken);
-      if (response.success) {
-        setEmailVerified(true);
-      } else {
-        setError(response.error || 'Erreur lors de la vérification email');
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de la vérification email');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const verifyPhone = async () => {
     if (!userId || !phoneCode) {
@@ -100,8 +103,28 @@ export default function Verify() {
   };
 
   const resendEmail = async () => {
-    // Nécessite l'email, on ne peut pas le faire ici sans le récupérer
-    setError('Fonctionnalité à implémenter');
+    const emailToUse = (userEmail || emailInput || '').trim();
+    if (!emailToUse) {
+      setError('Email requis pour renvoyer la vérification.');
+      return;
+    }
+
+    setEmailLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await authService.resendVerificationEmail(emailToUse);
+      if (response.success) {
+        setSuccessMessage('Email de vérification renvoyé ! Vérifiez votre boîte de réception.');
+      } else {
+        setError(response.error || 'Erreur lors de l\'envoi de l\'email');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Erreur lors de l\'envoi de l\'email');
+    } finally {
+      setEmailLoading(false);
+    }
   };
 
   const resendSMS = async () => {
@@ -168,6 +191,21 @@ export default function Verify() {
           </div>
         )}
 
+        {successMessage && (
+          <div
+            style={{
+              backgroundColor: `${colors.success}20`,
+              color: colors.success,
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              fontSize: '14px',
+            }}
+          >
+            {successMessage}
+          </div>
+        )}
+
         {USE_MOCK_DATA && (
           <div
             style={{
@@ -212,25 +250,48 @@ export default function Verify() {
               <p style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '12px' }}>
                 Vérifiez votre email en cliquant sur le lien reçu.
               </p>
+              {!userEmail && (
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: colors.textSecondary }}>
+                    Email (si vous avez rechargé la page)
+                  </label>
+                  <input
+                    type="email"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder="votre@email.com"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: `1px solid ${colors.backgroundLight}`,
+                      fontSize: '14px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              )}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
-                  onClick={verifyEmail}
-                  disabled={loading}
+                  onClick={resendEmail}
+                  disabled={emailLoading || loading}
                   style={{
                     padding: '10px 20px',
-                    backgroundColor: colors.primary,
+                    backgroundColor: emailLoading || loading ? colors.textSecondary : colors.primary,
                     color: colors.backgroundWhite,
                     border: 'none',
                     borderRadius: '8px',
                     fontSize: '14px',
                     fontWeight: 'bold',
-                    cursor: loading ? 'not-allowed' : 'pointer',
+                    cursor: emailLoading || loading ? 'not-allowed' : 'pointer',
+                    opacity: emailLoading || loading ? 0.6 : 1,
                   }}
                 >
-                  Vérifier maintenant
+                  {emailLoading ? 'Envoi...' : 'Renvoyer l\'email'}
                 </button>
                 <button
                   onClick={resendEmail}
+                  disabled={emailLoading || loading}
                   style={{
                     padding: '10px 20px',
                     backgroundColor: colors.backgroundLight,
@@ -239,7 +300,8 @@ export default function Verify() {
                     borderRadius: '8px',
                     fontSize: '14px',
                     fontWeight: 'bold',
-                    cursor: 'pointer',
+                    cursor: emailLoading || loading ? 'not-allowed' : 'pointer',
+                    opacity: emailLoading || loading ? 0.6 : 1,
                   }}
                 >
                   Renvoyer l'email
