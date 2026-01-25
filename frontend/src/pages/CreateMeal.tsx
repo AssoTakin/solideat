@@ -26,14 +26,17 @@ const colors = {
 // Schéma de validation pour l'étape 1
 const step1Schema = z.object({
   name: z.string().min(1, 'Le nom du repas est requis').max(100, 'Le nom ne peut pas dépasser 100 caractères'),
-  photo: z.string().url('URL de photo invalide').optional(),
-  description: z.string().max(500, 'La description ne peut pas dépasser 500 caractères').optional(),
+  photo: z.string().optional().refine(
+    (val) => !val || val.startsWith('data:') || val.startsWith('http://') || val.startsWith('https://'),
+    { message: 'Format de photo invalide' }
+  ),
+  description: z.string().max(500, 'La description ne peut pas dépasser 500 caractères').optional().or(z.literal('')),
   preparationDate: z.string().min(1, 'La date de préparation est requise'),
   serviceDate: z.string().min(1, 'Le jour de service est requis'),
   pickupTimeType: z.enum(['fixed', 'range'], { required_error: 'Sélectionnez un type d\'heure' }),
   pickupTimeStart: z.string().min(1, 'L\'heure de début est requise'),
   pickupTimeEnd: z.string().optional(),
-  portions: z.number().min(1).max(4),
+  portions: z.number().min(1, 'Le nombre de parts doit être au moins 1').max(4, 'Le nombre de parts ne peut pas dépasser 4'),
 });
 
 // Schéma de validation pour l'étape 2
@@ -131,21 +134,76 @@ export default function CreateMeal() {
   };
 
   const handleNextStep = async () => {
-    let isValid = false;
+    setError(null); // Effacer les erreurs précédentes
 
     if (currentStep === 1) {
-      isValid = await step1Form.trigger();
+      const isValid = await step1Form.trigger();
       if (isValid) {
         // Si heure fixe, copier l'heure de début dans l'heure de fin
         if (step1Form.getValues('pickupTimeType') === 'fixed') {
           step1Form.setValue('pickupTimeEnd', step1Form.getValues('pickupTimeStart'));
         }
         setCurrentStep(2);
+        // Scroll vers le haut pour voir le nouveau contenu
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // Afficher un message d'erreur si la validation échoue
+        const errors = step1Form.formState.errors;
+        const errorMessages = Object.entries(errors)
+          .map(([field, error]) => {
+            if (error?.message) {
+              const fieldNames: { [key: string]: string } = {
+                name: 'Nom du repas',
+                preparationDate: 'Date de préparation',
+                serviceDate: 'Jour de service',
+                pickupTimeType: 'Type d\'heure',
+                pickupTimeStart: 'Heure de début',
+                portions: 'Nombre de parts',
+              };
+              return `${fieldNames[field] || field}: ${error.message}`;
+            }
+            return null;
+          })
+          .filter(Boolean);
+        
+        if (errorMessages.length > 0) {
+          setError(`Veuillez corriger les erreurs suivantes :\n${errorMessages.join('\n')}`);
+        } else {
+          setError('Veuillez remplir tous les champs obligatoires avant de continuer.');
+        }
+        // Scroll vers le haut pour voir les erreurs
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else if (currentStep === 2) {
-      isValid = await step2Form.trigger();
+      const isValid = await step2Form.trigger();
       if (isValid) {
         setCurrentStep(3);
+        // Scroll vers le haut pour voir le nouveau contenu
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // Afficher un message d'erreur si la validation échoue
+        const errors = step2Form.formState.errors;
+        const errorMessages = Object.entries(errors)
+          .map(([field, error]) => {
+            if (error?.message) {
+              const fieldNames: { [key: string]: string } = {
+                pickupAddress: 'Adresse de récupération',
+                pickupLatitude: 'Coordonnées GPS',
+                pickupLongitude: 'Coordonnées GPS',
+              };
+              return `${fieldNames[field] || field}: ${error.message}`;
+            }
+            return null;
+          })
+          .filter(Boolean);
+        
+        if (errorMessages.length > 0) {
+          setError(`Veuillez corriger les erreurs suivantes :\n${errorMessages.join('\n')}`);
+        } else {
+          setError('Veuillez remplir tous les champs obligatoires avant de continuer.');
+        }
+        // Scroll vers le haut pour voir les erreurs
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
   };
@@ -311,12 +369,27 @@ export default function CreateMeal() {
             style={{
               backgroundColor: '#FEE',
               color: colors.error,
-              padding: '12px',
+              padding: '16px',
               borderRadius: '8px',
               marginBottom: '16px',
+              border: `2px solid ${colors.error}`,
+              boxShadow: '0 2px 8px rgba(231, 76, 60, 0.2)',
             }}
           >
-            {error}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+              <span style={{ fontSize: '20px', flexShrink: 0 }}>❌</span>
+              <div style={{ flex: 1 }}>
+                <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Erreur de validation</strong>
+                <pre style={{ 
+                  margin: 0, 
+                  whiteSpace: 'pre-wrap', 
+                  wordBreak: 'break-word',
+                  fontSize: '13px',
+                  lineHeight: '1.5',
+                  fontFamily: 'inherit'
+                }}>{error}</pre>
+              </div>
+            </div>
           </div>
         )}
 
