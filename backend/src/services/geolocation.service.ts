@@ -58,8 +58,6 @@ export class GeolocationService {
         }
       }
     } catch (error: any) {
-      });
-
       // Si erreur réseau ou autre, donner un message plus clair
       if (error.response) {
         // Erreur de l'API Google (déjà gérée ci-dessus, mais au cas où)

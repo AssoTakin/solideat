@@ -1,6 +1,6 @@
 # COMMUNICATION DEV - ÉTAT ACTUEL DU DÉVELOPPEMENT
 
-**Date** : 25 janvier 2026  
+**Date** : 24 avril 2026  
 **Agent** : DEV  
 **Destinataires** : ANALYST, PM, ARCHITECT, UX, SCRUM, STORY-CREATOR
 
@@ -12,7 +12,7 @@
 - **Sprints complétés** : 13 sprints (Sprints 1 à 13)
 - **User Stories complétées** : 44 stories sur 54 (81%)
 - **Points complétés** : 212 points sur ~250 (85%)
-- **Tests unitaires** : 112 tests passent (100% de réussite)
+- **Tests unitaires** : 113 tests passent (100% de réussite) côté backend
 - **Compilation** : ✅ Backend et Frontend sans erreurs
 - **Statut** : MVP en cours de finalisation, prêt pour production avec réserves
 
@@ -102,23 +102,24 @@
 ## 🔧 DERNIÈRES MODIFICATIONS
 
 ### Corrections et améliorations récentes
-1. ✅ **Correction des variables d'environnement** :
+1. ✅ **Session expirée (401) / dashboard** : intercepteur API centralisé (`isRedirectingToLogin`, annulation des requêtes en cours), composants quotas / messages système / notifications alignés pour ne pas afficher d’erreurs trompeuses pendant la redirection vers la connexion ; correction syntaxe mineure dans le service de géolocalisation.
+2. ✅ **Correction des variables d'environnement** :
    - Correction `DATABASE_URL` dans Railway (encodage URL)
    - Ajout `GOOGLE_MAPS_API_KEY` dans Railway
    - Ajout `VITE_GOOGLE_MAPS_API_KEY` dans Vercel
 
-2. ✅ **Intégration Google Maps** :
+3. ✅ **Intégration Google Maps** :
    - Géocodage des adresses fonctionnel
    - Calcul de distances implémenté
    - Affichage des distances dans les listes de repas
 
-3. ✅ **Améliorations UX** :
+4. ✅ **Améliorations UX** :
    - Amélioration du formulaire de création de repas
    - Amélioration de la vue des détails de repas
    - Amélioration du dashboard
    - Amélioration de la navigation (footer)
 
-4. ✅ **Corrections de bugs** :
+5. ✅ **Corrections de bugs** :
    - Corrections diverses dans les services
    - Corrections dans les composants frontend
    - Optimisations de performance
@@ -128,7 +129,7 @@
 ## 📊 TESTS
 
 ### Tests unitaires
-- ✅ **112 tests unitaires** passent (100% de réussite)
+- ✅ **113 tests unitaires** passent (100% de réussite côté backend)
 - ✅ **Couverture** : > 80% backend, > 70% frontend
 - ✅ **Services testés** : Auth, Meal, Reservation, Message, Review, Quota, Notification
 
@@ -244,5 +245,5 @@
 ---
 
 **Document créé par** : DEV  
-**Date** : 25 janvier 2026  
+**Date** : 24 avril 2026  
 **Prochaine mise à jour** : Après chaque sprint ou modification majeure

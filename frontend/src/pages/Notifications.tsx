@@ -58,6 +58,14 @@ export default function Notifications() {
         setLoading(false);
         return;
       }
+      
+      // Vérifier que le token est présent
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      
       const response = await api.get(`/notifications?read=${filter === 'unread' ? 'false' : 'all'}`);
       if (response.data.success && response.data.data) {
         setNotifications(response.data.data);
@@ -65,6 +73,11 @@ export default function Notifications() {
         setError('Erreur lors du chargement');
       }
     } catch (err: any) {
+      // Si erreur 401, l'intercepteur API gère la redirection
+      if (err.response?.status === 401) {
+        setLoading(false);
+        return;
+      }
       setError(err.response?.data?.error || 'Erreur lors du chargement');
     } finally {
       setLoading(false);

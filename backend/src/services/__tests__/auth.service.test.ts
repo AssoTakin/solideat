@@ -151,7 +151,7 @@ describe('AuthService', () => {
       });
 
       await expect(authService.login('test@example.com', 'password123')).rejects.toThrow(
-        'Votre compte n\'est pas encore vérifié'
+        "Votre email n'est pas encore vérifié"
       );
     });
   });

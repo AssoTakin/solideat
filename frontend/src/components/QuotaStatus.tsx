@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { quotaService, QuotaStatus } from '../services/quota.service';
+import { isRedirectingToLogin } from '../services/api';
 
 export default function QuotaStatusComponent() {
   const [quotaStatus, setQuotaStatus] = useState<QuotaStatus | null>(null);
@@ -11,13 +12,25 @@ export default function QuotaStatusComponent() {
   }, []);
 
   const loadQuotaStatus = async () => {
+    // Ne pas charger si une redirection est en cours
+    if (isRedirectingToLogin()) {
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
       // Vérifier que le token est présent
       const token = localStorage.getItem('token');
       if (!token) {
-        // Pas de token, l'intercepteur API gérera la redirection
+        // Pas de token, ne pas charger les données
+        setLoading(false);
+        return;
+      }
+      
+      // Vérifier à nouveau si une redirection est en cours (double vérification)
+      if (isRedirectingToLogin()) {
         setLoading(false);
         return;
       }
@@ -26,12 +39,26 @@ export default function QuotaStatusComponent() {
       if (response.success && response.data) {
         setQuotaStatus(response.data);
       } else {
-        setError(response.error || 'Erreur lors du chargement');
+        // Ne pas afficher d'erreur si c'est une erreur d'authentification (l'intercepteur gère)
+        if (response.error && !response.error.includes('401') && !response.error.includes('Unauthorized')) {
+          setError(response.error || 'Erreur lors du chargement');
+        }
       }
     } catch (err: any) {
+      // Si une redirection est en cours, ne pas afficher d'erreur
+      if (isRedirectingToLogin()) {
+        setLoading(false);
+        return;
+      }
+      
       // Si erreur 401, ne pas afficher d'erreur car l'intercepteur API va rediriger
       if (err.response?.status === 401) {
         // L'intercepteur API gère la redirection, ne pas afficher d'erreur
+        setLoading(false);
+        return;
+      }
+      // Ne pas afficher d'erreur pour les erreurs réseau si on est en train de rediriger
+      if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error') || err.message === 'Redirection en cours') {
         setLoading(false);
         return;
       }

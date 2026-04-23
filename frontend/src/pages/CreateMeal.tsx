@@ -87,8 +87,9 @@ const step3Schema = z.object({
         return null;
       }
       // Convertir en nombre
-      const num = typeof val === 'string' ? parseFloat(val) : val;
-      return isNaN(num) ? null : num;
+      const num: number =
+        typeof val === 'string' ? parseFloat(val) : typeof val === 'number' ? val : NaN;
+      return Number.isNaN(num) ? null : num;
     },
     z.number().optional().nullable()
   ),
@@ -175,10 +176,8 @@ export default function CreateMeal() {
     setError(null); // Effacer les erreurs précédentes
 
     if (currentStep === 1) {
-      const formValues = step1Form.getValues();
-      
       const isValid = await step1Form.trigger();
-      
+
       if (isValid) {
         // Si heure fixe, copier l'heure de début dans l'heure de fin avant de passer à l'étape suivante
         const formValues = step1Form.getValues();
