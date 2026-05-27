@@ -40,6 +40,10 @@ export class UserController {
           mealsReceived: true,
           mealsExpired: true,
           mealsSaved: true,
+          hidePhoneNumber: true,
+          incognitoMode: true,
+          blurAddress: true,
+          hideActivityHistory: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -88,6 +92,9 @@ export class UserController {
           subscriptionType: true,
           phone: true,
           hidePhoneNumber: true,
+          incognitoMode: true,
+          blurAddress: true,
+          hideActivityHistory: true,
           createdAt: true,
         },
       });
@@ -100,11 +107,30 @@ export class UserController {
         return;
       }
 
+      const isPremium = user.subscriptionType !== 'FREE';
+
+      // Déterminer si le visiteur est Premium pour appliquer les règles de visibilité
+      let viewerIsPremium = false;
+      if (req.user) {
+        const viewer = await prisma.user.findUnique({
+          where: { id: req.user.id },
+          select: { subscriptionType: true },
+        });
+        viewerIsPremium = !!viewer && viewer.subscriptionType !== 'FREE';
+      }
+
       // Masquer le téléphone si l'utilisateur a activé la confidentialité (premium uniquement)
+      // Masquer l'historique d'activité uniquement pour les visiteurs gratuits
+      const shouldHideActivity = user.hideActivityHistory && isPremium && !viewerIsPremium;
       const publicProfile = {
         ...user,
-        phone: user.hidePhoneNumber && user.subscriptionType !== 'FREE' ? null : user.phone,
+        phone: user.hidePhoneNumber && isPremium ? null : user.phone,
+        mealsServed: shouldHideActivity ? undefined : user.mealsServed,
+        mealsReceived: shouldHideActivity ? undefined : user.mealsReceived,
         hidePhoneNumber: undefined, // Ne pas exposer ce champ
+        incognitoMode: undefined, // Ne pas exposer ce champ
+        blurAddress: undefined, // Ne pas exposer ce champ
+        hideActivityHistory: undefined, // Ne pas exposer ce champ
       };
 
       res.json({
@@ -257,17 +283,36 @@ export class UserController {
    */
   async updatePrivacy(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { hidePhoneNumber } = req.body;
+      const { hidePhoneNumber, incognitoMode, blurAddress, hideActivityHistory } = req.body;
 
-      if (typeof hidePhoneNumber !== 'boolean') {
+      // Vérifier qu'au moins un champ est fourni
+      const hasAtLeastOne =
+        typeof hidePhoneNumber === 'boolean' ||
+        typeof incognitoMode === 'boolean' ||
+        typeof blurAddress === 'boolean' ||
+        typeof hideActivityHistory === 'boolean';
+
+      if (!hasAtLeastOne) {
         res.status(400).json({
           success: false,
-          error: 'hidePhoneNumber doit être un booléen',
+          error: 'Au moins un paramètre de confidentialité doit être fourni (hidePhoneNumber, incognitoMode, blurAddress, hideActivityHistory)',
         });
         return;
       }
 
-      const updatedUser = await userService.updatePrivacy(req.user!.id, hidePhoneNumber);
+      const privacySettings: {
+        hidePhoneNumber?: boolean;
+        incognitoMode?: boolean;
+        blurAddress?: boolean;
+        hideActivityHistory?: boolean;
+      } = {};
+
+      if (typeof hidePhoneNumber === 'boolean') privacySettings.hidePhoneNumber = hidePhoneNumber;
+      if (typeof incognitoMode === 'boolean') privacySettings.incognitoMode = incognitoMode;
+      if (typeof blurAddress === 'boolean') privacySettings.blurAddress = blurAddress;
+      if (typeof hideActivityHistory === 'boolean') privacySettings.hideActivityHistory = hideActivityHistory;
+
+      const updatedUser = await userService.updatePrivacy(req.user!.id, privacySettings);
 
       res.json({
         success: true,

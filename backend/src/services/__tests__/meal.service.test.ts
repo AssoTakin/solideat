@@ -224,16 +224,40 @@ describe('MealService', () => {
     });
 
     it('devrait filtrer par plage horaire "midi"', async () => {
-      (prisma.meal.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.meal.count as jest.Mock).mockResolvedValue(0);
+      const midiMealStart = new Date();
+      midiMealStart.setHours(12, 0, 0, 0);
+      const midiMealEnd = new Date(midiMealStart);
+      midiMealEnd.setHours(13, 0, 0, 0);
 
-      await mealService.getMeals({
+      const eveningMealStart = new Date();
+      eveningMealStart.setHours(19, 0, 0, 0);
+      const eveningMealEnd = new Date(eveningMealStart);
+      eveningMealEnd.setHours(20, 0, 0, 0);
+
+      (prisma.meal.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'meal-midi',
+          name: 'Repas Midi',
+          pickupTimeStart: midiMealStart,
+          pickupTimeEnd: midiMealEnd,
+          cook: { id: 'cook-1', username: 'cook1', globalRating: 4.5 },
+        },
+        {
+          id: 'meal-evening',
+          name: 'Repas Soir',
+          pickupTimeStart: eveningMealStart,
+          pickupTimeEnd: eveningMealEnd,
+          cook: { id: 'cook-1', username: 'cook1', globalRating: 4.5 },
+        },
+      ]);
+
+      const result = await mealService.getMeals({
         timeSlot: 'midi',
       });
 
       expect(prisma.meal.findMany).toHaveBeenCalled();
-      const whereClause = (prisma.meal.findMany as jest.Mock).mock.calls[0][0].where;
-      expect(whereClause.pickupTimeStart).toBeDefined();
+      expect(result.meals.length).toBe(1);
+      expect(result.meals[0].id).toBe('meal-midi');
     });
 
     it('devrait filtrer par nombre de parts', async () => {

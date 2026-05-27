@@ -4,6 +4,35 @@ import prisma from '../../src/config/database';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+jest.mock('../../src/services/stripe.service', () => {
+  const endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  return {
+    stripeService: {
+      getOrCreateCustomer: jest.fn().mockResolvedValue('cus_test_123'),
+      getPriceId: jest.fn().mockReturnValue('price_test_123'),
+      createSubscription: jest.fn().mockResolvedValue({
+        id: 'sub_test_123',
+        current_period_end: Math.floor(endDate.getTime() / 1000),
+      }),
+      getSubscriptionEndDate: jest.fn().mockReturnValue(endDate),
+      cancelSubscription: jest.fn().mockResolvedValue({}),
+    },
+  };
+});
+
+jest.mock('../../src/services/notification.service', () => ({
+  notificationService: {
+    createNotification: jest.fn().mockResolvedValue({}),
+  },
+}));
+
+jest.mock('../../src/services/email.service', () => ({
+  emailService: {
+    sendSubscriptionCreatedEmail: jest.fn().mockResolvedValue(undefined),
+    sendSubscriptionCancelledEmail: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 // Mock Prisma
 jest.mock('../../src/config/database', () => {
   const mockPrisma = {
@@ -28,6 +57,8 @@ describe('Subscriptions API Integration Tests (US-033, US-034, US-035)', () => {
     mockUser = {
       id: 'user-123',
       email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
       passwordHash: await bcrypt.hash('password123', 12),
       subscriptionType: 'FREE',
       emailVerified: true,
@@ -130,12 +161,23 @@ describe('Subscriptions API Integration Tests (US-033, US-034, US-035)', () => {
       const response = await request(app)
         .post('/api/subscriptions')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ planType: 'PREMIUM_WEEKLY' })
+        .send({ planType: 'PREMIUM_WEEKLY', paymentMethodId: 'pm_test_123' })
         .expect(201);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeDefined();
       expect(prisma.user.update).toHaveBeenCalled();
+    });
+
+    it('devrait échouer sans paymentMethodId', async () => {
+      const response = await request(app)
+        .post('/api/subscriptions')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ planType: 'PREMIUM_WEEKLY' })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toMatch(/payment method/i);
     });
 
     it('devrait échouer avec un plan invalide', async () => {

@@ -3,8 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import { mealService, Meal } from '../services/meal.service';
 import { reviewService, Review } from '../services/review.service';
+import { reservationService } from '../services/reservation.service';
 import api from '../services/api';
-import { USE_MOCK_DATA } from '../data/mockData';
+import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
@@ -30,6 +31,7 @@ export default function MealDetails() {
   const [meal, setMeal] = useState<Meal | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [quotaStatus, setQuotaStatus] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,6 +47,7 @@ export default function MealDetails() {
     try {
       if (USE_MOCK_DATA) {
         setIsAuthenticated(true);
+        setCurrentUser(mockUsers[0]);
         setQuotaStatus({
           weeklyReservations: { used: 1, limit: 1 },
           weeklyProposals: { used: 0, limit: 1 },
@@ -56,6 +59,7 @@ export default function MealDetails() {
         const userResponse = await api.get('/users/me');
         if (userResponse.data.success) {
           setIsAuthenticated(true);
+          setCurrentUser(userResponse.data.data);
           loadQuotaStatus();
         }
       }
@@ -106,6 +110,60 @@ export default function MealDetails() {
       }
     } catch (error) {
       // Erreur silencieuse
+    }
+  };
+
+  const handleDeleteMeal = async () => {
+    if (!meal) return;
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer/annuler ce repas ? Cette action est irréversible.')) {
+      return;
+    }
+    try {
+      const response = await mealService.deleteMeal(meal.id);
+      if (response.success) {
+        alert('Repas annulé avec succès.');
+        navigate('/dashboard');
+      } else {
+        alert(response.error || 'Erreur lors de la suppression du repas');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erreur lors de la suppression du repas');
+    }
+  };
+
+  const handleMarkAsPickedUp = async () => {
+    if (!meal || !meal.reservation) return;
+    if (!window.confirm('Confirmez-vous que ce repas a bien été récupéré ?')) {
+      return;
+    }
+    try {
+      const response = await reservationService.markAsPickedUp(meal.reservation.id);
+      if (response.success) {
+        alert('Repas marqué comme récupéré.');
+        loadMeal();
+      } else {
+        alert(response.error || 'Erreur lors de la mise à jour');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erreur lors de la mise à jour');
+    }
+  };
+
+  const handleReportNotPickedUp = async () => {
+    if (!meal || !meal.reservation) return;
+    if (!window.confirm('Êtes-vous sûr de vouloir signaler ce repas comme non récupéré ?')) {
+      return;
+    }
+    try {
+      const response = await reservationService.reportNotPickedUp(meal.reservation.id);
+      if (response.success) {
+        alert('Repas signalé comme non récupéré.');
+        loadMeal();
+      } else {
+        alert(response.error || 'Erreur lors du signalement');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erreur lors du signalement');
     }
   };
 
@@ -705,59 +763,168 @@ export default function MealDetails() {
           }}
         >
           <div style={{ display: 'flex', gap: '16px', maxWidth: '600px', margin: '0 auto' }}>
-            <button
-              onClick={() => navigate(`/messages/${meal.id}`)}
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '12px',
-                border: `2px solid ${colors.primary}50`,
-                backgroundColor: 'transparent',
-                color: colors.primary,
-                fontSize: '24px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              ✉️
-            </button>
-            {meal.status === 'AVAILABLE' ? (
+            {!(currentUser && meal && meal.cook.id === currentUser.id) && (
               <button
-                onClick={() => (isQuotaReached ? null : navigate(`/meals/${meal.id}/reserve`))}
-                disabled={isQuotaReached}
+                onClick={() => navigate(`/messages/${meal.id}`)}
                 style={{
-                  flex: 1,
+                  width: '56px',
                   height: '56px',
                   borderRadius: '12px',
-                  backgroundColor: isQuotaReached ? colors.backgroundLight : colors.primary,
-                  color: isQuotaReached ? colors.textSecondary : colors.backgroundWhite,
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  border: 'none',
-                  cursor: isQuotaReached ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {isQuotaReached ? 'QUOTA ATTEINT' : '✅ RÉSERVER CE REPAS'}
-              </button>
-            ) : (
-              <div
-                style={{
-                  flex: 1,
-                  height: '56px',
-                  borderRadius: '12px',
-                  backgroundColor: colors.backgroundLight,
-                  color: colors.textSecondary,
-                  fontSize: '16px',
-                  fontWeight: 'bold',
+                  border: `2px solid ${colors.primary}50`,
+                  backgroundColor: 'transparent',
+                  color: colors.primary,
+                  fontSize: '24px',
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                {meal.status === 'RESERVED' ? 'DÉJÀ RÉSERVÉ' : meal.status === 'SERVED' ? 'SERVI' : 'EXPIRÉ'}
-              </div>
+                ✉️
+              </button>
+            )}
+            {currentUser && meal && meal.cook.id === currentUser.id ? (
+              // Actions pour le cuisinier
+              meal.status === 'AVAILABLE' ? (
+                <div style={{ display: 'flex', gap: '12px', width: '100%', flex: 1 }}>
+                  <button
+                    onClick={() => navigate(`/meals/${meal.id}/edit`)}
+                    style={{
+                      flex: 1,
+                      height: '56px',
+                      borderRadius: '12px',
+                      backgroundColor: colors.primary,
+                      color: colors.backgroundWhite,
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primaryHover)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.primary)}
+                  >
+                    ✏️ MODIFIER CE REPAS
+                  </button>
+                  <button
+                    onClick={handleDeleteMeal}
+                    style={{
+                      flex: 1,
+                      height: '56px',
+                      borderRadius: '12px',
+                      backgroundColor: colors.error,
+                      color: colors.backgroundWhite,
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      transition: 'filter 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(0.9)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}
+                  >
+                    ❌ ANNULER CE REPAS
+                  </button>
+                </div>
+              ) : meal.status === 'RESERVED' && meal.reservation ? (
+                <>
+                  <button
+                    onClick={handleMarkAsPickedUp}
+                    style={{
+                      flex: 1,
+                      height: '56px',
+                      borderRadius: '12px',
+                      backgroundColor: colors.success,
+                      color: colors.backgroundWhite,
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ✅ MARQUER RÉCUPÉRÉ
+                  </button>
+                  <button
+                    onClick={handleReportNotPickedUp}
+                    style={{
+                      flex: 1,
+                      height: '56px',
+                      borderRadius: '12px',
+                      backgroundColor: colors.error,
+                      color: colors.backgroundWhite,
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ⚠️ NON RÉCUPÉRÉ
+                  </button>
+                </>
+              ) : (
+                <div
+                  style={{
+                    flex: 1,
+                    height: '56px',
+                    borderRadius: '12px',
+                    backgroundColor: colors.backgroundLight,
+                    color: colors.textSecondary,
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {meal.status === 'SERVED' ? 'REPAS SERVI' : meal.status === 'NOT_PICKED_UP' ? 'NON RÉCUPÉRÉ SIGNALÉ' : 'EXPIRÉ'}
+                </div>
+              )
+            ) : (
+              // Actions pour l'utilisateur normal
+              meal.status === 'AVAILABLE' ? (
+                <button
+                  onClick={() => (isQuotaReached ? null : navigate(`/meals/${meal.id}/reserve`))}
+                  disabled={isQuotaReached}
+                  style={{
+                    flex: 1,
+                    height: '56px',
+                    borderRadius: '12px',
+                    backgroundColor: isQuotaReached ? colors.backgroundLight : colors.primary,
+                    color: isQuotaReached ? colors.textSecondary : colors.backgroundWhite,
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    border: 'none',
+                    cursor: isQuotaReached ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isQuotaReached ? 'QUOTA ATTEINT' : '✅ RÉSERVER CE REPAS'}
+                </button>
+              ) : (
+                <div
+                  style={{
+                    flex: 1,
+                    height: '56px',
+                    borderRadius: '12px',
+                    backgroundColor: colors.backgroundLight,
+                    color: colors.textSecondary,
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {meal.status === 'RESERVED' ? 'DÉJÀ RÉSERVÉ' : meal.status === 'SERVED' ? 'SERVI' : 'EXPIRÉ'}
+                </div>
+              )
             )}
           </div>
         </footer>

@@ -40,7 +40,10 @@ model User {
   stripeSubscriptionId String? @unique
   
   // Confidentialité
-  hidePhoneNumber   Boolean   @default(false) // Premium uniquement
+  hidePhoneNumber   Boolean   @default(true) // Premium uniquement
+  incognitoMode     Boolean   @default(false) // Premium uniquement
+  blurAddress       Boolean   @default(false) // Premium uniquement
+  hideActivityHistory Boolean @default(false) // Premium uniquement
   
   // Statistiques
   globalRating      Float     @default(0)
@@ -82,6 +85,7 @@ model Meal {
   name              String
   photo             String
   description       String?
+  cuisine           String?   // Type de cuisine (ex: Française, Italienne, Asiatique, Africaine)
   
   // Dates
   preparationDate   DateTime

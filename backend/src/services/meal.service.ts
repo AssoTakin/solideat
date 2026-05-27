@@ -64,6 +64,7 @@ export class MealService {
         name: data.name,
         photo: data.photo,
         description: data.description,
+        cuisine: data.cuisine,
         preparationDate,
         serviceDate: new Date(data.serviceDate),
         pickupTimeStart,
@@ -153,15 +154,12 @@ export class MealService {
     return { allowed: true };
   }
 
-  /**
-   * Récupère la liste des repas disponibles avec filtres
-   */
   async getMeals(filters: {
     status?: string;
     distance?: number; // Rayon de recherche en km
     date?: string; // Date de service ou "today" ou "this-week"
     timeSlot?: string; // "midi", "soir", "all"
-    cuisine?: string; // Type de cuisine ou ingrédient principal
+    cuisine?: string; // Type de cuisine
     portions?: number;
     page?: number;
     limit?: number;
@@ -230,22 +228,6 @@ export class MealService {
       }
     }
 
-    // Filtre par plage horaire (Midi/Soir)
-    if (filters.timeSlot && filters.timeSlot !== 'all') {
-      if (filters.timeSlot === 'midi') {
-        // Midi : entre 11h et 15h
-        where.pickupTimeStart = {
-          gte: new Date('1970-01-01T11:00:00'),
-          lt: new Date('1970-01-01T15:00:00'),
-        };
-      } else if (filters.timeSlot === 'soir') {
-        // Soir : après 18h
-        where.pickupTimeStart = {
-          gte: new Date('1970-01-01T18:00:00'),
-        };
-      }
-    }
-
     // Filtre par nombre de parts
     if (filters.portions) {
       where.portions = {
@@ -253,11 +235,12 @@ export class MealService {
       };
     }
 
-    // Filtre par type de cuisine (recherche dans les ingrédients)
+    // Filtre par type de cuisine
     if (filters.cuisine) {
-      where.ingredients = {
-        array_contains: [filters.cuisine],
-      } as any;
+      where.cuisine = {
+        equals: filters.cuisine,
+        mode: 'insensitive',
+      };
     }
 
     // Filtre avancé : date de préparation (premium uniquement)
@@ -282,7 +265,6 @@ export class MealService {
         case 'expiration':
           orderBy = { expirationDate: 'asc' };
           break;
-        // Distance sera trié après le calcul
         default:
           orderBy = { createdAt: 'desc' };
       }
@@ -302,14 +284,13 @@ export class MealService {
         },
       },
       orderBy,
-      skip,
-      take: limit,
     });
 
+    let mealsFiltered = meals;
+
     // Calculer les distances et filtrer par rayon si coordonnées utilisateur fournies
-    let mealsWithDistance = meals;
     if (filters.userLat && filters.userLng) {
-      mealsWithDistance = meals
+      mealsFiltered = meals
         .map((meal) => {
           const distance = geolocationService.calculateDistance(
             filters.userLat!,
@@ -326,20 +307,63 @@ export class MealService {
 
       // Trier par distance si demandé
       if (filters.sortBy === 'distance') {
-        mealsWithDistance.sort((a: any, b: any) => a.distance - b.distance);
+        mealsFiltered.sort((a: any, b: any) => a.distance - b.distance);
       }
+    } else {
+      mealsFiltered = meals.map((meal) => ({
+        ...meal,
+        distance: undefined,
+      }));
     }
 
     // Filtre avancé : note minimale (premium uniquement)
     if (isPremium && filters.minRating) {
-      mealsWithDistance = mealsWithDistance.filter(
+      mealsFiltered = mealsFiltered.filter(
         (meal: any) => meal.cook.globalRating >= filters.minRating!
       );
     }
 
+    // Filtre par créneau horaire / heure de récupération (en mémoire)
+    if (filters.timeSlot && filters.timeSlot !== 'all') {
+      const slot = filters.timeSlot.toLowerCase();
+      mealsFiltered = mealsFiltered.filter((meal: any) => {
+        const start = new Date(meal.pickupTimeStart);
+        const startHour = start.getHours();
+        const startMin = start.getMinutes();
+        const startTotalMin = startHour * 60 + startMin;
+
+        const end = new Date(meal.pickupTimeEnd);
+        const endHour = end.getHours();
+        const endMin = end.getMinutes();
+        const endTotalMin = endHour * 60 + endMin;
+
+        if (slot === 'morning' || slot === 'matin') {
+          return startHour >= 6 && startHour < 11;
+        }
+        if (slot === 'noon' || slot === 'midi') {
+          return startHour >= 11 && startHour < 15;
+        }
+        if (slot === 'evening' || slot === 'soir') {
+          return startHour >= 18 || startHour < 6;
+        }
+
+        // Heure précise (ex: 12:30)
+        if (/^\d{2}:\d{2}$/.test(slot)) {
+          const [fHour, fMin] = slot.split(':').map(Number);
+          const fTotalMin = fHour * 60 + fMin;
+          return fTotalMin >= startTotalMin && fTotalMin <= endTotalMin;
+        }
+
+        return true;
+      });
+    }
+
+    const total = mealsFiltered.length;
+    const paginatedMeals = mealsFiltered.slice(skip, skip + limit);
+
     return {
-      meals: mealsWithDistance,
-      total: mealsWithDistance.length, // Total après filtrage par distance
+      meals: paginatedMeals,
+      total,
       page,
       limit,
     };
@@ -425,6 +449,10 @@ export class MealService {
       updateData.description = data.description;
     }
 
+    if (data.cuisine !== undefined) {
+      updateData.cuisine = data.cuisine;
+    }
+
     if (data.serviceDate) {
       updateData.serviceDate = new Date(data.serviceDate);
     }
@@ -449,6 +477,10 @@ export class MealService {
 
     if (data.portions !== undefined) {
       updateData.portions = data.portions;
+    }
+
+    if (data.price !== undefined) {
+      updateData.price = data.price;
     }
 
     const updatedMeal = await prisma.meal.update({

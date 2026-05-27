@@ -7,6 +7,7 @@ export interface Meal {
   name: string;
   photo: string;
   description?: string;
+  cuisine?: string;
   preparationDate: string;
   serviceDate: string;
   pickupTimeStart: string;
@@ -27,12 +28,14 @@ export interface Meal {
     addressCity: string;
   };
   distance?: number;
+  reservation?: any;
 }
 
 export interface CreateMealDto {
   name: string;
   photo: string;
   description?: string;
+  cuisine?: string;
   preparationDate: string;
   serviceDate: string;
   pickupTimeStart: string;
@@ -123,6 +126,9 @@ export const mealService = {
    * Modifier un repas
    */
   async updateMeal(id: string, data: Partial<CreateMealDto>): Promise<{ success: boolean; data?: Meal; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return mealServiceMock.updateMeal(id, data);
+    }
     const response = await api.put(`/meals/${id}`, data);
     return response.data;
   },
@@ -131,6 +137,9 @@ export const mealService = {
    * Supprimer un repas
    */
   async deleteMeal(id: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return mealServiceMock.deleteMeal(id);
+    }
     const response = await api.delete(`/meals/${id}`);
     return response.data;
   },

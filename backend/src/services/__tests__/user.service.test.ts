@@ -215,7 +215,7 @@ describe('UserService - Sprint 10 (US-008, US-009)', () => {
         hidePhoneNumber: true,
       });
 
-      const result = await userService.updatePrivacy('user-123', true);
+      const result = await userService.updatePrivacy('user-123', { hidePhoneNumber: true });
 
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: 'user-123' },
@@ -233,7 +233,7 @@ describe('UserService - Sprint 10 (US-008, US-009)', () => {
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockFreeUser);
 
-      await expect(userService.updatePrivacy('user-123', true)).rejects.toThrow(
+      await expect(userService.updatePrivacy('user-123', { hidePhoneNumber: true })).rejects.toThrow(
         'Cette fonctionnalité est réservée aux membres premium'
       );
     });
@@ -241,7 +241,7 @@ describe('UserService - Sprint 10 (US-008, US-009)', () => {
     it('devrait lever une erreur si l\'utilisateur n\'existe pas', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
-      await expect(userService.updatePrivacy('nonexistent', true)).rejects.toThrow(
+      await expect(userService.updatePrivacy('nonexistent', { hidePhoneNumber: true })).rejects.toThrow(
         'Utilisateur non trouvé'
       );
     });

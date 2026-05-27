@@ -1,4 +1,6 @@
 import api from './api';
+import { USE_MOCK_DATA, mockDashboardStats } from '../data/mockData';
+
 
 export interface QuotaStatus {
   weekly: {
@@ -27,6 +29,12 @@ export const quotaService = {
    * Récupérer le statut détaillé des quotas
    */
   async getQuotaStatus(): Promise<{ success: boolean; data?: QuotaStatus; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return {
+        success: true,
+        data: mockDashboardStats.quotas,
+      };
+    }
     try {
       const response = await api.get('/users/me/quotas');
       return response.data;

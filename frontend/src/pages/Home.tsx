@@ -348,6 +348,7 @@ export default function Home() {
                   <option value="française">Française</option>
                   <option value="italienne">Italienne</option>
                   <option value="asiatique">Asiatique</option>
+                  <option value="africaine">Africaine</option>
                 </select>
               </div>
               <div>

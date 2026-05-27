@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { subscriptionService, SubscriptionPlan } from '../services/subscription.service';
-import api from '../services/api';
+import { userService } from '../services/user.service';
 import { USE_MOCK_DATA, mockSubscriptionPlans, mockUsers } from '../data/mockData';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
@@ -42,8 +42,23 @@ export default function SubscriptionPlans() {
     try {
       if (USE_MOCK_DATA) {
         setPlans(mockSubscriptionPlans as any[]);
-        setUser(mockUsers[0]); // Utilisateur gratuit par défaut
-        setCurrentSubscription(null);
+        
+        // Charger l'abonnement mocké
+        const subResponse = await subscriptionService.getCurrentSubscription();
+        if (subResponse.success && subResponse.data) {
+          setCurrentSubscription(subResponse.data);
+        } else {
+          setCurrentSubscription(null);
+        }
+
+        // Charger le profil utilisateur mocké
+        const userProfile = await userService.getMe();
+        if (userProfile.success && userProfile.data) {
+          setUser(userProfile.data);
+        } else {
+          setUser(mockUsers[0]);
+        }
+        
         setLoading(false);
         return;
       }
@@ -61,9 +76,9 @@ export default function SubscriptionPlans() {
       }
 
       // Charger les infos utilisateur
-      const userResponse = await api.get('/users/me');
-      if (userResponse.data.success) {
-        setUser(userResponse.data.data);
+      const userResponse = await userService.getMe();
+      if (userResponse.success && userResponse.data) {
+        setUser(userResponse.data);
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erreur lors du chargement');
@@ -130,7 +145,7 @@ export default function SubscriptionPlans() {
     );
   }
 
-  const isPremium = USE_MOCK_DATA ? false : user?.subscriptionType && user.subscriptionType !== 'FREE';
+  const isPremium = user?.subscriptionType && user.subscriptionType !== 'FREE';
 
   return (
     <div
@@ -315,6 +330,12 @@ export default function SubscriptionPlans() {
           {plans.map((plan) => {
             const isRecommended = plan.id === 'monthly';
             const isYearly = plan.id === 'yearly';
+            const isCurrentPlan = currentSubscription?.planId === plan.id || 
+                                  (currentSubscription?.type === 'PREMIUM_MONTHLY' && plan.id === 'monthly') ||
+                                  (currentSubscription?.type === 'PREMIUM_YEARLY' && plan.id === 'yearly') ||
+                                  (currentSubscription?.type === 'PREMIUM_WEEKLY' && plan.id === 'weekly') ||
+                                  (currentSubscription?.type === 'PREMIUM' && plan.id === 'monthly') ||
+                                  (user?.subscriptionType === 'PREMIUM' && plan.id === 'monthly');
 
             return (
               <div
@@ -391,23 +412,25 @@ export default function SubscriptionPlans() {
 
                 <button
                   onClick={() => handleSubscribe(plan.id)}
-                  disabled={isPremium}
+                  disabled={isCurrentPlan}
                   style={{
                     width: '100%',
                     padding: '14px',
-                    backgroundColor: isPremium ? colors.textSecondary : isRecommended ? colors.primary : colors.success,
+                    backgroundColor: isCurrentPlan ? colors.textSecondary : isRecommended ? colors.primary : colors.success,
                     color: colors.backgroundWhite,
                     border: 'none',
                     borderRadius: '8px',
                     fontSize: '16px',
                     fontWeight: 'bold',
-                    cursor: isPremium ? 'not-allowed' : 'pointer',
-                    opacity: isPremium ? 0.6 : 1,
+                    cursor: isCurrentPlan ? 'not-allowed' : 'pointer',
+                    opacity: isCurrentPlan ? 0.6 : 1,
                   }}
                 >
-                  {isPremium
+                  {isCurrentPlan
                     ? 'Déjà abonné'
-                    : `S'abonner - ${plan.price}€/${plan.period === 'week' ? 'semaine' : plan.period === 'month' ? 'mois' : 'an'}`}
+                    : isPremium
+                      ? 'Choisir cette formule'
+                      : `S'abonner - ${plan.price}€/${plan.period === 'week' ? 'semaine' : plan.period === 'month' ? 'mois' : 'an'}`}
                 </button>
               </div>
             );

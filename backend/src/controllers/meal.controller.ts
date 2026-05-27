@@ -35,7 +35,7 @@ export class MealController {
       const filters: any = {
         status: req.query.status as string,
         date: req.query.date as string,
-        timeSlot: req.query.timeSlot as string, // "midi", "soir", "all"
+        timeSlot: (req.query.timeSlot || req.query.hour) as string, // "midi", "soir", "all" ou heure HH:MM
         cuisine: req.query.cuisine as string,
         portions: req.query.portions ? parseInt(req.query.portions as string) : undefined,
         distance: req.query.distance ? parseFloat(req.query.distance as string) : undefined,

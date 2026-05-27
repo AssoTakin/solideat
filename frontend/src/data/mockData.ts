@@ -19,7 +19,12 @@ export const mockUsers = [
     mealsReceived: 12,
     description: 'Cuisinière passionnée, j\'aime partager mes créations et lutter contre le gaspillage alimentaire.',
     culinaryStyle: 'Cuisine française traditionnelle',
+    subscriptionType: 'PREMIUM',
     createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+    hidePhoneNumber: true,
+    incognitoMode: false,
+    blurAddress: false,
+    hideActivityHistory: false,
   },
   {
     id: '2',
@@ -38,6 +43,7 @@ export const mockUsers = [
     mealsReceived: 8,
     description: 'Chef amateur spécialisé dans la cuisine italienne et méditerranéenne.',
     culinaryStyle: 'Cuisine italienne',
+    subscriptionType: 'PREMIUM',
     createdAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
@@ -56,6 +62,7 @@ export const mockUsers = [
     mealsReceived: 15,
     description: 'Adepte de la cuisine healthy et équilibrée. Je privilégie les produits frais et de saison.',
     culinaryStyle: 'Cuisine healthy',
+    subscriptionType: 'FREE',
     createdAt: new Date(Date.now() - 150 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
@@ -72,6 +79,7 @@ export const mockUsers = [
     mealsReceived: 8,
     description: 'Passionné de cuisine et de partage. J\'adore découvrir de nouvelles saveurs !',
     culinaryStyle: 'Cuisine du monde',
+    subscriptionType: 'FREE',
     createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
@@ -82,6 +90,7 @@ export const mockMeals = [
     name: 'Lasagnes aux légumes',
     photo: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=800&q=80',
     description: 'Lasagnes maison aux légumes de saison, préparées avec amour ce matin. Riches en saveurs et en couleurs !',
+    cuisine: 'Italienne',
     cook: mockUsers[0],
     preparationDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // Il y a 2h
     serviceDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Demain
@@ -109,6 +118,7 @@ export const mockMeals = [
     name: 'Curry de légumes',
     photo: 'https://images.unsplash.com/photo-1563379091339-03246963d96a?w=800&q=80',
     description: 'Curry végétarien aux légumes frais, épicé à souhait. Parfait pour un repas équilibré et savoureux.',
+    cuisine: 'Asiatique',
     cook: mockUsers[2],
     preparationDate: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // Il y a 4h
     serviceDate: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(), // Dans 12h
@@ -134,6 +144,7 @@ export const mockMeals = [
     name: 'Pâtes Méditerranéennes',
     photo: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=800&q=80',
     description: 'Pâtes fraîches aux tomates cerises, basilic et parmesan. Un classique de la cuisine italienne !',
+    cuisine: 'Italienne',
     cook: mockUsers[1],
     preparationDate: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // Il y a 6h
     serviceDate: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(), // Dans 8h
@@ -160,6 +171,7 @@ export const mockMeals = [
     name: 'Burger de bœuf Gourmet',
     photo: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80',
     description: 'Burger maison avec steak de bœuf, fromage, salade, tomate et sauce spéciale. Servi avec frites maison.',
+    cuisine: 'Autre',
     cook: mockUsers[1],
     preparationDate: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // Il y a 1h
     serviceDate: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(), // Dans 6h
@@ -187,6 +199,7 @@ export const mockMeals = [
     name: 'Salmon Poke Bowl',
     photo: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=800&q=80',
     description: 'Poke bowl frais au saumon, avocat, edamame et riz. Un repas healthy et délicieux !',
+    cuisine: 'Asiatique',
     cook: mockUsers[2],
     preparationDate: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // Il y a 3h
     serviceDate: new Date(Date.now() + 10 * 60 * 60 * 1000).toISOString(), // Dans 10h
@@ -214,6 +227,7 @@ export const mockMeals = [
     name: 'Tarte aux pommes',
     photo: 'https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=800&q=80',
     description: 'Tarte aux pommes maison, pâte brisée faite main. Un dessert réconfortant et gourmand !',
+    cuisine: 'Française',
     cook: mockUsers[0],
     preparationDate: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(), // Il y a 20h
     serviceDate: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(), // Dans 4h
@@ -239,6 +253,7 @@ export const mockMeals = [
     name: 'Wrap au Poulet',
     photo: 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=800&q=80',
     description: 'Wrap au poulet grillé, salade, tomate et sauce au yaourt. Parfait pour un repas sur le pouce !',
+    cuisine: 'Autre',
     cook: mockUsers[1],
     preparationDate: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(), // Il y a 18h
     serviceDate: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(), // Dans 6h
@@ -577,5 +592,30 @@ export const mockSubscriptionPlans = [
   },
 ];
 
+// Messages système mockés
+export const mockSystemMessages = [
+  {
+    id: 'sys-1',
+    userId: '1',
+    type: 'SYSTEM_MESSAGE',
+    title: 'Bienvenue sur SOLID\'EAT !',
+    message: 'Merci de rejoindre notre communauté anti-gaspillage. Complétez votre profil pour commencer à proposer ou réserver des repas.',
+    read: false,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'sys-2',
+    userId: '1',
+    type: 'SYSTEM_MESSAGE',
+    title: 'Mise à jour de la charte',
+    message: 'Nous avons mis à jour notre charte de bonne conduite concernant la récupération des repas. N\'hésitez pas à la consulter dans les mentions légales.',
+    read: true,
+    readAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    link: '/charte',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
 // Mode développement : utiliser les données mockées
-export const USE_MOCK_DATA = import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_DATA === 'true';
+export const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true' || (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_DATA !== 'false');
+

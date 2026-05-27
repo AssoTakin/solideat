@@ -28,6 +28,36 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [user, setUser] = useState<any>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      if (showDropdown) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, [showDropdown]);
+
+  const handleLogout = async () => {
+    try {
+      if (USE_MOCK_DATA) {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+        window.location.href = '/login';
+        return;
+      }
+      const { authService } = await import('../services/auth.service');
+      await authService.logout();
+      window.location.href = '/login';
+    } catch (err) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+  };
 
   useEffect(() => {
     checkAuth();
@@ -176,36 +206,204 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               </span>
             )}
           </Link>
-          <Link
-            to="/dashboard"
-            style={{
-              textDecoration: 'none',
-              color: colors.textPrimary,
-              fontSize: '20px',
-              padding: '8px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: isActive('/dashboard') ? `${colors.primary}20` : 'transparent',
-            }}
-            title={user?.username || 'Profil'}
-          >
-            {user?.profilePhoto ? (
-              <img
-                src={user.profilePhoto}
-                alt={user.username}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDropdown(!showDropdown);
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '8px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backgroundColor: showDropdown || isActive('/dashboard') ? `${colors.primary}20` : 'transparent',
+                outline: 'none',
+              }}
+              title={user?.username || 'Menu Profil'}
+            >
+              {user?.profilePhoto ? (
+                <img
+                  src={user.profilePhoto}
+                  alt={user.username}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    border: `2px solid ${isActive('/dashboard') ? colors.primary : colors.backgroundLight}`,
+                  }}
+                />
+              ) : (
+                <span style={{ fontSize: '20px' }}>👤</span>
+              )}
+            </button>
+
+            {showDropdown && (
+              <div
                 style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  border: `2px solid ${isActive('/dashboard') ? colors.primary : colors.backgroundLight}`,
+                  position: 'absolute',
+                  top: '48px',
+                  right: 0,
+                  backgroundColor: colors.backgroundWhite,
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                  border: `1px solid ${colors.backgroundLight}`,
+                  padding: '8px 0',
+                  minWidth: '220px',
+                  zIndex: 200,
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
-              />
-            ) : (
-              '👤'
+              >
+                {/* Infos utilisateur */}
+                <div style={{ padding: '12px 16px', borderBottom: `1px solid ${colors.backgroundLight}`, marginBottom: '4px' }}>
+                  <p style={{ margin: 0, fontWeight: 'bold', color: colors.textPrimary, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    @{user?.username || 'Utilisateur'}
+                  </p>
+                  <p style={{ margin: '2px 0 0 0', color: colors.textSecondary, fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user?.email}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        fontWeight: 'bold',
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                        color: colors.textSecondary,
+                        border: '1px solid rgba(0, 0, 0, 0.1)',
+                      }}
+                    >
+                      {`🤝 Membre depuis ${user?.createdAt ? new Date(user.createdAt).getFullYear() : '2025'}`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Liens du menu */}
+                <Link
+                  to="/dashboard"
+                  onClick={() => setShowDropdown(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    color: colors.textPrimary,
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  📊 Tableau de bord
+                </Link>
+                <Link
+                  to={`/users/${user?.id || 'me'}`}
+                  onClick={() => setShowDropdown(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    color: colors.textPrimary,
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  👤 Mon profil public
+                </Link>
+                <Link
+                  to="/profile/edit"
+                  onClick={() => setShowDropdown(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    color: colors.textPrimary,
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  ⚙️ Modifier mon profil
+                </Link>
+                <Link
+                  to="/subscriptions/plans"
+                  onClick={() => setShowDropdown(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    color: colors.premium,
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  👑 Formules & Abonnements
+                </Link>
+                <Link
+                  to="/help"
+                  onClick={() => setShowDropdown(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    color: colors.textPrimary,
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  ❓ Aide & FAQ
+                </Link>
+                <div style={{ height: '1px', backgroundColor: colors.backgroundLight, margin: '4px 0' }} />
+                <button
+                  onClick={() => {
+                    setShowDropdown(false);
+                    handleLogout();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    color: colors.error,
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    width: '100%',
+                    textAlign: 'left',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FEE')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  🚪 Se déconnecter
+                </button>
+              </div>
             )}
-          </Link>
+          </div>
         </nav>
       </header>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { Link } from 'react-router-dom';
+import { userService } from '../services/user.service';
 
 export interface MealFilters {
   maxDistance?: number;
@@ -27,11 +28,11 @@ export default function MealFiltersComponent({ filters, onFiltersChange }: MealF
 
   useEffect(() => {
     // Charger les infos utilisateur pour vérifier si premium
-    api
-      .get('/users/me')
-      .then((response) => {
-        if (response.data.success) {
-          setUser(response.data.data);
+    userService
+      .getMe()
+      .then((response: any) => {
+        if (response.success && response.data) {
+          setUser(response.data);
         }
       })
       .catch(() => {});
@@ -123,13 +124,17 @@ export default function MealFiltersComponent({ filters, onFiltersChange }: MealF
           <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '14px', fontWeight: 'bold' }}>
             Style culinaire
           </label>
-          <input
-            type="text"
+          <select
             value={localFilters.cuisine || ''}
             onChange={(e) => handleFilterChange('cuisine', e.target.value || undefined)}
-            style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
-            placeholder="Français, Italien..."
-          />
+            style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#fff', fontSize: '14px', color: '#333' }}
+          >
+            <option value="">Tous</option>
+            <option value="française">Française</option>
+            <option value="italienne">Italienne</option>
+            <option value="asiatique">Asiatique</option>
+            <option value="africaine">Africaine</option>
+          </select>
         </div>
 
         {/* Parts */}
@@ -235,11 +240,30 @@ export default function MealFiltersComponent({ filters, onFiltersChange }: MealF
       )}
 
       {!isUserPremium && (
-        <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#fff3cd', border: '1px solid #ffc107', borderRadius: '4px' }}>
-          <p style={{ margin: 0, fontSize: '14px' }}>
+        <Link
+          to="/subscriptions/plans"
+          style={{
+            textDecoration: 'none',
+            display: 'block',
+            marginTop: '1rem',
+            padding: '1rem',
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffc107',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#ffeeba';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#fff3cd';
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '14px', color: '#856404' }}>
             💎 Passez à <strong>Premium</strong> pour accéder aux filtres avancés (note minimale, date de préparation)
           </p>
-        </div>
+        </Link>
       )}
     </div>
   );

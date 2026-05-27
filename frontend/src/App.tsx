@@ -19,6 +19,7 @@ import SaveThem from './pages/SaveThem';
 import CreateReview from './pages/CreateReview';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import CreateMeal from './pages/CreateMeal';
+import EditMeal from './pages/EditMeal';
 import Notifications from './pages/Notifications';
 import Help from './pages/Help';
 import Diagnostic from './pages/Diagnostic';
@@ -59,6 +60,7 @@ function App() {
         <Route path="/meals" element={<MealList />} />
         <Route path="/meals/new" element={<CreateMeal />} />
         <Route path="/meals/:id" element={<MealDetails />} />
+        <Route path="/meals/:id/edit" element={<EditMeal />} />
         <Route path="/meals/:id/reserve" element={<ReserveMeal />} />
         <Route path="/meals/:mealId/review" element={<CreateReview />} />
         <Route path="/save-them" element={<SaveThem />} />

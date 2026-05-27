@@ -62,6 +62,10 @@ export class UserService {
         mealsReceived: true,
         mealsExpired: true,
         mealsSaved: true,
+        hidePhoneNumber: true,
+        incognitoMode: true,
+        blurAddress: true,
+        hideActivityHistory: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -172,6 +176,10 @@ export class UserService {
         mealsReceived: true,
         mealsExpired: true,
         mealsSaved: true,
+        hidePhoneNumber: true,
+        incognitoMode: true,
+        blurAddress: true,
+        hideActivityHistory: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -183,7 +191,15 @@ export class UserService {
   /**
    * Met à jour les paramètres de confidentialité (Premium uniquement)
    */
-  async updatePrivacy(userId: string, hidePhoneNumber: boolean): Promise<any> {
+  async updatePrivacy(
+    userId: string,
+    privacySettings: {
+      hidePhoneNumber?: boolean;
+      incognitoMode?: boolean;
+      blurAddress?: boolean;
+      hideActivityHistory?: boolean;
+    }
+  ): Promise<any> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { subscriptionType: true },
@@ -198,10 +214,25 @@ export class UserService {
       throw new Error('Cette fonctionnalité est réservée aux membres premium');
     }
 
+    // Construire les données à mettre à jour
+    const updateData: any = {};
+    if (privacySettings.hidePhoneNumber !== undefined) {
+      updateData.hidePhoneNumber = privacySettings.hidePhoneNumber;
+    }
+    if (privacySettings.incognitoMode !== undefined) {
+      updateData.incognitoMode = privacySettings.incognitoMode;
+    }
+    if (privacySettings.blurAddress !== undefined) {
+      updateData.blurAddress = privacySettings.blurAddress;
+    }
+    if (privacySettings.hideActivityHistory !== undefined) {
+      updateData.hideActivityHistory = privacySettings.hideActivityHistory;
+    }
+
     // Mettre à jour
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { hidePhoneNumber },
+      data: updateData,
       select: {
         id: true,
         email: true,
@@ -228,6 +259,9 @@ export class UserService {
         mealsExpired: true,
         mealsSaved: true,
         hidePhoneNumber: true,
+        incognitoMode: true,
+        blurAddress: true,
+        hideActivityHistory: true,
         createdAt: true,
         updatedAt: true,
       },

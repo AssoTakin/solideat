@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { mealService, CreateMealDto } from '../services/meal.service';
-import api from '../services/api';
+import { subscriptionService } from '../services/subscription.service';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { addressService, AddressSuggestion } from '../services/address.service';
 
 // Design System Colors
 const colors = {
@@ -32,6 +33,7 @@ const step1Schema = z.object({
     { message: 'Format de photo invalide. Veuillez télécharger une vraie photo de votre plat cuisiné.' }
   ),
   description: z.string().max(500, 'La description ne peut pas dépasser 500 caractères').optional().or(z.literal('')),
+  cuisine: z.string().min(1, 'Le type de cuisine est requis'),
   preparationDate: z.string().min(1, 'La date de préparation est requise'),
   serviceDate: z.string().min(1, 'Le jour de service est requis'),
   pickupTimeType: z.enum(['fixed', 'range'], { required_error: 'Sélectionnez un type d\'heure' }),
@@ -133,17 +135,78 @@ export default function CreateMeal() {
   const pickupTimeType = step1Form.watch('pickupTimeType');
   const preparationDate = step1Form.watch('preparationDate');
 
+  // States pour l'autocomplétion d'adresses et la carte
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [mapCoords, setMapCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  const pickupAddress = step2Form.watch('pickupAddress');
+
+  // Debounce pour l'autocomplétion d'adresse
+  useEffect(() => {
+    if (!pickupAddress || pickupAddress.trim().length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    // Si l'adresse correspond exactement à celle sélectionnée, ne pas relancer la recherche
+    const isExactMatch = suggestions.some((s) => s.label === pickupAddress);
+    if (isExactMatch) return;
+
+    const timer = setTimeout(async () => {
+      setAddressLoading(true);
+      try {
+        const res = await addressService.searchAddresses(pickupAddress);
+        setSuggestions(res);
+        setShowSuggestions(res.length > 0);
+      } catch (err) {
+        console.error('Erreur lors de la recherche d\'adresse :', err);
+      } finally {
+        setAddressLoading(false);
+      }
+    }, 400); // 400ms debounce
+
+    return () => clearTimeout(timer);
+  }, [pickupAddress]);
+
+  // Synchronisation des coordonnées GPS et initialisation de la carte à l'étape 2
+  useEffect(() => {
+    if (currentStep === 2) {
+      const lat = step2Form.getValues('pickupLatitude');
+      const lng = step2Form.getValues('pickupLongitude');
+      if (lat && lng) {
+        setMapCoords({ lat, lng });
+      } else {
+        // Coordonnées par défaut (Paris)
+        step2Form.setValue('pickupLatitude', 48.8566);
+        step2Form.setValue('pickupLongitude', 2.3522);
+        setMapCoords({ lat: 48.8566, lng: 2.3522 });
+      }
+    }
+  }, [currentStep]);
+
+  const handleSelectSuggestion = (suggestion: AddressSuggestion) => {
+    step2Form.setValue('pickupAddress', suggestion.label, { shouldValidate: true });
+    step2Form.setValue('pickupLatitude', suggestion.latitude, { shouldValidate: true });
+    step2Form.setValue('pickupLongitude', suggestion.longitude, { shouldValidate: true });
+    setMapCoords({ lat: suggestion.latitude, lng: suggestion.longitude });
+    setShowSuggestions(false);
+  };
+
   useEffect(() => {
     loadUserSubscription();
   }, []);
 
   const loadUserSubscription = async () => {
     try {
-      const response = await api.get('/subscriptions/current');
-      if (response.data.success && response.data.data) {
-        setUserSubscription(response.data.data);
+      const response = await subscriptionService.getCurrentSubscription();
+      if (response.success && response.data) {
+        setUserSubscription(response.data);
         // Si premium, permettre jusqu'à 4 parts
-        if (response.data.data.type === 'PREMIUM' && response.data.data.active) {
+        const isPremiumSub = response.data.active && (response.data.type === 'PREMIUM' || response.data.type.startsWith('PREMIUM'));
+        if (isPremiumSub) {
           step1Form.setValue('portions', 1);
         }
       }
@@ -345,6 +408,7 @@ export default function CreateMeal() {
       const mealData: CreateMealDto = {
         name: step1Data.name,
         photo: photoUrl,
+        cuisine: step1Data.cuisine,
         description: step1Data.description || undefined,
         preparationDate: prepDate.toISOString(),
         serviceDate: serviceDate.toISOString(),
@@ -376,7 +440,7 @@ export default function CreateMeal() {
     }
   };
 
-  const isPremium = userSubscription?.type === 'PREMIUM' && userSubscription?.active;
+  const isPremium = userSubscription?.active && (userSubscription?.type === 'PREMIUM' || userSubscription?.type?.startsWith('PREMIUM'));
 
   return (
     <div
@@ -598,6 +662,39 @@ export default function CreateMeal() {
               )}
             </div>
 
+            {/* Style de cuisine */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                Style culinaire *
+              </label>
+              <select
+                {...step1Form.register('cuisine')}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${colors.backgroundLight}`,
+                  fontSize: '16px',
+                  backgroundColor: colors.backgroundWhite,
+                  color: colors.textPrimary,
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+              >
+                <option value="">Sélectionnez un style de cuisine</option>
+                <option value="Française">Française</option>
+                <option value="Italienne">Italienne</option>
+                <option value="Asiatique">Asiatique</option>
+                <option value="Africaine">Africaine</option>
+                <option value="Autre">Autre</option>
+              </select>
+              {step1Form.formState.errors.cuisine && (
+                <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>
+                  {step1Form.formState.errors.cuisine.message}
+                </p>
+              )}
+            </div>
+
             {/* Description */}
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
@@ -789,19 +886,30 @@ export default function CreateMeal() {
                 </p>
               )}
               {!isPremium && (
-                <div
+                <Link
+                  to="/subscriptions/plans"
                   style={{
+                    textDecoration: 'none',
+                    display: 'block',
                     marginTop: '8px',
                     padding: '12px',
                     backgroundColor: `${colors.primary}10`,
                     borderRadius: '8px',
                     border: `1px solid ${colors.primary}30`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = `${colors.primary}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = `${colors.primary}10`;
                   }}
                 >
-                  <p style={{ fontSize: '12px', color: colors.primary, fontWeight: 500 }}>
+                  <p style={{ fontSize: '12px', color: colors.primary, fontWeight: 500, margin: 0 }}>
                     💡 <strong>Passez au Premium</strong> pour partager jusqu'à 4 parts par repas et accéder à plus de fonctionnalités !
                   </p>
-                </div>
+                </Link>
               )}
             </div>
 
@@ -847,25 +955,85 @@ export default function CreateMeal() {
         {/* Étape 2: Adresse de récupération */}
         {currentStep === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
+            <div style={{ position: 'relative' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
                 Adresse de récupération *
               </label>
-              <input
-                {...step2Form.register('pickupAddress')}
-                placeholder="123 Rue de la Paix, 75001 Paris"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  border: `1px solid ${colors.backgroundLight}`,
-                  fontSize: '16px',
-                  backgroundColor: colors.backgroundWhite,
-                }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  {...step2Form.register('pickupAddress')}
+                  placeholder="Tapez votre adresse (ex: 1 bd de la pérouse...)"
+                  autoComplete="off"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: `1px solid ${colors.backgroundLight}`,
+                    fontSize: '16px',
+                    backgroundColor: colors.backgroundWhite,
+                    paddingRight: addressLoading ? '40px' : '12px',
+                  }}
+                />
+                {addressLoading && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      fontSize: '14px',
+                    }}
+                  >
+                    ⏳
+                  </div>
+                )}
+              </div>
               <p style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '4px' }}>
-                L'adresse sera validée par Google Maps pour garantir la précision
+                Tapez votre adresse et sélectionnez-la dans la liste pour obtenir les coordonnées GPS exactes.
               </p>
+
+              {/* Dropdown de suggestions d'adresses */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: colors.backgroundWhite,
+                    border: `1px solid ${colors.backgroundLight}`,
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    zIndex: 1000,
+                    maxHeight: '220px',
+                    overflowY: 'auto',
+                    marginTop: '4px',
+                  }}
+                >
+                  {suggestions.map((suggestion, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleSelectSuggestion(suggestion)}
+                      style={{
+                        padding: '12px 16px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: colors.textPrimary,
+                        borderBottom: idx < suggestions.length - 1 ? `1px solid ${colors.backgroundLight}` : 'none',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF2EC')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                      <div style={{ fontWeight: 'bold' }}>{suggestion.label.split(',')[0]}</div>
+                      <div style={{ fontSize: '12px', color: colors.textSecondary }}>
+                        {suggestion.label.split(',').slice(1).join(',').trim()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {step2Form.formState.errors.pickupAddress && (
                 <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>
                   {step2Form.formState.errors.pickupAddress.message}
@@ -873,27 +1041,49 @@ export default function CreateMeal() {
               )}
             </div>
 
-            {/* TODO: Intégrer Google Maps pour la sélection d'adresse et récupération des coordonnées */}
-            <div
-              style={{
-                padding: '16px',
-                backgroundColor: colors.backgroundLight,
-                borderRadius: '8px',
-                textAlign: 'center',
-                color: colors.textSecondary,
-              }}
-            >
-              🗺️ Carte Google Maps à intégrer (pour sélectionner l'adresse et obtenir les coordonnées GPS)
+            {/* Carte interactive dynamique (Google Maps Embed) */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                Aperçu de l'emplacement de récupération
+              </label>
+              {mapCoords ? (
+                <div style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: `1px solid ${colors.backgroundLight}` }}>
+                  <iframe
+                    title="Carte de récupération"
+                    width="100%"
+                    height="240"
+                    style={{ border: 0, display: 'block' }}
+                    src={`https://maps.google.com/maps?q=${mapCoords.lat},${mapCoords.lng}&z=16&output=embed`}
+                    allowFullScreen
+                  />
+                  <div style={{ padding: '8px 12px', backgroundColor: '#F8F9FA', fontSize: '12px', color: colors.textSecondary, borderTop: `1px solid ${colors.backgroundLight}`, display: 'flex', justifyContent: 'space-between' }}>
+                    <span>📍 Coordonnées : {mapCoords.lat.toFixed(5)}, {mapCoords.lng.toFixed(5)}</span>
+                    <span style={{ color: colors.success }}>✓ Géolocalisation active</span>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    padding: '24px',
+                    backgroundColor: colors.backgroundLight,
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    color: colors.textSecondary,
+                    fontSize: '14px',
+                  }}
+                >
+                  🗺️ Entrez une adresse pour afficher l'emplacement sur la carte
+                </div>
+              )}
             </div>
 
-            {/* Pour l'instant, on utilise des coordonnées par défaut (Paris) */}
             <input
               type="hidden"
-              {...step2Form.register('pickupLatitude', { valueAsNumber: true, value: 48.8566 })}
+              {...step2Form.register('pickupLatitude', { valueAsNumber: true })}
             />
             <input
               type="hidden"
-              {...step2Form.register('pickupLongitude', { valueAsNumber: true, value: 2.3522 })}
+              {...step2Form.register('pickupLongitude', { valueAsNumber: true })}
             />
           </div>
         )}

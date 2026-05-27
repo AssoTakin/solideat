@@ -25,6 +25,9 @@ export const notificationService = {
    * Récupérer les messages système
    */
   async getSystemMessages(): Promise<{ success: boolean; data?: SystemMessagesResponse; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return notificationServiceMock.getSystemMessages();
+    }
     try {
       const response = await api.get('/notifications/system');
       return response.data;
@@ -44,6 +47,9 @@ export const notificationService = {
    * Marquer un message système comme lu
    */
   async markSystemMessageAsRead(messageId: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return notificationServiceMock.markSystemMessageAsRead(messageId);
+    }
     const response = await api.put(`/notifications/system/${messageId}/read`);
     return response.data;
   },
@@ -86,6 +92,9 @@ export const notificationService = {
    * Récupérer le nombre de notifications non lues
    */
   async getUnreadCount(): Promise<{ success: boolean; data?: { count: number }; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return notificationServiceMock.getUnreadCount();
+    }
     const response = await api.get('/notifications/unread-count');
     return response.data;
   },

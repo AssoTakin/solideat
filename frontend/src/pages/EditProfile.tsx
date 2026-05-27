@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { userService } from '../services/user.service';
 import Navigation from '../components/Navigation';
+import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
 const colors = {
@@ -53,7 +54,11 @@ export default function EditProfile() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'address' | 'privacy'>('profile');
-  const [hidePhoneNumber, setHidePhoneNumber] = useState(false);
+  const [hidePhoneNumber, setHidePhoneNumber] = useState(true);
+  const [incognitoMode, setIncognitoMode] = useState(false);
+  const [blurAddress, setBlurAddress] = useState(false);
+  const [hideActivityHistory, setHideActivityHistory] = useState(false);
+  const [privacySaving, setPrivacySaving] = useState<string | null>(null);
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -85,7 +90,10 @@ export default function EditProfile() {
           addressZipCode: response.data.addressZipCode || '',
           addressCity: response.data.addressCity || '',
         });
-        setHidePhoneNumber(response.data.hidePhoneNumber || false);
+        setHidePhoneNumber(response.data.hidePhoneNumber !== undefined ? response.data.hidePhoneNumber : true);
+        setIncognitoMode(response.data.incognitoMode ?? false);
+        setBlurAddress(response.data.blurAddress ?? false);
+        setHideActivityHistory(response.data.hideActivityHistory ?? false);
       }
     } catch (err: any) {
       setError('Erreur lors du chargement du profil');
@@ -148,20 +156,30 @@ export default function EditProfile() {
     }
   };
 
-  const onPrivacyChange = async (value: boolean) => {
+  const onPrivacyChange = async (
+    key: 'hidePhoneNumber' | 'incognitoMode' | 'blurAddress' | 'hideActivityHistory',
+    value: boolean
+  ) => {
     setError(null);
     setSuccess(null);
+    setPrivacySaving(key);
 
     try {
-      const response = await userService.updatePrivacy(value);
+      const response = await userService.updatePrivacy({ [key]: value });
       if (response.success) {
-        setSuccess('Paramètres de confidentialité mis à jour');
-        setHidePhoneNumber(value);
+        if (key === 'hidePhoneNumber') setHidePhoneNumber(value);
+        if (key === 'incognitoMode') setIncognitoMode(value);
+        if (key === 'blurAddress') setBlurAddress(value);
+        if (key === 'hideActivityHistory') setHideActivityHistory(value);
+        setSuccess('Paramètre mis à jour ✓');
+        setTimeout(() => setSuccess(null), 2000);
       } else {
         setError(response.error || 'Erreur lors de la mise à jour');
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erreur lors de la mise à jour');
+    } finally {
+      setPrivacySaving(null);
     }
   };
 
@@ -177,9 +195,15 @@ export default function EditProfile() {
   const isPremium = user?.subscriptionType && user.subscriptionType !== 'FREE';
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: colors.backgroundLight }}>
-      <Navigation />
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 16px' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: colors.backgroundLight,
+        paddingBottom: getPagePaddingBottom(true, false),
+      }}
+    >
+      <Navigation showBottomBar={true} />
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 16px', ...getMainContentStyle(false) }}>
         <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '24px' }}>
           Modifier mon profil
         </h1>
@@ -464,23 +488,119 @@ export default function EditProfile() {
 
         {/* Privacy Tab (Premium only) */}
         {activeTab === 'privacy' && isPremium && (
-          <div style={{ backgroundColor: colors.backgroundWhite, padding: '24px', borderRadius: '8px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>Confidentialité</h2>
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={!hidePhoneNumber}
-                  onChange={(e) => onPrivacyChange(!e.target.checked)}
-                  style={{ width: '20px', height: '20px' }}
-                />
-                <span>Autoriser l'affichage de mon numéro de téléphone lors des réservations</span>
-              </label>
-              <p style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '8px', marginLeft: '32px' }}>
-                Par défaut, votre numéro de téléphone est visible pour les personnes qui réservent vos repas. Vous pouvez
-                le masquer si vous préférez.
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{
+              background: `linear-gradient(135deg, ${colors.premium}15, ${colors.primary}08)`,
+              borderRadius: '12px',
+              padding: '16px 20px',
+              border: `1px solid ${colors.premium}30`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>🛡️</span>
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
+                  Confidentialité Premium
+                </h2>
+              </div>
+              <p style={{ fontSize: '13px', color: colors.textSecondary, margin: '8px 0 0 0' }}>
+                Contrôlez finement votre visibilité et protégez votre vie privée sur la plateforme.
               </p>
             </div>
+
+            {/* Toggle Card: Numéro de téléphone */}
+            {[{
+              key: 'hidePhoneNumber' as const,
+              icon: '📱',
+              title: 'Numéro de téléphone masqué',
+              description: 'Votre numéro est masqué par défaut. Désactivez pour l\'afficher lors des réservations. La messagerie intégrée reste disponible.',
+              checked: hidePhoneNumber,
+            }, {
+              key: 'incognitoMode' as const,
+              icon: '🕵️',
+              title: 'Mode Incognito',
+              description: 'Naviguez anonymement : vos visites sur les profils et les repas ne seront pas enregistrées ni visibles par les autres membres.',
+              checked: incognitoMode,
+            }, {
+              key: 'blurAddress' as const,
+              icon: '📍',
+              title: 'Floutage d\'adresse',
+              description: 'Votre adresse exacte est remplacée par un rayon approximatif (~500m) tant que la réservation n\'est pas confirmée.',
+              checked: blurAddress,
+            }, {
+              key: 'hideActivityHistory' as const,
+              icon: '👤',
+              title: 'Profil d\'activité masqué',
+              description: 'Masquez votre historique public (repas servis, reçus, badges) aux membres gratuits uniquement. Les autres membres Premium continueront de voir votre activité.',
+              checked: hideActivityHistory,
+            }].map((item) => (
+              <div
+                key={item.key}
+                style={{
+                  backgroundColor: colors.backgroundWhite,
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: `1px solid ${item.checked ? colors.premium + '40' : '#E8E8E8'}`,
+                  transition: 'all 0.25s ease',
+                  boxShadow: item.checked ? `0 2px 12px ${colors.premium}15` : '0 1px 4px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                    <span style={{
+                      fontSize: '24px',
+                      width: '44px',
+                      height: '44px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '10px',
+                      backgroundColor: item.checked ? colors.premium + '15' : colors.backgroundLight,
+                      transition: 'background-color 0.25s ease',
+                      flexShrink: 0,
+                    }}>{item.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: '15px', color: colors.textPrimary }}>
+                        {item.title}
+                      </div>
+                      <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '4px 0 0 0', lineHeight: '1.4' }}>
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Toggle Switch */}
+                  <button
+                    onClick={() => onPrivacyChange(item.key, !item.checked)}
+                    disabled={privacySaving === item.key}
+                    aria-label={`Activer/désactiver ${item.title}`}
+                    style={{
+                      width: '52px',
+                      height: '28px',
+                      borderRadius: '14px',
+                      border: 'none',
+                      cursor: privacySaving === item.key ? 'wait' : 'pointer',
+                      backgroundColor: item.checked ? colors.premium : '#D1D5DB',
+                      position: 'relative',
+                      transition: 'background-color 0.3s ease',
+                      flexShrink: 0,
+                      marginLeft: '16px',
+                      opacity: privacySaving === item.key ? 0.6 : 1,
+                    }}
+                  >
+                    <span style={{
+                      position: 'absolute',
+                      top: '2px',
+                      left: item.checked ? '26px' : '2px',
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      backgroundColor: '#FFFFFF',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      transition: 'left 0.3s ease',
+                    }} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
