@@ -883,7 +883,7 @@ export default function Home() {
                 marginBottom: '16px',
               }}
             >
-              Partagez vos repas, réduisez le gaspillage
+              Cuisinez moins, diversifiez vos saveurs
             </h1>
             <p
               style={{
@@ -894,9 +894,7 @@ export default function Home() {
                 lineHeight: '1.6',
               }}
             >
-              SOLID'EAT connecte les cuisiniers amateurs qui ont préparé trop de repas avec des
-              personnes qui souhaitent récupérer ces repas. Créons du lien social autour de la cuisine
-              tout en luttant contre le gaspillage alimentaire.
+              Notre communauté SOLID'EAT vous permet de partager vos savoureux repas avec d'autres chefs amateurs. Ainsi vous cuisinez moins, vous diversifiez vos saveurs et vous aidez à réduire le gaspillage alimentaire.
             </p>
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link
