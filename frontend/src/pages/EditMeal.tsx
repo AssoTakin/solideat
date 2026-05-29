@@ -10,6 +10,7 @@ import { userService } from '../services/user.service';
 import { addressService, AddressSuggestion } from '../services/address.service';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
+import { compressImage } from '../utils/image';
 
 // Design System Colors
 const colors = {
@@ -270,15 +271,16 @@ export default function EditMeal() {
     setShowSuggestions(false);
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-        form.setValue('photo', reader.result as string, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressImage(file, 800, 800, 0.7);
+        setPhotoPreview(compressedBase64);
+        form.setValue('photo', compressedBase64, { shouldValidate: true });
+      } catch (err) {
+        console.error('Erreur lors de la compression de la photo :', err);
+      }
     }
   };
 

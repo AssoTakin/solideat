@@ -8,6 +8,7 @@ import { mealService, CreateMealDto } from '../services/meal.service';
 import { subscriptionService } from '../services/subscription.service';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import { addressService, AddressSuggestion } from '../services/address.service';
+import { compressImage } from '../utils/image';
 
 // Design System Colors
 const colors = {
@@ -215,16 +216,17 @@ export default function CreateMeal() {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setPhotoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-        step1Form.setValue('photo', reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressImage(file, 800, 800, 0.7);
+        setPhotoPreview(compressedBase64);
+        step1Form.setValue('photo', compressedBase64);
+      } catch (err) {
+        console.error('Erreur lors de la compression de la photo :', err);
+      }
     }
   };
 

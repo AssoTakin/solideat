@@ -127,5 +127,59 @@ stripe config --list
 
 ---
 
+## 🔧 CORRECTIONS DU 29 MAI 2026 (Stabilisation & Profil)
+
+### 1. ✅ Résolution de l'erreur 500 sur la mise à jour de profil (Photo de profil)
+
+**Problème** : Lors de la mise à jour du profil avec l'ajout d'une photo, l'API retournait une erreur 500 en production.
+La cause était la taille excessive de l'image Base64 non compressée qui dépassait la limite de taille du corps de requête (10 Mo pour `express.json`) ou des proxys de production. De plus, stocker de grosses images Base64 dégradait les performances.
+
+**Solution** : Création d'un utilitaire de compression côté client `compressImage` (utilisant `canvas` HTML5) pour redimensionner les photos à **400x400 pixels** (JPEG, qualité 0.7) avant envoi. La taille de la photo est passée de ~5 Mo à ~50 Ko.
+
+**Fichiers modifiés** :
+- `frontend/src/utils/image.ts` [Nouveau]
+- `frontend/src/pages/EditProfile.tsx`
+
+---
+
+### 2. ✅ Sécurisation de l'upload des photos de repas
+
+**Problème** : Risque similaire d'erreur 500 ou de lenteur base de données si un utilisateur téléversait une photo de repas de plusieurs mégaoctets sans compression.
+
+**Solution** : Intégration proactive de la compression d'image (`compressImage`) à la création et modification de repas (limite fixée à **800x800 pixels**, JPEG, qualité 0.7).
+
+**Fichiers modifiés** :
+- `frontend/src/pages/CreateMeal.tsx`
+- `frontend/src/pages/EditMeal.tsx`
+
+---
+
+### 3. ✅ Erreur de validation de date lors de la modification de repas (HTTP 400)
+
+**Problème** : Lors de l'enregistrement d'un repas modifié, le serveur retournait un code 400 car les dates du formulaire étaient transmises en chaînes locales au lieu de chaînes ISO attendues par Zod.
+
+**Solution** : Conversion des dates en objets `Date` JavaScript et sérialisation au format `.toISOString()` avant envoi.
+
+**Fichier modifié** : `frontend/src/pages/EditMeal.tsx`
+
+---
+
+### 4. ✅ Restriction du changement d'adresse pour les membres gratuits (FREE)
+
+**Problème** : Le changement d'adresse n'était pas limité côté serveur pour les membres gratuits (limitation théorique à 1 fois par an).
+
+**Solution** :
+- Ajout de la colonne `lastAddressChangeDate` dans la table `User` de la base de données.
+- Application de la migration PostgreSQL en local et en production (Supabase).
+- Ajout d'une vérification robuste dans le service utilisateur du backend et blocage du changement si un membre gratuit a déjà changé d'adresse au cours des 12 derniers mois.
+- Ajout de tests unitaires Jest pour valider cette logique.
+
+**Fichiers modifiés** :
+- `backend/prisma/schema.prisma`
+- `backend/src/services/user.service.ts`
+- `backend/src/services/__tests__/user.service.test.ts`
+
+---
+
 **Document créé par** : DEV  
-**Dernière mise à jour** : 23 janvier 2026
+**Dernière mise à jour** : 29 mai 2026

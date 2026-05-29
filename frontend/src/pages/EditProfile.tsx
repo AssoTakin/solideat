@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { userService } from '../services/user.service';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { compressImage } from '../utils/image';
 
 // Design System Colors
 const colors = {
@@ -111,15 +112,17 @@ export default function EditProfile() {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-        profileForm.setValue('profilePhoto', reader.result as string, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressImage(file, 400, 400, 0.7);
+        setPhotoPreview(compressedBase64);
+        profileForm.setValue('profilePhoto', compressedBase64, { shouldValidate: true });
+      } catch (err) {
+        console.error('Erreur lors de la compression de la photo :', err);
+        setError('Erreur lors du traitement de la photo');
+      }
     }
   };
 
