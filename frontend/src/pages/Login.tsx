@@ -236,7 +236,7 @@ export default function Login() {
           </div>
         )}
 
-        {diagnosticLogs.length > 0 && (
+        {import.meta.env.DEV && diagnosticLogs.length > 0 && (
           <div
             style={{
               backgroundColor: '#FFF3CD',

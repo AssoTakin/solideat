@@ -156,14 +156,16 @@ api.interceptors.response.use(
       const requestUrl = error.config?.url || 'unknown';
       const token = localStorage.getItem('token');
       
-      // Sauvegarder les logs avant redirection
-      saveDiagnosticLog('[API] Erreur 401 détectée', {
-        path: currentPath,
-        url: requestUrl,
-        isRedirecting,
-        tokenPresent: !!token,
-        errorResponse: error.response?.data,
-      });
+      // Ne pas logger les erreurs de connexion normales (401 si email non vérifié ou mdp erroné)
+      if (!requestUrl.includes('/auth/login')) {
+        saveDiagnosticLog('[API] Erreur 401 détectée', {
+          path: currentPath,
+          url: requestUrl,
+          isRedirecting,
+          tokenPresent: !!token,
+          errorResponse: error.response?.data,
+        });
+      }
       
       // Gérer la redirection
       handleUnauthorizedRedirect();
