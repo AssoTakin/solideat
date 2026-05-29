@@ -275,6 +275,7 @@ export default function Verify() {
                     value={emailInput}
                     onChange={(e) => setEmailInput(e.target.value)}
                     placeholder="votre@email.com"
+                    autoComplete="email"
                     style={{
                       width: '100%',
                       padding: '10px 12px',
@@ -340,6 +341,7 @@ export default function Verify() {
                   onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="123456"
                   maxLength={6}
+                  autoComplete="one-time-code"
                   style={{
                     padding: '12px',
                     borderRadius: '8px',
