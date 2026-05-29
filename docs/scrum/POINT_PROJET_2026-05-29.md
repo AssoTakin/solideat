@@ -56,8 +56,20 @@ Ce point projet du 29 mai 2026 marque la finalisation de la **stabilisation comp
 ### 3.4 Support automatique de la variable RESEND_API_KEY
 - **Intégration Resend** : Ajout du support automatique et natif de la variable d'environnement `RESEND_API_KEY` dans le backend. Si cette variable est configurée dans Railway, le serveur l'utilise automatiquement à la place de `SMTP_PASS` pour l'envoi d'e-mails réels via l'API HTTP sécurisée de Resend. Cela élimine les blocages de réception d'e-mails de vérification sans forcer l'utilisateur à modifier ses variables d'environnement.
 
+
+---
+
+## 4. PERSPECTIVES ET AMÉLIORATIONS FUTURES (BACKLOG)
+
+### 4.1 Restriction d'accès sans validation de numéro de téléphone (Anti-Spam & Ghost Users)
+* **Objectif** : Empêcher les spams et les comptes fantômes en forçant la validation du téléphone (OTP par SMS via Twilio) pour utiliser les fonctionnalités de la plateforme, à l'image du flux de validation de l'e-mail.
+* **Modifications planifiées** :
+  * **Backend** : Mettre à jour le middleware d'authentification ([auth.middleware.ts](file:///Users/samdokpo/Documents/Projets%20New/Dev/Solid'Eat%202026/backend/src/middleware/auth.middleware.ts)) pour retourner une erreur `403 Forbidden` (`PHONE_NOT_VERIFIED`) si `user.phoneVerified === false`.
+  * **Frontend** : Intercepter l'erreur 403 `PHONE_NOT_VERIFIED` dans [api.ts](file:///Users/samdokpo/Documents/Projets%20New/Dev/Solid'Eat%202026/frontend/src/services/api.ts) et rediriger automatiquement l'utilisateur vers la page de vérification [Verify.tsx](file:///Users/samdokpo/Documents/Projets%20New/Dev/Solid'Eat%202026/frontend/src/pages/Verify.tsx). Gérer la redirection directe après connexion dans [Login.tsx](file:///Users/samdokpo/Documents/Projets%20New/Dev/Solid'Eat%202026/frontend/src/pages/Login.tsx).
+
 ---
 
 **Document produit par** : Agent SCRUM-MASTER / DEV  
 **Dernière mise à jour** : 29 mai 2026
+
   
