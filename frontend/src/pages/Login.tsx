@@ -143,12 +143,12 @@ export default function Login() {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
+          <Link to="/" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '20px' }}>
             <img
               src="/logo.png"
               alt="SOLID'EAT"
               style={{
-                height: '48px',
+                height: '80px',
                 width: 'auto',
               }}
               onError={(e) => {
@@ -156,7 +156,7 @@ export default function Login() {
                 const parent = (e.target as HTMLImageElement).parentElement;
                 if (parent) {
                   const span = document.createElement('span');
-                  span.style.cssText = `font-size: 24px; font-weight: bold; color: ${colors.primary}`;
+                  span.style.cssText = `font-size: 28px; font-weight: bold; color: ${colors.primary}`;
                   span.textContent = "SOLID'EAT";
                   parent.appendChild(span);
                 }
