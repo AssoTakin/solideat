@@ -9,7 +9,7 @@ import QuotaStatusComponent from '../components/QuotaStatus';
 import Navigation from '../components/Navigation';
 import EnvironmentalStats from '../components/EnvironmentalStats';
 import BonusDonorList from '../components/BonusDonorList';
-import { USE_MOCK_DATA, mockMeals, mockReservations, mockUsers } from '../data/mockData';
+import { USE_MOCK_DATA, mockMeals, mockReservations, mockUsers, mockDashboardStats } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors EXACTES depuis UX_DESIGN.md
@@ -53,55 +53,44 @@ export default function Dashboard() {
     try {
       let currentUser: any = null;
 
-      // Charger les informations utilisateur
       if (USE_MOCK_DATA) {
-        // En mode mock, utiliser le premier utilisateur comme utilisateur actuel
         currentUser = mockUsers[0];
         setUser(currentUser);
-      } else {
-        const userResponse = await api.get('/users/me');
-        
-        if (userResponse.data.success) {
-          currentUser = userResponse.data.data;
-          setUser(currentUser);
-        }
-      }
-
-      // Charger les statistiques du dashboard
-      const statsResponse = await dashboardService.getDashboardStats();
-      if (statsResponse.success && statsResponse.data) {
-        setDashboardStats(statsResponse.data);
-      }
-
-      // Charger les repas proposés
-      if (USE_MOCK_DATA) {
-        // En mode mock, on simule que l'utilisateur actuel est le premier utilisateur
+        setDashboardStats(mockDashboardStats);
         const userMeals = mockMeals.filter((m) => m.cook.id === mockUsers[0].id);
         setProposedMeals(userMeals.slice(0, 5));
         setReservedMeals(mockReservations.slice(0, 5));
       } else {
-        const proposedResponse = await mealService.getMeals({ status: 'AVAILABLE', limit: 5 });
+        // Charger les données en parallèle
+        const [userResponse, statsResponse, proposedResponse, reservationsResponse] = await Promise.all([
+          api.get('/users/me'),
+          dashboardService.getDashboardStats(),
+          mealService.getMeals({ status: 'AVAILABLE', limit: 5 }),
+          reservationService.getMyReservations(),
+        ]);
+
+        if (userResponse.data.success) {
+          currentUser = userResponse.data.data;
+          setUser(currentUser);
+        }
+
+        if (statsResponse.success && statsResponse.data) {
+          setDashboardStats(statsResponse.data);
+        }
+
         if (proposedResponse.success && proposedResponse.data && currentUser) {
-          // Filtrer pour ne garder que ceux de l'utilisateur
           const userMeals = proposedResponse.data.meals.filter((m: any) => m.cook?.id === currentUser.id);
           setProposedMeals(userMeals);
         }
 
-        // Charger les réservations
-        const reservationsResponse = await reservationService.getMyReservations();
         if (reservationsResponse.success && reservationsResponse.data) {
           setReservedMeals(reservationsResponse.data.slice(0, 5));
         }
       }
     } catch (error: any) {
-      // Ne pas rediriger automatiquement, l'intercepteur API gère déjà les 401
-      // Si c'est une erreur 401, l'intercepteur va rediriger
       if (error.response?.status === 401) {
-        // L'intercepteur API va gérer la redirection
-        // Ne rien faire ici pour éviter les redirections multiples
         return;
       }
-      // Pour les autres erreurs, on reste sur la page mais on affiche un message
     } finally {
       setLoading(false);
     }

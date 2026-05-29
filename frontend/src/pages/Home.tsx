@@ -65,28 +65,30 @@ export default function Home() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const userResponse = await api.get('/users/me');
-          if (userResponse.data.success) {
+          const [userResponse, quotaResponse] = await Promise.all([
+            api.get('/users/me').catch(() => null),
+            api.get('/users/me/quotas').catch(() => null)
+          ]);
+
+          if (userResponse && userResponse.data?.success) {
             setIsAuthenticated(true);
             
-            try {
-              const quotaResponse = await api.get('/users/me/quotas');
-              if (quotaResponse.data.success) {
-                const apiData = quotaResponse.data.data;
-                setQuotaStatus({
-                  weeklyReservations: {
-                    used: apiData.weekly?.reservations?.current ?? 0,
-                    limit: apiData.weekly?.reservations?.limit ?? 1,
-                  },
-                  weeklyProposals: {
-                    used: apiData.weekly?.proposals?.current ?? 0,
-                    limit: apiData.weekly?.proposals?.limit ?? 1,
-                  },
-                });
-              }
-            } catch (error) {
-              // Quotas non disponibles
+            if (quotaResponse && quotaResponse.data?.success) {
+              const apiData = quotaResponse.data.data;
+              setQuotaStatus({
+                weeklyReservations: {
+                  used: apiData.weekly?.reservations?.current ?? 0,
+                  limit: apiData.weekly?.reservations?.limit ?? 1,
+                },
+                weeklyProposals: {
+                  used: apiData.weekly?.proposals?.current ?? 0,
+                  limit: apiData.weekly?.proposals?.limit ?? 1,
+                },
+              });
             }
+          } else {
+            localStorage.removeItem('token');
+            setIsAuthenticated(false);
           }
         } catch (error: any) {
           // Si erreur 403 (compte non vérifié) ou 401 (token invalide), déconnecter
