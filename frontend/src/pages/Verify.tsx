@@ -304,23 +304,6 @@ export default function Verify() {
                 >
                   {emailLoading ? 'Envoi...' : 'Renvoyer l\'email'}
                 </button>
-                <button
-                  onClick={resendEmail}
-                  disabled={emailLoading || loading}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: colors.backgroundLight,
-                    color: colors.textPrimary,
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    cursor: emailLoading || loading ? 'not-allowed' : 'pointer',
-                    opacity: emailLoading || loading ? 0.6 : 1,
-                  }}
-                >
-                  Renvoyer l'email
-                </button>
               </div>
             </div>
           )}

@@ -69,6 +69,7 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -216,6 +217,7 @@ export default function Login() {
                   </ul>
                   <Link
                     to="/verify"
+                    state={{ userEmail: getValues('email') }}
                     style={{
                       display: 'inline-block',
                       marginTop: '12px',
