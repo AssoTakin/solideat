@@ -27,6 +27,8 @@ export type CreateMealDto = z.infer<typeof createMealSchema>;
 
 // Schéma de validation pour la modification d'un repas
 export const updateMealSchema = z.object({
+  name: z.string().min(1, 'Le nom du repas est requis').max(100).optional(),
+  photo: z.string().min(1, 'La photo du repas est requise').optional(),
   description: z.string().max(500).optional(),
   cuisine: z.string().optional().nullable(),
   serviceDate: z.string().datetime().or(z.date()).optional(),

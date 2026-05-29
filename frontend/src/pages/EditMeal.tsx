@@ -27,6 +27,8 @@ const colors = {
 
 // Schéma de validation pour l'édition
 const editMealSchema = z.object({
+  name: z.string().min(1, 'Le nom du repas est requis').max(100, 'Le nom ne peut pas dépasser 100 caractères'),
+  photo: z.string().min(1, 'La photo du repas est requise'),
   description: z.string().max(500, 'La description ne peut pas dépasser 500 caractères').optional().or(z.literal('')),
   cuisine: z.string().min(1, 'Le type de cuisine est requis'),
   serviceDate: z.string().min(1, 'Le jour de service est requis'),
@@ -62,6 +64,7 @@ export default function EditMeal() {
   const [error, setError] = useState<string | null>(null);
   const [userSubscription, setUserSubscription] = useState<any>(null);
   const [meal, setMeal] = useState<Meal | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   // States pour l'autocomplétion d'adresses et la carte
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -204,6 +207,7 @@ export default function EditMeal() {
         }
 
         setMeal(mealData);
+        setPhotoPreview(mealData.photo || null);
         const lat = typeof mealData.pickupLatitude === 'number' ? mealData.pickupLatitude : 48.8566;
         const lng = typeof mealData.pickupLongitude === 'number' ? mealData.pickupLongitude : 2.3522;
         setMapCoords({ lat, lng });
@@ -233,6 +237,8 @@ export default function EditMeal() {
         const timeType = hasTimeEnd ? 'range' : 'fixed';
 
         form.reset({
+          name: mealData.name || '',
+          photo: mealData.photo || '',
           description: mealData.description || '',
           cuisine: mealData.cuisine || '',
           serviceDate: sDate,
@@ -264,6 +270,18 @@ export default function EditMeal() {
     setShowSuggestions(false);
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+        form.setValue('photo', reader.result as string, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = async (values: EditMealFormData) => {
     if (!id || !meal) return;
     setSaving(true);
@@ -285,6 +303,8 @@ export default function EditMeal() {
 
       // Préparation de l'objet de modification
       const updateData: any = {
+        name: values.name,
+        photo: values.photo,
         description: values.description,
         cuisine: values.cuisine,
         serviceDate: values.serviceDate,
@@ -394,17 +414,105 @@ export default function EditMeal() {
               gap: '20px',
             }}
           >
-            {/* Visualisation rapide du plat non modifiable */}
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', paddingBottom: '16px', borderBottom: `1px solid ${colors.backgroundLight}` }}>
-              <img
-                src={meal.photo}
-                alt={meal.name}
-                style={{ width: '64px', height: '64px', borderRadius: '8px', objectFit: 'cover' }}
+            {/* Nom du plat */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                Nom du plat *
+              </label>
+              <input
+                type="text"
+                {...form.register('name')}
+                placeholder="Ex: Lasagnes végétariennes"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${colors.backgroundLight}`,
+                  fontSize: '16px',
+                  backgroundColor: colors.backgroundWhite,
+                  color: colors.textPrimary,
+                  outline: 'none',
+                }}
               />
-              <div>
-                <h3 style={{ margin: 0, fontSize: '16px', color: colors.textPrimary }}>{meal.name}</h3>
-                <span style={{ fontSize: '12px', color: colors.textSecondary }}>Plat non modifiable (photo et ingrédients verrouillés)</span>
-              </div>
+              {form.formState.errors.name && (
+                <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>
+                  {form.formState.errors.name.message}
+                </p>
+              )}
+            </div>
+
+            {/* Photo du plat */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                Photo du plat *
+              </label>
+              
+              {photoPreview ? (
+                <div style={{ position: 'relative', width: '100%', height: '200px', borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.backgroundLight}` }}>
+                  <img
+                    src={photoPreview}
+                    alt="Aperçu du plat"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhotoPreview(null);
+                      form.setValue('photo', '');
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      right: '12px',
+                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      color: colors.backgroundWhite,
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '36px',
+                      height: '36px',
+                      fontSize: '18px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <label
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '200px',
+                    borderRadius: '12px',
+                    border: `2px dashed ${colors.primary}50`,
+                    backgroundColor: '#FFF8F5',
+                    cursor: 'pointer',
+                    gap: '8px',
+                  }}
+                >
+                  <span style={{ fontSize: '32px' }}>📸</span>
+                  <span style={{ fontSize: '14px', fontWeight: 'bold', color: colors.primary }}>Modifier la photo</span>
+                  <span style={{ fontSize: '11px', color: colors.textSecondary }}>PNG, JPG ou JPEG (max 10 Mo)</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+              )}
+              <input type="hidden" {...form.register('photo')} />
+              {form.formState.errors.photo && (
+                <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>
+                  {form.formState.errors.photo.message}
+                </p>
+              )}
             </div>
 
             {/* Description */}

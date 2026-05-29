@@ -445,6 +445,14 @@ export class MealService {
     // Préparer les données de mise à jour
     const updateData: any = {};
 
+    if (data.name !== undefined) {
+      updateData.name = data.name;
+    }
+
+    if (data.photo !== undefined) {
+      updateData.photo = data.photo;
+    }
+
     if (data.description !== undefined) {
       updateData.description = data.description;
     }
