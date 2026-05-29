@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import axios from 'axios';
 
 export class EmailService {
   private transporter: nodemailer.Transporter | null = null;
@@ -12,7 +13,10 @@ export class EmailService {
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
-    if (host && user && pass) {
+    // Détecter si on doit utiliser l'API HTTP Resend au lieu du SMTP classique
+    const isResendAPI = pass?.startsWith('re_') || host === 'smtp.resend.com';
+
+    if (host && user && pass && !isResendAPI) {
       this.transporter = nodemailer.createTransport({
         host,
         port,
@@ -22,15 +26,55 @@ export class EmailService {
           pass,
         },
       });
+    } else if (isResendAPI && pass) {
+      console.log("📨 Utilisation de l'API HTTP Resend pour l'envoi de mails.");
     } else {
       console.warn("⚠️ SMTP non configuré. L'envoi d'e-mails réels sera désactivé.");
     }
   }
 
   /**
-   * Envoie un e-mail via le transporteur configuré
+   * Envoie un e-mail via l'API HTTP de Resend ou le transporteur SMTP configuré
    */
   private async sendMail(to: string, subject: string, html: string, text: string, silent = true): Promise<void> {
+    const pass = process.env.SMTP_PASS;
+    const host = process.env.SMTP_HOST;
+    const isResend = pass?.startsWith('re_') || host === 'smtp.resend.com';
+
+    // 1. Envoi via l'API HTTP HTTPS (Port 443) si c'est Resend
+    if (isResend && pass) {
+      try {
+        await axios.post(
+          'https://api.resend.com/emails',
+          {
+            from: this.fromEmail,
+            to,
+            subject,
+            html,
+            text,
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${pass}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        console.log(`✅ E-mail envoyé avec succès via l'API Resend à ${to}`);
+        return;
+      } catch (error: any) {
+        const resData = error.response?.data;
+        const errorDetail = resData ? JSON.stringify(resData) : (error.message || error);
+        const errorMsg = `Échec de l'envoi de l'e-mail via l'API Resend à ${to} : ${errorDetail}`;
+        console.error(errorMsg);
+        if (!silent) {
+          throw new Error(errorMsg);
+        }
+        return;
+      }
+    }
+
+    // 2. Envoi via SMTP classique (Nodemailer)
     if (!this.transporter) {
       console.warn(`[Email non envoyé - SMTP non configuré] À : ${to} | Sujet : ${subject}`);
       if (!silent) {
@@ -49,8 +93,9 @@ export class EmailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
+      console.log(`✅ E-mail envoyé avec succès via SMTP à ${to}`);
     } catch (error: any) {
-      const errorMsg = `Échec de l'envoi de l'e-mail à ${to} : ${error.message || error}`;
+      const errorMsg = `Échec de l'envoi de l'e-mail via SMTP à ${to} : ${error.message || error}`;
       console.error(errorMsg);
       if (!silent) {
         throw new Error(errorMsg);
