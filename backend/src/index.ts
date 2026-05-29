@@ -26,8 +26,8 @@ app.use(cors({
 import stripeRoutes from './routes/stripe.routes';
 app.use('/webhooks', express.raw({ type: 'application/json' }), stripeRoutes);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Route de base
 app.get('/', (_req, res) => {
