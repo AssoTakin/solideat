@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Meal } from '../services/meal.service';
+import { bonusDonorService } from '../services/bonus-donor.service';
 import api from '../services/api';
-import { USE_MOCK_DATA, mockSaveThemMeals } from '../data/mockData';
+import { USE_MOCK_DATA, mockSaveThemMeals, mockUsers } from '../data/mockData';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
@@ -32,9 +33,14 @@ export default function SaveThem() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [quotaStatus, setQuotaStatus] = useState<any>(null);
+  const [hasBonuses, setHasBonuses] = useState(false);
+  const [isReservationBlocked, setIsReservationBlocked] = useState(false);
 
   useEffect(() => {
     loadMeals();
+    loadUserContext();
   }, [page]);
 
   const loadMeals = async () => {
@@ -59,6 +65,54 @@ export default function SaveThem() {
       setError(err.response?.data?.error || 'Erreur lors du chargement');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUserContext = async () => {
+    try {
+      if (USE_MOCK_DATA) {
+        setCurrentUser(mockUsers[0]);
+        setQuotaStatus({
+          weeklyReservations: { used: 1, limit: 3 },
+          weeklyProposals: { used: 0, limit: 3 },
+        });
+        setHasBonuses(true);
+        setIsReservationBlocked(false);
+        return;
+      }
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const [userResponse, quotaResponse, bonusResponse] = await Promise.all([
+        api.get('/users/me').catch(() => null),
+        api.get('/users/me/quotas').catch(() => null),
+        bonusDonorService.getAvailableBonuses().catch(() => null),
+      ]);
+
+      if (userResponse && userResponse.data?.success) {
+        setCurrentUser(userResponse.data.data);
+      }
+
+      if (quotaResponse && quotaResponse.data?.success) {
+        const apiData = quotaResponse.data.data;
+        setQuotaStatus({
+          weeklyReservations: {
+            used: apiData.weekly?.reservations?.current ?? 0,
+            limit: apiData.weekly?.reservations?.limit ?? 1,
+          },
+          weeklyProposals: {
+            used: apiData.weekly?.proposals?.current ?? 0,
+            limit: apiData.weekly?.proposals?.limit ?? 1,
+          },
+        });
+        setIsReservationBlocked(apiData.sanctions?.reservationBlocked === true);
+      }
+
+      if (bonusResponse && bonusResponse.success && bonusResponse.data) {
+        setHasBonuses(bonusResponse.data.length > 0);
+      }
+    } catch (err) {
+      // Erreur silencieuse pour le contexte utilisateur
     }
   };
 
@@ -291,19 +345,65 @@ export default function SaveThem() {
                             🕐 {formatPickupTime(meal.pickupTimeStart, meal.pickupTimeEnd)}
                           </span>
                         </div>
-                        <div
-                          style={{
-                            padding: '10px',
-                            backgroundColor: colors.sosAccent,
-                            color: colors.backgroundWhite,
-                            borderRadius: '8px',
-                            textAlign: 'center',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          🆘 Sauver ce repas
-                        </div>
+                        {/* Bouton contextuel selon le propriétaire et l'éligibilité */}
+                        {currentUser && meal.cook.id === currentUser.id ? (
+                          <div
+                            style={{
+                              padding: '10px',
+                              backgroundColor: 'transparent',
+                              color: colors.sosAccent,
+                              borderRadius: '8px',
+                              textAlign: 'center',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              border: `2px solid ${colors.sosAccent}`,
+                            }}
+                          >
+                            🔍 Consulter mon repas
+                          </div>
+                        ) : isReservationBlocked ? (
+                          <div
+                            style={{
+                              padding: '10px',
+                              backgroundColor: '#d3d3d3',
+                              color: '#808080',
+                              borderRadius: '8px',
+                              textAlign: 'center',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            Réservations bloquées
+                          </div>
+                        ) : quotaStatus?.weeklyReservations?.used >= quotaStatus?.weeklyReservations?.limit && !hasBonuses ? (
+                          <div
+                            style={{
+                              padding: '10px',
+                              backgroundColor: '#d3d3d3',
+                              color: '#808080',
+                              borderRadius: '8px',
+                              textAlign: 'center',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            Quota atteint
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              padding: '10px',
+                              backgroundColor: colors.sosAccent,
+                              color: colors.backgroundWhite,
+                              borderRadius: '8px',
+                              textAlign: 'center',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            🆘 Sauver ce repas
+                          </div>
+                        )}
                       </div>
                     </div>
                   </Link>

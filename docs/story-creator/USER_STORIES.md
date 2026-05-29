@@ -561,6 +561,10 @@ Chaque story inclut une estimation en points (Fibonacci : 1, 2, 3, 5, 8, 13).
 - [x] Vérification des quotas hebdomadaires (1 pour gratuit, 3 pour premium)
 - [x] Vérification de la distance (rayon de livraison)
 - [x] Option "Utiliser un bonus donateur" (si disponible)
+- [x] Vérification que l'utilisateur ne réserve pas son propre repas (backend + frontend)
+- [x] Bouton "Consulter" affiché à la place de "Réserver" sur les cartes de ses propres repas (Home, SaveThem)
+- [x] Bouton "Réserver" désactivé si les réservations sont bloquées par sanction
+- [x] Bouton "Réserver" actif même si le quota est atteint, lorsque des bonus donateurs sont disponibles
 - [ ] Confirmation de réservation
 - [x] Passage au statut `RESERVED`
 - [x] Notification au cuisinier (email + app)
@@ -568,13 +572,15 @@ Chaque story inclut une estimation en points (Fibonacci : 1, 2, 3, 5, 8, 13).
 - [ ] Affichage du bouton "Afficher le numéro de téléphone" (selon règles de confidentialité)
 
 **Tâches techniques** :
-- [ ] Créer endpoint `POST /reservations`
-- [ ] Implémenter service `ReservationService.createReservation()`
-- [ ] Vérifier les quotas via `QuotaService.checkQuota()`
-- [ ] Créer modèle Prisma Reservation
-- [ ] Implémenter notifications (email + push)
-- [ ] Gérer l'utilisation d'un bonus donateur si sélectionné
-- [ ] Créer composant React de réservation
+- [x] Créer endpoint `POST /reservations`
+- [x] Implémenter service `ReservationService.createReservation()`
+- [x] Vérifier les quotas via `QuotaService.checkQuota()`
+- [x] Créer modèle Prisma Reservation
+- [x] Implémenter notifications (email + push)
+- [x] Gérer l'utilisation d'un bonus donateur si sélectionné
+- [x] Créer composant React de réservation
+- [x] Adapter les boutons d'action des cartes repas (Home.tsx, SaveThem.tsx) selon propriétaire/éligibilité
+- [x] Sécuriser ReserveMeal.tsx contre les réservations de ses propres repas
 
 ---
 

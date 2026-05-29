@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { mealService, Meal } from '../services/meal.service';
 import { reservationService } from '../services/reservation.service';
 import { bonusDonorService } from '../services/bonus-donor.service';
+import api from '../services/api';
 import Navigation from '../components/Navigation';
-import { USE_MOCK_DATA } from '../data/mockData';
+import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
@@ -32,13 +33,43 @@ export default function ReserveMeal() {
   const [error, setError] = useState<string | null>(null);
   const [useBonusDonor, setUseBonusDonor] = useState(false);
   const [availableBonuses, setAvailableBonuses] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isReservationBlocked, setIsReservationBlocked] = useState(false);
 
   useEffect(() => {
     if (id) {
       loadMeal();
       loadAvailableBonuses();
+      loadCurrentUser();
     }
   }, [id]);
+
+  const loadCurrentUser = async () => {
+    try {
+      if (USE_MOCK_DATA) {
+        setCurrentUser(mockUsers[0]);
+        return;
+      }
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const [userResponse, quotaResponse] = await Promise.all([
+        api.get('/users/me').catch(() => null),
+        api.get('/users/me/quotas').catch(() => null),
+      ]);
+
+      if (userResponse && userResponse.data?.success) {
+        setCurrentUser(userResponse.data.data);
+      }
+
+      if (quotaResponse && quotaResponse.data?.success) {
+        const apiData = quotaResponse.data.data;
+        setIsReservationBlocked(apiData.sanctions?.reservationBlocked === true);
+      }
+    } catch (err) {
+      // Erreur silencieuse
+    }
+  };
 
   const loadMeal = async () => {
     if (!id) return;
@@ -74,6 +105,18 @@ export default function ReserveMeal() {
 
   const handleReserve = async () => {
     if (!id) return;
+
+    // Vérification de sécurité : ne pas réserver son propre repas
+    if (currentUser && meal && meal.cook.id === currentUser.id) {
+      setError('Vous ne pouvez pas réserver votre propre repas.');
+      return;
+    }
+
+    // Vérification de sécurité : réservations bloquées par sanction
+    if (isReservationBlocked) {
+      setError('Vos réservations sont temporairement bloquées suite à une sanction.');
+      return;
+    }
 
     setReserving(true);
     setError(null);

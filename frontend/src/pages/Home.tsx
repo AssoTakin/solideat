@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { mealService, Meal } from '../services/meal.service';
+import { bonusDonorService } from '../services/bonus-donor.service';
 import Navigation from '../components/Navigation';
-import { USE_MOCK_DATA, mockSaveThemMeals } from '../data/mockData';
+import { USE_MOCK_DATA, mockSaveThemMeals, mockUsers } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors EXACTES depuis les maquettes HTML (code_improved.html)
@@ -31,6 +32,9 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [quotaStatus, setQuotaStatus] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [hasBonuses, setHasBonuses] = useState(false);
+  const [isReservationBlocked, setIsReservationBlocked] = useState(false);
   const [saveThemMeals, setSaveThemMeals] = useState<Meal[]>([]);
   const [availableMeals, setAvailableMeals] = useState<Meal[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,23 +59,28 @@ export default function Home() {
     try {
       if (USE_MOCK_DATA) {
         setIsAuthenticated(true);
+        setCurrentUser(mockUsers[0]);
         setQuotaStatus({
-          weeklyReservations: { used: 1, limit: 1 },
-          weeklyProposals: { used: 0, limit: 1 },
+          weeklyReservations: { used: 1, limit: 3 },
+          weeklyProposals: { used: 0, limit: 3 },
         });
+        setHasBonuses(true);
+        setIsReservationBlocked(false);
         setLoading(false);
         return;
       }
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const [userResponse, quotaResponse] = await Promise.all([
+          const [userResponse, quotaResponse, bonusResponse] = await Promise.all([
             api.get('/users/me').catch(() => null),
-            api.get('/users/me/quotas').catch(() => null)
+            api.get('/users/me/quotas').catch(() => null),
+            bonusDonorService.getAvailableBonuses().catch(() => null),
           ]);
 
           if (userResponse && userResponse.data?.success) {
             setIsAuthenticated(true);
+            setCurrentUser(userResponse.data.data);
             
             if (quotaResponse && quotaResponse.data?.success) {
               const apiData = quotaResponse.data.data;
@@ -85,6 +94,13 @@ export default function Home() {
                   limit: apiData.weekly?.proposals?.limit ?? 1,
                 },
               });
+              // Vérifier si les réservations sont bloquées par une sanction
+              setIsReservationBlocked(apiData.sanctions?.reservationBlocked === true);
+            }
+
+            // Vérifier la disponibilité de bonus donateurs
+            if (bonusResponse && bonusResponse.success && bonusResponse.data) {
+              setHasBonuses(bonusResponse.data.length > 0);
             }
           } else {
             localStorage.removeItem('token');
@@ -708,7 +724,42 @@ export default function Home() {
                           <span style={{ fontSize: '12px', color: colors.textSecondary, display: 'flex', alignItems: 'center', gap: '4px' }}>
                             📍 {meal.distance ? `${meal.distance.toFixed(1)} km` : 'Distance N/A'}
                           </span>
-                          {quotaStatus?.weeklyReservations?.used === quotaStatus?.weeklyReservations?.limit ? (
+                          {/* Bouton contextuel selon le propriétaire et l'éligibilité */}
+                          {currentUser && meal.cook.id === currentUser.id ? (
+                            // Bouton "Consulter" pour ses propres repas
+                            <button
+                              style={{
+                                backgroundColor: 'transparent',
+                                color: colors.primary,
+                                padding: '6px 16px',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                border: `2px solid ${colors.primary}`,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Consulter
+                            </button>
+                          ) : isReservationBlocked ? (
+                            // Réservations bloquées par sanction
+                            <button
+                              disabled
+                              style={{
+                                backgroundColor: '#d3d3d3',
+                                color: '#808080',
+                                padding: '6px 16px',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                border: 'none',
+                                cursor: 'not-allowed',
+                              }}
+                            >
+                              Bloqué
+                            </button>
+                          ) : quotaStatus?.weeklyReservations?.used >= quotaStatus?.weeklyReservations?.limit && !hasBonuses ? (
+                            // Quota atteint et aucun bonus disponible
                             <button
                               disabled
                               style={{
@@ -725,6 +776,7 @@ export default function Home() {
                               Quota atteint
                             </button>
                           ) : (
+                            // Bouton "Réserver" pour les repas des autres
                             <button
                               style={{
                                 backgroundColor: colors.primary,
