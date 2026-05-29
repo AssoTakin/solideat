@@ -77,7 +77,11 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
         const userResponse = await api.get('/users/me');
         if (userResponse.data.success) {
           setIsAuthenticated(true);
-          setUser(userResponse.data.data);
+          const userData = userResponse.data.data;
+          setUser(userData);
+          if (userData?.id) {
+            localStorage.setItem('userId', userData.id);
+          }
           loadNotifications();
         }
       } else {

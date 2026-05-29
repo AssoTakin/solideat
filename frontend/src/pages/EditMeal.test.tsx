@@ -6,6 +6,7 @@ import { store } from '../store';
 import EditMeal from './EditMeal';
 import { mealService } from '../services/meal.service';
 import { subscriptionService } from '../services/subscription.service';
+import { userService } from '../services/user.service';
 
 // Mocker les services
 vi.mock('../services/meal.service', () => ({
@@ -18,6 +19,12 @@ vi.mock('../services/meal.service', () => ({
 vi.mock('../services/subscription.service', () => ({
   subscriptionService: {
     getCurrentSubscription: vi.fn(),
+  },
+}));
+
+vi.mock('../services/user.service', () => ({
+  userService: {
+    getMe: vi.fn(),
   },
 }));
 
@@ -39,6 +46,11 @@ describe('EditMeal - Diagnostic asynchrone', () => {
     vi.mocked(subscriptionService.getCurrentSubscription).mockResolvedValue({
       success: true,
       data: { active: true, type: 'PREMIUM_MONTHLY' },
+    });
+
+    vi.mocked(userService.getMe).mockResolvedValue({
+      success: true,
+      data: { id: '1', username: 'MarieCuisine' },
     });
 
     vi.mocked(mealService.getMealById).mockResolvedValue({

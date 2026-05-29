@@ -72,6 +72,9 @@ export default function Dashboard() {
         if (userResponse.data.success) {
           currentUser = userResponse.data.data;
           setUser(currentUser);
+          if (currentUser?.id) {
+            localStorage.setItem('userId', currentUser.id);
+          }
         }
 
         if (statsResponse.success && statsResponse.data) {

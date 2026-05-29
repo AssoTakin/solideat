@@ -65,6 +65,9 @@ export const authService = {
     const response = await api.post<AuthResponse>('/auth/login', data);
     if (response.data.success && response.data.data?.token) {
       localStorage.setItem('token', response.data.data.token);
+      if (response.data.data.user?.id) {
+        localStorage.setItem('userId', response.data.data.user.id);
+      }
     }
     return response.data;
   },
@@ -79,6 +82,7 @@ export const authService = {
       // Erreur silencieuse
     } finally {
       localStorage.removeItem('token');
+      localStorage.removeItem('userId');
     }
   },
 

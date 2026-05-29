@@ -59,7 +59,11 @@ export default function MealDetails() {
         const userResponse = await api.get('/users/me');
         if (userResponse.data.success) {
           setIsAuthenticated(true);
-          setCurrentUser(userResponse.data.data);
+          const userData = userResponse.data.data;
+          setCurrentUser(userData);
+          if (userData?.id) {
+            localStorage.setItem('userId', userData.id);
+          }
           loadQuotaStatus();
         }
       }

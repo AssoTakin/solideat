@@ -80,7 +80,11 @@ export default function Home() {
 
           if (userResponse && userResponse.data?.success) {
             setIsAuthenticated(true);
-            setCurrentUser(userResponse.data.data);
+            const userData = userResponse.data.data;
+            setCurrentUser(userData);
+            if (userData?.id) {
+              localStorage.setItem('userId', userData.id);
+            }
             
             if (quotaResponse && quotaResponse.data?.success) {
               const apiData = quotaResponse.data.data;
@@ -104,6 +108,7 @@ export default function Home() {
             }
           } else {
             localStorage.removeItem('token');
+            localStorage.removeItem('userId');
             setIsAuthenticated(false);
           }
         } catch (error: any) {
@@ -111,6 +116,7 @@ export default function Home() {
           // Mais ne pas rediriger depuis la page Home (page publique)
           if (error.response?.status === 403 || error.response?.status === 401) {
             localStorage.removeItem('token');
+            localStorage.removeItem('userId');
             setIsAuthenticated(false);
             // Ne pas rediriger depuis Home, c'est une page publique
           } else {

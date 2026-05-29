@@ -84,6 +84,7 @@ function handleUnauthorizedRedirect() {
   if (publicPages.includes(currentPath)) {
     // Sur une page publique, juste supprimer le token sans rediriger
     localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     return;
   }
   
@@ -95,6 +96,7 @@ function handleUnauthorizedRedirect() {
   isRedirecting = true;
   saveDiagnosticLog('[API] Redirection vers /login déclenchée');
   localStorage.removeItem('token');
+  localStorage.removeItem('userId');
   
   // Annuler toutes les requêtes en cours pour éviter les erreurs supplémentaires
   cancelPendingRequests();

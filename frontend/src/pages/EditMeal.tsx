@@ -6,6 +6,7 @@ import { z } from 'zod';
 import Navigation from '../components/Navigation';
 import { mealService, Meal } from '../services/meal.service';
 import { subscriptionService } from '../services/subscription.service';
+import { userService } from '../services/user.service';
 import { addressService, AddressSuggestion } from '../services/address.service';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
@@ -80,7 +81,9 @@ export default function EditMeal() {
   const pickupTimeType = form.watch('pickupTimeType');
   const pickupAddress = form.watch('pickupAddress');
 
-  const currentUserId = USE_MOCK_DATA ? mockUsers[0].id : localStorage.getItem('userId') || '';
+  const [currentUserId, setCurrentUserId] = useState<string>(
+    USE_MOCK_DATA ? mockUsers[0].id : localStorage.getItem('userId') || ''
+  );
   const isPremium = userSubscription?.active && (userSubscription?.type === 'PREMIUM' || userSubscription?.type?.startsWith('PREMIUM'));
 
   useEffect(() => {
@@ -147,13 +150,28 @@ export default function EditMeal() {
         setUserSubscription(subResponse.data);
       }
 
-      // 2. Charger le repas
+      // 2. Charger le profil de l'utilisateur connecté pour obtenir son ID réel
+      let loggedInUserId = currentUserId;
+      if (!USE_MOCK_DATA) {
+        try {
+          const userResponse = await userService.getMe();
+          if (userResponse && userResponse.success && userResponse.data) {
+            loggedInUserId = userResponse.data.id;
+            setCurrentUserId(loggedInUserId);
+            localStorage.setItem('userId', loggedInUserId);
+          }
+        } catch (err) {
+          console.error('Erreur lors de la récupération du profil utilisateur connecté :', err);
+        }
+      }
+
+      // 3. Charger le repas
       const mealResponse = await mealService.getMealById(id);
       if (mealResponse.success && mealResponse.data) {
         const mealData = mealResponse.data;
         
         // Vérifier les permissions
-        if (mealData.cook.id !== currentUserId) {
+        if (mealData.cook.id !== loggedInUserId) {
           setError('Vous n\'êtes pas autorisé à modifier ce repas.');
           setLoading(false);
           return;
