@@ -72,7 +72,17 @@ export default function Home() {
             try {
               const quotaResponse = await api.get('/users/me/quotas');
               if (quotaResponse.data.success) {
-                setQuotaStatus(quotaResponse.data.data);
+                const apiData = quotaResponse.data.data;
+                setQuotaStatus({
+                  weeklyReservations: {
+                    used: apiData.weekly?.reservations?.current ?? 0,
+                    limit: apiData.weekly?.reservations?.limit ?? 1,
+                  },
+                  weeklyProposals: {
+                    used: apiData.weekly?.proposals?.current ?? 0,
+                    limit: apiData.weekly?.proposals?.limit ?? 1,
+                  },
+                });
               }
             } catch (error) {
               // Quotas non disponibles
