@@ -855,6 +855,26 @@ export default function Home() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
+            <div style={{ marginBottom: '24px' }}>
+              <img
+                src="/logo.png"
+                alt="SOLID'EAT"
+                style={{
+                  height: '100px',
+                  width: 'auto',
+                }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  const parent = (e.target as HTMLImageElement).parentElement;
+                  if (parent) {
+                    const span = document.createElement('span');
+                    span.style.cssText = `font-size: 32px; font-weight: bold; color: ${colors.primary}`;
+                    span.textContent = "SOLID'EAT";
+                    parent.appendChild(span);
+                  }
+                }}
+              />
+            </div>
             <h1
               style={{
                 fontSize: '32px',

@@ -203,13 +203,16 @@ La cause était la taille excessive de l'image Base64 non compressée qui dépas
 
 ---
 
-### 7. ✅ Agrandissement et recentrage du logo d'authentification (UX & Identité Visuelle)
+### 7. ✅ Agrandissement et recentrage du logo sur les pages d'authentification et d'accueil (UX & Identité Visuelle)
 
-**Problème** : Le logo de l'application sur la page de connexion (et les pages d'authentification associées) apparaissait trop petit (hauteur fixe de 48px), ce qui dégradait l'impact visuel et la perception de la marque lors de l'onboarding utilisateur.
+**Problème** : Le logo de l'application sur la page de connexion (et les pages d'authentification associées) apparaissait trop petit (hauteur fixe de 48px), et il était absent de la boîte blanche centrale de la page d'accueil (landing page) pour les visiteurs non connectés. Cela nuisait à la visibilité de la marque.
 
-**Solution** : Augmentation de la hauteur du logo à **80px** (pour conserver un rendu harmonieux et proportionnel par rapport au formulaire de 400px), aération de la mise en page en augmentant le `marginBottom` de l'enveloppe du lien de `16px` à `20px`, et redimensionnement du texte alternatif de secours à **28px** en cas de non-chargement de l'image.
+**Solution** : 
+1. **Pages d'authentification** : Augmentation de la hauteur du logo à **80px**, aération en passant la marge inférieure du lien de `16px` à `20px` et taille du texte alternatif à **28px**.
+2. **Page d'accueil (non connectés)** : Insertion du logo officiel de façon très visible et imposante avec une hauteur de **100px** et une marge inférieure de `24px` au-dessus du titre principal. Taille du texte alternatif à **32px**.
 
 **Fichiers modifiés** :
+- `frontend/src/pages/Home.tsx`
 - `frontend/src/pages/Login.tsx`
 - `frontend/src/pages/Register.tsx`
 - `frontend/src/pages/ForgotPassword.tsx`

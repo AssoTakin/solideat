@@ -48,9 +48,10 @@ Ce point projet du 29 mai 2026 marque la finalisation de la **stabilisation comp
 
 ---
 
-### 3.3 Agrandissement du logo sur les formulaires d'authentification
-- **Visual Branding** : Augmentation de la hauteur du logo de l'application à **80px** (vs 48px précédemment) dans `Login.tsx`, `Register.tsx`, `ForgotPassword.tsx` et `ResetPassword.tsx` pour conférer une identité visuelle plus premium, imposante et professionnelle dès l'accueil utilisateur.
-- **Harmonisation UX** : Amélioration de l'espacement vertical (marge inférieure passée à 20px) pour préserver des proportions optimales avec le formulaire.
+### 3.3 Agrandissement et intégration du logo sur les formulaires et l'accueil
+- **Visual Branding** : Augmentation de la hauteur du logo de l'application à **80px** (vs 48px) dans `Login.tsx`, `Register.tsx`, `ForgotPassword.tsx` et `ResetPassword.tsx` pour conférer une identité visuelle plus premium dès la connexion.
+- **Landing Page d'Accueil** : Intégration du logo de manière imposante (**100px** de haut, centré) au-dessus de la phrase d'accroche de la boîte centrale de `Home.tsx` pour les visiteurs non connectés.
+- **Harmonisation UX** : Amélioration de l'espacement vertical (marges à 20px pour l'auth, 24px pour la landing) pour préserver des proportions optimales avec les contenus.
 
 ---
 
