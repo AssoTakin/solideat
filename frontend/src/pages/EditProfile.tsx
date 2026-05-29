@@ -23,8 +23,9 @@ const colors = {
 };
 
 const profileSchema = z.object({
-  description: z.string().max(500, 'La description ne peut pas dépasser 500 caractères').optional(),
-  culinaryStyle: z.string().max(200, 'L\'orientation culinaire ne peut pas dépasser 200 caractères').optional(),
+  description: z.string().max(500, 'La description ne peut pas dépasser 500 caractères').optional().or(z.literal('')),
+  culinaryStyle: z.string().max(200, 'L\'orientation culinaire ne peut pas dépasser 200 caractères').optional().or(z.literal('')),
+  profilePhoto: z.string().optional().nullable().or(z.literal('')),
 });
 
 const passwordSchema = z
@@ -59,9 +60,15 @@ export default function EditProfile() {
   const [blurAddress, setBlurAddress] = useState(false);
   const [hideActivityHistory, setHideActivityHistory] = useState(false);
   const [privacySaving, setPrivacySaving] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
+    defaultValues: {
+      description: '',
+      culinaryStyle: '',
+      profilePhoto: '',
+    },
   });
 
   const passwordForm = useForm<PasswordFormData>({
@@ -84,7 +91,9 @@ export default function EditProfile() {
         profileForm.reset({
           description: response.data.description || '',
           culinaryStyle: response.data.culinaryStyle || '',
+          profilePhoto: response.data.profilePhoto || '',
         });
+        setPhotoPreview(response.data.profilePhoto || null);
         addressForm.reset({
           addressStreet: response.data.addressStreet || '',
           addressZipCode: response.data.addressZipCode || '',
@@ -99,6 +108,18 @@ export default function EditProfile() {
       setError('Erreur lors du chargement du profil');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+        profileForm.setValue('profilePhoto', reader.result as string, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -264,6 +285,75 @@ export default function EditProfile() {
         {activeTab === 'profile' && (
           <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
             <div style={{ backgroundColor: colors.backgroundWhite, padding: '24px', borderRadius: '8px' }}>
+              {/* Photo de profil */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px', borderBottom: `1px solid ${colors.backgroundLight}`, paddingBottom: '24px' }}>
+                <div style={{ position: 'relative', width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', border: `3px solid ${colors.primary}30`, backgroundColor: colors.backgroundLight, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+                  {photoPreview ? (
+                    <img
+                      src={photoPreview}
+                      alt="Aperçu avatar"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '48px', color: colors.textSecondary }}>
+                      👤
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                  <label
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: colors.primary,
+                      color: colors.backgroundWhite,
+                      borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      boxShadow: `0 2px 8px ${colors.primary}30`,
+                      transition: 'background-color 0.2s',
+                    }}
+                  >
+                    Choisir une photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+
+                  {photoPreview && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPhotoPreview(null);
+                        profileForm.setValue('profilePhoto', '', { shouldValidate: true });
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: 'transparent',
+                        color: colors.error,
+                        border: `1px solid ${colors.error}`,
+                        borderRadius: '20px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Supprimer
+                    </button>
+                  )}
+                </div>
+                <input type="hidden" {...profileForm.register('profilePhoto')} />
+                {profileForm.formState.errors.profilePhoto && (
+                  <p style={{ color: colors.error, fontSize: '12px', marginTop: '8px' }}>
+                    {profileForm.formState.errors.profilePhoto.message}
+                  </p>
+                )}
+              </div>
+
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
                   Description personnelle (max 500 caractères)

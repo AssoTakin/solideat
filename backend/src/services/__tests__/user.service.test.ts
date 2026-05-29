@@ -200,6 +200,72 @@ describe('UserService - Sprint 10 (US-008, US-009)', () => {
         })
       ).rejects.toThrow('Utilisateur non trouvé');
     });
+
+    it('devrait bloquer le changement d\'adresse pour un membre gratuit si modifié il y a moins de 1 an', async () => {
+      const recentChangeUser = {
+        id: 'user-123',
+        subscriptionType: 'FREE',
+        lastAddressChangeDate: new Date(),
+      };
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(recentChangeUser);
+
+      await expect(
+        userService.changeAddress('user-123', {
+          addressStreet: '123 Rue Test',
+          addressZipCode: '75001',
+          addressCity: 'Paris',
+        })
+      ).rejects.toThrow('Les membres gratuits ne peuvent changer d\'adresse qu\'une fois par an');
+    });
+
+    it('devrait autoriser le changement d\'adresse pour un membre gratuit si modifié il y a plus de 1 an', async () => {
+      const oldChangeDate = new Date();
+      oldChangeDate.setFullYear(oldChangeDate.getFullYear() - 2);
+
+      const oldChangeUser = {
+        id: 'user-123',
+        subscriptionType: 'FREE',
+        lastAddressChangeDate: oldChangeDate,
+      };
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(oldChangeUser);
+      (prisma.user.update as jest.Mock).mockResolvedValue({
+        ...oldChangeUser,
+        addressStreet: '123 Rue Test',
+        addressZipCode: '75001',
+        addressCity: 'Paris',
+      });
+
+      const result = await userService.changeAddress('user-123', {
+        addressStreet: '123 Rue Test',
+        addressZipCode: '75001',
+        addressCity: 'Paris',
+      });
+
+      expect(result.addressStreet).toBe('123 Rue Test');
+    });
+
+    it('devrait autoriser le changement d\'adresse pour un membre premium même si modifié récemment', async () => {
+      const premiumUser = {
+        id: 'user-123',
+        subscriptionType: 'PREMIUM_MONTHLY',
+        lastAddressChangeDate: new Date(),
+      };
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(premiumUser);
+      (prisma.user.update as jest.Mock).mockResolvedValue({
+        ...premiumUser,
+        addressStreet: '123 Rue Test',
+        addressZipCode: '75001',
+        addressCity: 'Paris',
+      });
+
+      const result = await userService.changeAddress('user-123', {
+        addressStreet: '123 Rue Test',
+        addressZipCode: '75001',
+        addressCity: 'Paris',
+      });
+
+      expect(result.addressStreet).toBe('123 Rue Test');
+    });
   });
 
   describe('updatePrivacy', () => {

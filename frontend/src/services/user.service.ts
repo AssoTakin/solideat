@@ -5,7 +5,7 @@ import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 export interface UpdateProfileDto {
   description?: string;
   culinaryStyle?: string;
-  profilePhoto?: string;
+  profilePhoto?: string | null;
 }
 
 export interface ChangePasswordDto {
@@ -42,7 +42,7 @@ export const userService = {
       const user = mockUsers[0];
       if (data.description !== undefined) user.description = data.description;
       if (data.culinaryStyle !== undefined) user.culinaryStyle = data.culinaryStyle;
-      if (data.profilePhoto !== undefined) user.profilePhoto = data.profilePhoto;
+      if (data.profilePhoto !== undefined) user.profilePhoto = data.profilePhoto as any;
       return {
         success: true,
         data: user,

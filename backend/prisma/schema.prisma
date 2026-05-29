@@ -32,6 +32,7 @@ model User {
   addressCity       String
   latitude          Float
   longitude         Float
+  lastAddressChangeDate DateTime?
   
   // Abonnement
   subscriptionType  SubscriptionType @default(FREE)

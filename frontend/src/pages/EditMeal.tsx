@@ -301,15 +301,31 @@ export default function EditMeal() {
         priceValue = 5;
       }
 
+      // Construire les dates complètes avec heures pour validation backend
+      const serviceDate = new Date(values.serviceDate);
+
+      const [startHour, startMinute] = values.pickupTimeStart.split(':');
+      const pickupTimeStart = new Date(serviceDate);
+      pickupTimeStart.setHours(parseInt(startHour), parseInt(startMinute), 0, 0);
+
+      let pickupTimeEnd: Date;
+      if (values.pickupTimeType === 'fixed' || !values.pickupTimeEnd) {
+        pickupTimeEnd = new Date(pickupTimeStart);
+      } else {
+        const [endHour, endMinute] = values.pickupTimeEnd.split(':');
+        pickupTimeEnd = new Date(serviceDate);
+        pickupTimeEnd.setHours(parseInt(endHour), parseInt(endMinute), 0, 0);
+      }
+
       // Préparation de l'objet de modification
       const updateData: any = {
         name: values.name,
         photo: values.photo,
         description: values.description,
         cuisine: values.cuisine,
-        serviceDate: values.serviceDate,
-        pickupTimeStart: values.pickupTimeStart,
-        pickupTimeEnd: values.pickupTimeType === 'range' ? values.pickupTimeEnd : values.pickupTimeStart,
+        serviceDate: serviceDate.toISOString(),
+        pickupTimeStart: pickupTimeStart.toISOString(),
+        pickupTimeEnd: pickupTimeEnd.toISOString(),
         pickupAddress: values.pickupAddress,
         pickupLatitude: values.pickupLatitude,
         pickupLongitude: values.pickupLongitude,

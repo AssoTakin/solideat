@@ -66,6 +66,7 @@ export class UserService {
         incognitoMode: true,
         blurAddress: true,
         hideActivityHistory: true,
+        lastAddressChangeDate: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -116,7 +117,7 @@ export class UserService {
   ): Promise<any> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { subscriptionType: true, updatedAt: true },
+      select: { subscriptionType: true, lastAddressChangeDate: true },
     });
 
     if (!user) {
@@ -125,15 +126,13 @@ export class UserService {
 
     // Vérifier le quota de changement d'adresse
     // Gratuit : 1/an, Premium : illimité
-    if (user.subscriptionType === 'FREE') {
+    if (user.subscriptionType === 'FREE' && user.lastAddressChangeDate) {
       const oneYearAgo = new Date();
       oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-      // Vérifier si l'adresse a été modifiée dans la dernière année
-      // On considère que si updatedAt est récent (< 1 an), l'adresse a peut-être été changée
-      // Pour une vraie implémentation, il faudrait un champ lastAddressChangeDate
-      // Pour l'instant, on vérifie simplement si c'est un membre gratuit
-      // TODO: Ajouter un champ lastAddressChangeDate dans le schéma Prisma
+      if (user.lastAddressChangeDate > oneYearAgo) {
+        throw new Error('Les membres gratuits ne peuvent changer d\'adresse qu\'une fois par an. Passez à la formule Premium pour un nombre illimité de changements.');
+      }
     }
 
     // Géocoder la nouvelle adresse
@@ -150,6 +149,7 @@ export class UserService {
         addressCity: data.addressCity,
         latitude: geocodeResult.latitude,
         longitude: geocodeResult.longitude,
+        lastAddressChangeDate: new Date(),
       },
       select: {
         id: true,
@@ -180,6 +180,7 @@ export class UserService {
         incognitoMode: true,
         blurAddress: true,
         hideActivityHistory: true,
+        lastAddressChangeDate: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -262,6 +263,7 @@ export class UserService {
         incognitoMode: true,
         blurAddress: true,
         hideActivityHistory: true,
+        lastAddressChangeDate: true,
         createdAt: true,
         updatedAt: true,
       },
