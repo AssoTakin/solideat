@@ -1,5 +1,5 @@
 // Service Worker pour les notifications push (US-038)
-const CACHE_NAME = 'solideat-v1';
+const CACHE_NAME = 'solideat-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -41,10 +41,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Utiliser une stratégie Network-First pour index.html et les ressources locales
+  // afin de s'assurer que les mises à jour de code ne soient pas bloquées dans le cache.
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((response) => {
+        // Mettre à jour le cache uniquement si la réponse est valide
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Hors ligne : servir depuis le cache
+        return caches.match(event.request);
+      })
   );
 });
 
