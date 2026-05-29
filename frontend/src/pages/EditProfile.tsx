@@ -139,7 +139,15 @@ export default function EditProfile() {
         setError(response.error || 'Erreur lors de la mise à jour');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de la mise à jour');
+      console.error('Erreur lors de la mise à jour du profil :', err);
+      if (err.response?.data) {
+        console.error('Détails de l\'erreur retournée par le serveur :', err.response.data);
+      }
+      setError(
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Erreur lors de la mise à jour'
+      );
     }
   };
 
