@@ -85,7 +85,20 @@ export const subscriptionService = {
         data: mockCurrentSubscription,
       };
     }
-    const response = await api.post('/subscriptions', data);
+
+    // Traduire le planId du frontend en planType attendu par le validateur Zod du backend
+    const planTypeMap: { [key: string]: string } = {
+      'weekly': 'PREMIUM_WEEKLY',
+      'monthly': 'PREMIUM_MONTHLY',
+      'yearly': 'PREMIUM_YEARLY'
+    };
+
+    const backendPayload = {
+      planType: planTypeMap[data.planId] || data.planId,
+      paymentMethodId: data.paymentMethodId || 'pm_card_visa' // Token de test de carte Visa par défaut pour Stripe en mode test
+    };
+
+    const response = await api.post('/subscriptions', backendPayload);
     return response.data;
   },
 
