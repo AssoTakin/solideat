@@ -170,9 +170,29 @@ export default function EditMeal() {
       if (mealResponse.success && mealResponse.data) {
         const mealData = mealResponse.data;
         
-        // Vérifier les permissions
-        if (mealData.cook.id !== loggedInUserId) {
-          setError('Vous n\'êtes pas autorisé à modifier ce repas.');
+        // Diagnostic logs pour identifier les écarts d'identifiants
+        console.log('[EditMeal] loadData Diagnostics:', {
+          mealId: id,
+          USE_MOCK_DATA,
+          currentUserIdState: currentUserId,
+          localStorageUserId: localStorage.getItem('userId'),
+          loggedInUserIdFetched: loggedInUserId,
+          mealCookId: mealData.cook?.id,
+          mealCookIdRoot: (mealData as any).cookId,
+        });
+
+        // Vérification robuste des permissions de modification
+        const isAuthorized = 
+          (mealData.cook && mealData.cook.id === loggedInUserId) ||
+          ((mealData as any).cookId && (mealData as any).cookId === loggedInUserId) ||
+          (mealData.cook && mealData.cook.id === currentUserId) ||
+          ((mealData as any).cookId && (mealData as any).cookId === currentUserId) ||
+          (mealData.cook && mealData.cook.id === localStorage.getItem('userId')) ||
+          ((mealData as any).cookId && (mealData as any).cookId === localStorage.getItem('userId'));
+
+        if (!isAuthorized) {
+          const cookIdStr = mealData.cook?.id || (mealData as any).cookId || 'indéfini';
+          setError(`Vous n'êtes pas autorisé à modifier ce repas. (Cuisinier: ${cookIdStr}, Connecté: ${loggedInUserId || currentUserId || 'indéfini'})`);
           setLoading(false);
           return;
         }
