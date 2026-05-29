@@ -32,6 +32,15 @@ self.addEventListener('activate', (event) => {
 
 // Interception des requêtes réseau
 self.addEventListener('fetch', (event) => {
+  // Ignorer les requêtes non-GET, les requêtes d'API, ou hors-domaine (ex: extensions, CDN)
+  if (
+    event.request.method !== 'GET' ||
+    event.request.url.includes('/api/') ||
+    !event.request.url.startsWith(self.location.origin)
+  ) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);

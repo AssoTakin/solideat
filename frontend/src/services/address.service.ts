@@ -46,7 +46,6 @@ export const addressService = {
     }
 
     try {
-      // 2. Fallback universel international : OpenStreetMap Nominatim API
       const response = await axios.get('https://nominatim.openstreetmap.org/search', {
         params: {
           q: trimmedQuery,
@@ -54,9 +53,6 @@ export const addressService = {
           addressdetails: 1,
           limit: 5,
           'accept-language': 'fr',
-        },
-        headers: {
-          'User-Agent': 'SolidEat-App-v1.0.0', // Obligatoire pour la politique d'usage de Nominatim
         },
         timeout: 3000,
       });

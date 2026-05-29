@@ -134,6 +134,10 @@ export class SubscriptionService {
       throw new Error('Utilisateur non trouvé');
     }
 
+    if (!paymentMethodId) {
+      throw new Error('Payment method ID requis');
+    }
+
     let stripeSubscriptionId = '';
     let customerId = '';
     const now = new Date();

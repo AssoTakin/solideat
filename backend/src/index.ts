@@ -94,9 +94,10 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Unhandled error in Express handler:', err);
   res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
+    message: err.message || 'Something went wrong',
   });
 });
 
