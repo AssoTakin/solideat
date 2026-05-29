@@ -444,7 +444,26 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               backgroundColor: isActive('/') ? `${colors.primary}10` : 'transparent',
             }}
           >
-            <span style={{ fontSize: '24px' }}>🏠</span>
+            <img
+              src="/logo.png"
+              alt="Accueil"
+              style={{
+                height: '24px',
+                width: 'auto',
+                filter: isActive('/') ? 'none' : 'grayscale(100%) opacity(70%)',
+                transition: 'filter 0.2s',
+              }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                const parent = (e.target as HTMLImageElement).parentElement;
+                if (parent) {
+                  const span = document.createElement('span');
+                  span.style.fontSize = '24px';
+                  span.textContent = '🏠';
+                  parent.insertBefore(span, parent.firstChild);
+                }
+              }}
+            />
             <span style={{ fontSize: '10px', fontWeight: isActive('/') ? 'bold' : 'normal' }}>Accueil</span>
           </Link>
           <Link

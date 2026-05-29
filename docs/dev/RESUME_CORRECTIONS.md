@@ -181,5 +181,16 @@ La cause était la taille excessive de l'image Base64 non compressée qui dépas
 
 ---
 
+### 5. ✅ Affichage du logo de l'application dans la navigation mobile
+
+**Problème** : La barre de navigation mobile affichait l'icône emoji générique `🏠` (Accueil), dégradant l'aspect professionnel/premium de l'application.
+
+**Solution** : Remplacement de l'icône `🏠` par le fichier de logo officiel `/logo.png`. Gestion de style dynamique avec passage en niveaux de gris/opacité réduite pour l'état inactif, et allumage en couleurs réelles lors de l'état actif, avec une transition CSS fluide. Ajout d'une gestion de repli (Fallback) réinjectant l'icône `🏠` si le fichier image ne peut pas être chargé.
+
+**Fichier modifié** :
+- `frontend/src/components/Navigation.tsx`
+
+---
+
 **Document créé par** : DEV  
 **Dernière mise à jour** : 29 mai 2026
