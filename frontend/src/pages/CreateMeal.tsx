@@ -432,7 +432,8 @@ export default function CreateMeal() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (err: any) {
-      const errorMsg = err.response?.data?.error || err.message || 'Erreur lors de la création du repas';
+      const apiError = err.response?.data?.message || err.response?.data?.error;
+      const errorMsg = apiError || err.message || 'Erreur lors de la création du repas';
       setError(errorMsg);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
