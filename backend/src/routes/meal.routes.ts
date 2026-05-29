@@ -13,6 +13,10 @@ router.post('/', authenticate, validate(createMealSchema), mealController.create
 // Le controller gère les deux cas (avec ou sans authentification)
 router.get('/', mealController.getMeals.bind(mealController));
 
+// Repas "Sauvez-les" (accessible sans authentification, mais avec coordonnées si connecté)
+import { saveThemController } from '../controllers/savethem.controller';
+router.get('/save-them', saveThemController.getSaveThemMeals.bind(saveThemController));
+
 // Détails d'un repas (accessible sans authentification)
 router.get('/:id', mealController.getMealById.bind(mealController));
 
@@ -21,9 +25,5 @@ router.put('/:id', authenticate, validate(updateMealSchema), mealController.upda
 
 // Suppression d'un repas (nécessite authentification)
 router.delete('/:id', authenticate, mealController.deleteMeal.bind(mealController));
-
-// Repas "Sauvez-les" (accessible sans authentification, mais avec coordonnées si connecté)
-import { saveThemController } from '../controllers/savethem.controller';
-router.get('/save-them', saveThemController.getSaveThemMeals.bind(saveThemController));
 
 export default router;
