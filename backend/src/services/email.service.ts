@@ -11,10 +11,10 @@ export class EmailService {
     const host = process.env.SMTP_HOST;
     const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
     const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+    const pass = process.env.SMTP_PASS || process.env.RESEND_API_KEY;
 
     // Détecter si on doit utiliser l'API HTTP Resend au lieu du SMTP classique
-    const isResendAPI = pass?.startsWith('re_') || host === 'smtp.resend.com';
+    const isResendAPI = pass?.startsWith('re_') || host === 'smtp.resend.com' || !!process.env.RESEND_API_KEY;
 
     if (host && user && pass && !isResendAPI) {
       this.transporter = nodemailer.createTransport({
@@ -37,9 +37,9 @@ export class EmailService {
    * Envoie un e-mail via l'API HTTP de Resend ou le transporteur SMTP configuré
    */
   private async sendMail(to: string, subject: string, html: string, text: string, silent = true): Promise<void> {
-    const pass = process.env.SMTP_PASS;
+    const pass = process.env.SMTP_PASS || process.env.RESEND_API_KEY;
     const host = process.env.SMTP_HOST;
-    const isResend = pass?.startsWith('re_') || host === 'smtp.resend.com';
+    const isResend = pass?.startsWith('re_') || host === 'smtp.resend.com' || !!process.env.RESEND_API_KEY;
 
     // 1. Envoi via l'API HTTP HTTPS (Port 443) si c'est Resend
     if (isResend && pass) {

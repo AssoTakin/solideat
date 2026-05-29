@@ -220,6 +220,17 @@ La cause était la taille excessive de l'image Base64 non compressée qui dépas
 
 ---
 
+### 8. ✅ Détection et support automatique de la variable RESEND_API_KEY (Backend)
+
+**Problème** : En production, l'utilisateur a configuré la variable standard `RESEND_API_KEY` sur Railway à la place de `SMTP_PASS` pour l'envoi d'e-mails réels avec Resend. Cependant, le code d'origine de `email.service.ts` ne lisait que `SMTP_PASS` pour initialiser l'API Resend, ce qui provoquait l'inactivité silencieuse du service et l'absence de réception des e-mails de confirmation de compte.
+
+**Solution** : Mise à jour de la détection de l'API Resend pour lire en repli `process.env.RESEND_API_KEY` (si `SMTP_PASS` n'est pas fourni), activant automatiquement l'intégration et l'expédition d'e-mails réels via l'API HTTP sécurisée de Resend en production.
+
+**Fichier modifié** :
+- `backend/src/services/email.service.ts`
+
+---
+
 **Document créé par** : DEV  
 **Dernière mise à jour** : 29 mai 2026
 

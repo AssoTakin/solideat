@@ -53,6 +53,9 @@ Ce point projet du 29 mai 2026 marque la finalisation de la **stabilisation comp
 - **Landing Page d'Accueil** : Intégration du logo de manière imposante (**100px** de haut, centré) au-dessus de la phrase d'accroche de la boîte centrale de `Home.tsx` pour les visiteurs non connectés.
 - **Harmonisation UX** : Amélioration de l'espacement vertical (marges à 20px pour l'auth, 24px pour la landing) pour préserver des proportions optimales avec les contenus.
 
+### 3.4 Support automatique de la variable RESEND_API_KEY
+- **Intégration Resend** : Ajout du support automatique et natif de la variable d'environnement `RESEND_API_KEY` dans le backend. Si cette variable est configurée dans Railway, le serveur l'utilise automatiquement à la place de `SMTP_PASS` pour l'envoi d'e-mails réels via l'API HTTP sécurisée de Resend. Cela élimine les blocages de réception d'e-mails de vérification sans forcer l'utilisateur à modifier ses variables d'environnement.
+
 ---
 
 **Document produit par** : Agent SCRUM-MASTER / DEV  
