@@ -12,19 +12,19 @@
 
 | Couche | Commande | Résultat | Détail |
 |--------|----------|----------|--------|
-| **Backend unitaires** | `cd backend && npm test` | **PASS** | 113/113 tests, 14 suites Jest |
+| **Backend unitaires** | `cd backend && npm test` | **PASS** | 116/116 tests, 14 suites Jest |
 | **Backend intégration** | `cd backend && npm run test:integration` | **WARN** | 36/37 tests passés ; 1 échec (subscriptions) |
 | **Frontend build** | `cd frontend && npm run build` | **PASS** | `tsc` + Vite build OK (avertissement chunk > 500 kB) |
-| **Frontend unitaires** | `cd frontend && npm test -- --run` | **BLOCKED** | Dépendance `jsdom` absente |
+| **Frontend unitaires** | `cd frontend && npm test -- --run` | **PASS** | 2/2 tests unitaires Vitest passent avec succès |
 | **E2E Playwright** | `cd frontend && npm run test:e2e` | **BLOCKED** | Config présente ; **0 fichier de test** dans `frontend/tests/e2e/` |
 | **Lint backend** | `cd backend && npm run lint` | **WARN** | 345 problèmes (231 errors, 114 warnings) — surtout Prettier |
 | **Lint frontend** | `cd frontend && npm run lint` | **BLOCKED** | Plugin `eslint-plugin-react` manquant |
 
 ### Synthèse par statut
 
-- **PASS** : tests unitaires backend, build frontend production
-- **WARN** : tests d'intégration (1 régression), lint backend, écarts backlog (18 Partial + 2 In Progress)
-- **BLOCKED** : tests frontend Vitest, E2E Playwright, lint frontend
+- **PASS** : tests unitaires backend et frontend, build frontend de production
+- **WARN** : tests d'intégration (1 régression), lint backend, écarts backlog (16 Partial + 2 In Progress)
+- **BLOCKED** : E2E Playwright, lint frontend
 
 ### Verdict global
 
@@ -40,7 +40,7 @@
 | Sprint | Thème | US couvertes | Tests auto exécutés (lien) | Résultat | Écarts vs critères d'acceptation |
 |--------|-------|--------------|----------------------------|----------|----------------------------------|
 | 1 | Authentification | US-001 à US-007 | `auth.service.test.ts`, `auth.service.sprint10.test.ts`, `auth.test.ts` (intégr.) | **WARN** | US-001/003/004 Partial : vérif téléphone Redis, rate limiting ; unitaires auth OK |
-| 2 | Gestion repas | US-010 à US-014 | `meal.service.test.ts`, `meal-filters.test.ts` (intégr.) | **WARN** | US-010 In Progress ; US-013/014 sans UI ; pas de test E2E création repas |
+| 2 | Gestion repas | US-010 à US-014 | `meal.service.test.ts`, `meal-filters.test.ts` (intégr.), `EditMeal.test.tsx` | **WARN** | US-010 In Progress ; US-014 sans UI ; US-013 complété avec interface frontend ; pas de test E2E |
 | 3 | Réservations | US-015 à US-019 | `reservation.service.test.ts` | **WARN** | US-018/019 Partial : API OK, boutons UI cuisinier absents |
 | 4 | Messagerie | US-020 à US-023 | `message.service.test.ts` | **PASS** | Modération couverte par tests unitaires |
 | 5 | Sauvez-les | US-024, US-025 | Via `meal.service`, `reservation.service` | **PASS** | Pas de suite dédiée ; logique couverte indirectement |
@@ -48,7 +48,7 @@
 | 7 | Cron | US-048 à US-050, US-052, US-053 | Jobs dans code ; `meal.jobs` non testés E2E | **WARN** | US-050/052/053 Partial ; pas de tests cron automatisés |
 | 8 | Notifications | US-037, US-039 | `notification` routes ; pas de suite email dédiée | **WARN** | US-037 Partial (templates SendGrid) |
 | 9 | Abo, géoloc, dashboard, sanctions | US-033 à US-035, US-040 à US-047 | `geolocation`, `dashboard`, `sanctions`, `quotas`, `system-messages`, `meal-filters`, `subscriptions` (intégr.) | **WARN** | 1 test intégr. subscription KO ; US-043 In Progress ; US-034/040 Partial |
-| 10 | Profil | US-006, US-008, US-009 | `user.service.test.ts`, `auth.service.sprint10.test.ts` | **WARN** | US-008 Partial : upload photo Cloudinary absent |
+| 10 | Profil | US-006, US-008, US-009 | `user.service.test.ts`, `auth.service.sprint10.test.ts` | **PASS** | Toutes les US du profil sont complétées (US-008 entièrement implémentée) |
 | 11 | Premium & bonus | US-026, US-027, US-028, US-032 | `environmental`, `bonus-donor`, `badge` service tests | **PASS** | Couverture unitaire bonne |
 | 12 | Push & abonnements | US-036, US-038, US-054 | `subscription.service.test.ts`, `subscriptions.test.ts` (intégr.) | **WARN** | US-038/054 Partial ; POST subscription intégr. **FAIL** |
 | 13 | Finalisation bonus | US-051, US-029 | `bonus-donor.service.test.ts` | **PASS** | US-029/051 Done selon reconciliation |
@@ -121,11 +121,11 @@ cd frontend && npm test -- --run
 
 | Métrique | Valeur |
 |----------|--------|
-| Résultat | **Non exécuté** |
-| Cause | `MISSING DEPENDENCY Cannot find dependency 'jsdom'` |
-| Config | `frontend/vitest.config.ts` → `environment: 'jsdom'` |
-| Fichiers test détectés | **0** (`*.test.*` dans `frontend/src/`) |
-| Code sortie | 1 |
+| Résultat | **PASS** |
+| Tests | **2 passed** / 2 total |
+| Suites | **2 passed** / 2 total |
+| Durée | ~1,7 s |
+| Code sortie | 0 |
 
 ### 3.5 E2E — Playwright
 
@@ -154,7 +154,7 @@ cd frontend && npm run test:e2e
 | ID | Description | Steps to reproduce | Attendu | Réel | Sévérité | Priorité |
 |----|-------------|-------------------|---------|------|----------|----------|
 | BUG-T-001 | Test intégration création abonnement | `cd backend && npm run test:integration` | POST `/api/subscriptions` → 201 | 400 Bad Request | **High** | P1 |
-| BUG-T-002 | Tests frontend Vitest non lançables | `cd frontend && npm test -- --run` | Suite Vitest s'exécute | Erreur dépendance `jsdom` | **Medium** | P2 |
+| BUG-T-002 | Tests frontend Vitest non lançables | **Corrigé** (dépendances et tests unitaires opérationnels) | Suite Vitest s'exécute | — | **Medium** | Corrigé |
 | BUG-T-003 | Aucun test E2E Playwright | `cd frontend && npm run test:e2e` | Scénarios P0 exécutés | No tests found | **High** | P0 |
 | BUG-T-004 | Lint frontend cassé | `cd frontend && npm run lint` | ESLint OK | Plugin react manquant | **Low** | P3 |
 | BUG-T-005 | Doc DEV tests intégration obsolète | Lire `TESTS_INTEGRATION_COMPLETS.md` | Refléte 36/37 ou 37/37 actuel | Affirme 37/37 pass | **Low** | P3 |
@@ -241,7 +241,7 @@ D'après `BACKLOG_RECONCILIATION_2026-05-24.md` (audit code, non re-compté par 
 | Tous tests unitaires backend passent | ✅ |
 | Tous tests intégration backend passent | ❌ (1/37) |
 | Build frontend production | ✅ |
-| Tests unitaires frontend passent | ❌ (bloqué) |
+| Tests unitaires frontend passent | ✅ |
 | Tests E2E P0 passent | ❌ (absents) |
 | Rapport TESTER dans `/docs/tester/` | ✅ (ce document) |
 | Bugs critiques documentés | ✅ |

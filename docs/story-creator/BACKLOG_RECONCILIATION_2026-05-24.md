@@ -18,15 +18,15 @@
 | `docs/dev/AVANCEMENT_GLOBAL.md` | **24/54** | Document obsolète (6 sprints seulement, janvier 2026) | **Non fiable** |
 | **Réconciliation STORY-CREATOR (audit 24/05/2026)** | **34 Done / 18 Partial / 2 In Progress / 0 Not Started** | Critères stricts : backend + frontend (si applicable) + tests domaine | **Chiffre défendable** |
 
-**Conclusion** : le projet a **34 US Done (63 %)**, **20 US avec écarts documentés (37 %)**, **0 US Not Started**. En termes fonctionnels, **~52/54 US ont du code** (Partial ou mieux) ; seules **2 US sont en stabilisation active** (US-010, US-043). Le chiffre **44** correspond approximativement à un comptage « backend livré » ; le chiffre **54** ignore les écarts prod (Stripe Elements, Push VAPID, upload photos, rappels commentaires).
+**Conclusion** : le projet a **36 US Done (67 %)**, **16 US avec écarts documentés (30 %)**, **0 US Not Started**, et **2 US In Progress (3 %)**. En termes fonctionnels, **~52/54 US ont du code** ; seules **2 US sont en stabilisation active** (US-010, US-043).
 
 ### Compteurs backlog
 
 | Statut | Nombre | % |
 |--------|--------|---|
-| **Done** | 34 | 63 % |
-| **Partial** | 18 | 33 % |
-| **In Progress** | 2 | 4 % |
+| **Done** | 36 | 67 % |
+| **Partial** | 16 | 30 % |
+| **In Progress** | 2 | 3 % |
 | **Not Started** | 0 | 0 % |
 | **N/A** | 0 | 0 % |
 | **Total** | **54** | 100 % |
@@ -35,8 +35,8 @@
 
 | Priorité | Done | Partial | In Progress | Total |
 |----------|------|---------|-------------|-------|
-| **P0** | 28 | 14 | 2 | 44 |
-| **P1** | 6 | 4 | 0 | 10 |
+| **P0** | 29 | 13 | 2 | 44 |
+| **P1** | 7 | 3 | 0 | 10 |
 | **P2** | 0 | 0 | 0 | 1 (US-029 Done) |
 
 *Note : US-029 est P2 et Done.*
@@ -54,12 +54,12 @@
 | US-005 | Déconnexion | P0 | Done | 1 | 2 | `POST /auth/logout`, `Navigation.tsx` | Token supprimé côté client |
 | US-006 | Récupération mot de passe | P1 | Done | 10 | 5 | `ForgotPassword.tsx`, `ResetPassword.tsx`, `auth.service.sprint10.test.ts` | Email reset 1h OK |
 | US-007 | Profil public | P0 | Done | 1 | 3 | `GET /users/:id`, `UserProfile.tsx`, `user.service.test.ts` | Badges, stats, compteur repas sauvés premium |
-| US-008 | Modification profil | P0 | Partial | 10 | 5 | `EditProfile.tsx`, `PUT /users/me/*`, `user.service.test.ts` | Pas d'upload photo Cloudinary ; URL manuelle seulement |
+| US-008 | Modification profil | P0 | Done | 10 | 5 | `EditProfile.tsx`, `PUT /users/me/*`, `user.service.test.ts` | Enregistrement de la photo en Base64/DataURL et limitation changement d'adresse FREE/PREMIUM inclus |
 | US-009 | Confidentialité Premium | P1 | Done | 10 | 3 | `PUT /users/me/privacy`, `EditProfile.tsx` (onglet), `user.service.test.ts` | hidePhoneNumber OK |
 | US-010 | Création fiche repas | P0 | In Progress | 2 | 8 | `CreateMeal.tsx`, `POST /meals`, `meal.service.test.ts` | Stabilisation formulaire (commit mai 2026) ; upload photo TODO ; carte Google partielle |
 | US-011 | Liste repas disponibles | P0 | Done | 2 | 5 | `MealList.tsx`, `GET /meals`, `meal-filters.test.ts` | Filtres, pagination, distance OK |
 | US-012 | Détails repas | P0 | Done | 2 | 3 | `MealDetails.tsx`, `GET /meals/:id` | Boutons réserver/contacter OK |
-| US-013 | Modification repas | P1 | Partial | 2 | 5 | `PUT /meals/:id`, `meal.service.updateMeal()` | **Pas de page frontend** d'édition |
+| US-013 | Modification repas | P1 | Done | 2 | 5 | `EditMeal.tsx`, `PUT /meals/:id`, `meal.service.updateMeal()` | Page frontend d'édition complète avec support modification nom et photo |
 | US-014 | Annulation repas | P1 | Partial | 2 | 3 | `DELETE /meals/:id`, `meal.service.ts` | Service frontend `deleteMeal` sans UI |
 | US-015 | Réservation repas | P0 | Done | 3 | 8 | `ReserveMeal.tsx`, `reservation.service.ts`, `reservation.service.test.ts` | Bonus donateur intégré |
 | US-016 | Mes réservations | P0 | Done | 3 | 3 | `MyReservations.tsx`, `GET /reservations` | Filtres et actions annulation OK |
@@ -111,9 +111,7 @@
 | US-001 | Inscription | Partial | Activation sans double vérif email+téléphone |
 | US-003 | Vérification téléphone | Partial | Validation code Redis absente |
 | US-004 | Connexion | Partial | Rate limiting absent ; phoneVerified non exigé |
-| US-008 | Modification profil | Partial | Upload photo Cloudinary |
 | US-010 | Création repas | In Progress | Upload photo ; autocomplétion Maps ; bugs formulaire |
-| US-013 | Modification repas | Partial | UI frontend manquante |
 | US-014 | Annulation repas | Partial | UI frontend manquante |
 | US-018 | Signalement non récupéré | Partial | Bouton cuisinier UI manquant |
 | US-019 | Marquage récupéré | Partial | Bouton cuisinier UI manquant |
@@ -127,7 +125,7 @@
 | US-052 | Quotas hebdo | Partial | Pas de job reset explicite (acceptable si calcul OK) |
 | US-053 | Quotas mensuels | Partial | Idem |
 
-**Total P0 non Done : 18 US** (16 Partial + 2 In Progress)
+**Total P0 non Done : 17 US** (15 Partial + 2 In Progress)
 
 ---
 
@@ -137,7 +135,7 @@
 |----|-------|---|--------|----------------|
 | US-006 | Récupération mot de passe | P1 | Done | — |
 | US-009 | Confidentialité Premium | P1 | Done | — |
-| US-013 | Modification repas | P1 | Partial | Post-MVP si édition rare |
+| US-013 | Modification repas | P1 | Done | — |
 | US-014 | Annulation repas | P1 | Partial | Prioriser si cuisinier bloqué |
 | US-019 | Marquage récupéré | P1 | Partial | **Prioriser** — bloque flux notation |
 | US-026 | Impact environnemental | P1 | Done | — |
@@ -150,7 +148,7 @@
 | US-054 | Renouvellement abo | P1 | Partial | **Critique revenus** — ne pas reporter |
 | US-029 | Transfert bonus | P2 | Done | — |
 
-**Reportables sans impact MVP core** : US-038 (Push), US-013/014 (si workaround admin).
+**Reportables sans impact MVP core** : US-038 (Push), US-014 (si workaround admin).
 
 **Ne pas reporter** : US-054 (Stripe), US-019 (flux servi → avis), US-034 (monétisation).
 

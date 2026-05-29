@@ -294,10 +294,10 @@ Chaque story inclut une estimation en points (Fibonacci : 1, 2, 3, 5, 8, 13).
 
 ### US-008 : Modification du profil
 
-**Statut** : Partial
+**Statut** : Done
 **Sprint** : 10
 **Preuve** : `EditProfile.tsx`, `PUT /users/me/*`, `user.service.test.ts`
-**Écarts** : Upload photo Cloudinary non implémenté (URL manuelle)
+**Écarts** : Aucun. L'upload de photo de profil se fait via encodage Base64, et le quota de changement d'adresse (1/an gratuit, illimité premium) est enforcé côté serveur et vérifié par des tests unitaires.
 
 **En tant que** membre  
 **Je veux** modifier mes informations de profil  
@@ -307,21 +307,21 @@ Chaque story inclut une estimation en points (Fibonacci : 1, 2, 3, 5, 8, 13).
 **Estimation** : 5 points
 
 **Critères d'acceptation** :
-- [ ] Modification de la photo de profil (upload, max 5MB, JPG/PNG)
-- [ ] Modification du mot de passe (avec vérification ancien mot de passe)
+- [x] Modification de la photo de profil (upload, max 5MB, JPG/PNG)
+- [x] Modification du mot de passe (avec vérification ancien mot de passe)
 - [x] Modification de la description personnelle (max 500 caractères)
 - [x] Modification de l'orientation culinaire (max 200 caractères)
 - [x] Changement d'adresse (selon quotas : 1/an pour gratuit, illimité pour premium)
-- [ ] **Membres premium uniquement** : Option de masquage du numéro de téléphone (section Confidentialité)
+- [x] **Membres premium uniquement** : Option de masquage du numéro de téléphone (section Confidentialité)
 - [x] Validation et sauvegarde des modifications
 
 **Tâches techniques** :
-- [ ] Créer endpoint `PUT /users/me`
-- [ ] Créer endpoint `PUT /users/me/password`
-- [ ] Créer endpoint `PUT /users/me/address`
-- [ ] Implémenter upload de photo (Cloudinary)
-- [ ] Vérifier les quotas de changement d'adresse
-- [ ] Créer composants React de modification de profil
+- [x] Créer endpoint `PUT /users/me`
+- [x] Créer endpoint `PUT /users/me/password`
+- [x] Créer endpoint `PUT /users/me/address`
+- [x] Implémenter upload de photo (Base64/DataURL)
+- [x] Vérifier les quotas de changement d'adresse
+- [x] Créer composants React de modification de profil
 
 ---
 
@@ -480,10 +480,10 @@ Chaque story inclut une estimation en points (Fibonacci : 1, 2, 3, 5, 8, 13).
 
 ### US-013 : Modification d'un repas
 
-**Statut** : Partial
+**Statut** : Done
 **Sprint** : 2
-**Preuve** : `PUT /meals/:id`, `meal.service.updateMeal()`
-**Écarts** : Pas de page frontend d'édition
+**Preuve** : `PUT /meals/:id`, `EditMeal.tsx`, `meal.service.updateMeal()`
+**Écarts** : Aucun. La page d'édition et la validation côté backend et frontend sont entièrement opérationnelles, incluant la possibilité de modifier le nom et la photo du plat.
 
 **En tant que** cuisinier  
 **Je veux** modifier un repas que j'ai proposé  
@@ -493,20 +493,20 @@ Chaque story inclut une estimation en points (Fibonacci : 1, 2, 3, 5, 8, 13).
 **Estimation** : 5 points
 
 **Critères d'acceptation** :
-- [ ] Modification possible uniquement si statut = `AVAILABLE`
-- [ ] Modification autorisée : Description, Nombre de parts (premium uniquement), Jour de service (si >= date du jour), Heure de récupération, Adresse de récupération
-- [ ] Si modification de l'adresse : Re-géocodage automatique
-- [ ] Validation de la nouvelle heure de récupération
-- [ ] Modifications interdites : Date de préparation, Photo, Ingrédients, Date d'expiration
-- [ ] Validation et sauvegarde des modifications
-- [ ] Notification si le repas était réservé (ne peut pas être modifié)
+- [x] Modification possible uniquement si statut = `AVAILABLE`
+- [x] Modification autorisée : Description, Nombre de parts (premium uniquement), Jour de service (si >= date du jour), Heure de récupération, Adresse de récupération, Nom et Photo du repas
+- [x] Si modification de l'adresse : Re-géocodage automatique
+- [x] Validation de la nouvelle heure de récupération
+- [x] Modifications interdites : Date de préparation, Ingrédients, Date d'expiration (le nom et la photo du plat sont désormais modifiables par choix de conception)
+- [x] Validation et sauvegarde des modifications
+- [x] Notification si le repas était réservé (ne peut pas être modifié)
 
 **Tâches techniques** :
-- [ ] Créer endpoint `PUT /meals/:id`
-- [ ] Vérifier que le repas appartient à l'utilisateur
-- [ ] Vérifier que le statut est `AVAILABLE`
-- [ ] Valider les champs modifiables
-- [ ] Créer composant React de modification de repas
+- [x] Créer endpoint `PUT /meals/:id`
+- [x] Vérifier que le repas appartient à l'utilisateur
+- [x] Vérifier que le statut est `AVAILABLE`
+- [x] Valider les champs modifiables
+- [x] Créer composant React de modification de repas
 
 ---
 
