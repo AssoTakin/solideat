@@ -192,5 +192,16 @@ La cause était la taille excessive de l'image Base64 non compressée qui dépas
 
 ---
 
+### 6. ✅ Remplacement du favicon Hostinger par le logo officiel
+
+**Problème** : Les navigateurs affichaient le logo Hostinger violet en guise d'icône de site (Favicon) dans la barre d'adresse et l'historique suite à la mise en cache de la page de parking d'origine. Aucun favicon n'était défini dans le projet.
+
+**Solution** : Configuration dans `index.html` pour utiliser `/logo.png` en tant que favicon officiel. Ajout d'une chaîne de versioning (`/logo.png?v=1`) pour forcer les navigateurs des utilisateurs à invalider l'ancien cache Hostinger et charger immédiatement le nouveau favicon.
+
+**Fichier modifié** :
+- `frontend/index.html`
+
+---
+
 **Document créé par** : DEV  
 **Dernière mise à jour** : 29 mai 2026
