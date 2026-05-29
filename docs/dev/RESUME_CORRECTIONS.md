@@ -209,7 +209,7 @@ La cause était la taille excessive de l'image Base64 non compressée qui dépas
 
 **Solution** : 
 1. **Pages d'authentification** : Augmentation de la hauteur du logo à **80px**, aération en passant la marge inférieure du lien de `16px` à `20px` et taille du texte alternatif à **28px**.
-2. **Page d'accueil (non connectés)** : Insertion du logo officiel de façon très visible et imposante avec une hauteur de **100px** et une marge inférieure de `24px` au-dessus du titre principal. Taille du texte alternatif à **32px**.
+2. **Page d'accueil (non connectés)** : Insertion du logo officiel de façon très visible et imposante avec une hauteur de **100px** et une marge inférieure de `24px` au-dessus du titre principal. Taille du texte alternatif à **32px**. De plus, modification de l'accroche (*"Cuisinez moins, diversifiez vos saveurs"*) et de la description pour valoriser le partage et la lutte anti-gaspillage.
 
 **Fichiers modifiés** :
 - `frontend/src/pages/Home.tsx`
