@@ -18,6 +18,7 @@ import Conversation from './pages/Conversation';
 import SaveThem from './pages/SaveThem';
 import CreateReview from './pages/CreateReview';
 import SubscriptionPlans from './pages/SubscriptionPlans';
+import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import CreateMeal from './pages/CreateMeal';
 import EditMeal from './pages/EditMeal';
 import Notifications from './pages/Notifications';
@@ -70,6 +71,7 @@ function App() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/help" element={<Help />} />
         <Route path="/subscriptions/plans" element={<SubscriptionPlans />} />
+        <Route path="/subscriptions/success" element={<SubscriptionSuccess />} />
         <Route path="/health" element={<div>Frontend OK</div>} />
         <Route path="/diagnostic" element={<Diagnostic />} />
       </Routes>

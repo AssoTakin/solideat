@@ -103,6 +103,33 @@ export const subscriptionService = {
   },
 
   /**
+   * Crée une session Stripe Checkout
+   */
+  async createCheckoutSession(planId: string): Promise<{ success: boolean; data?: { url: string }; error?: string }> {
+    if (USE_MOCK_DATA) {
+      return {
+        success: true,
+        data: {
+          url: `/subscriptions/success?session_id=mock_session_${Date.now()}&mockPlan=${planId}`
+        }
+      };
+    }
+
+    const planTypeMap: { [key: string]: string } = {
+      'weekly': 'PREMIUM_WEEKLY',
+      'monthly': 'PREMIUM_MONTHLY',
+      'yearly': 'PREMIUM_YEARLY'
+    };
+
+    const backendPayload = {
+      planType: planTypeMap[planId] || planId
+    };
+
+    const response = await api.post('/subscriptions/checkout-session', backendPayload);
+    return response.data;
+  },
+
+  /**
    * Annule l'abonnement actuel (US-036)
    */
   async cancelSubscription(): Promise<{ success: boolean; message?: string; error?: string }> {

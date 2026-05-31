@@ -44,6 +44,39 @@ export class SubscriptionController {
   }
 
   /**
+   * POST /subscriptions/checkout-session
+   * Crée une session Stripe Checkout
+   */
+  async createCheckoutSession(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { planType } = req.body;
+
+      if (!planType) {
+        res.status(400).json({
+          success: false,
+          error: "Le type d'abonnement (planType) est requis",
+        });
+        return;
+      }
+
+      const session = await subscriptionService.createCheckoutSession(
+        req.user!.id,
+        planType
+      );
+
+      res.status(201).json({
+        success: true,
+        data: session,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || "Erreur lors de la création de la session de paiement",
+      });
+    }
+  }
+
+  /**
    * POST /subscriptions
    * Crée un nouvel abonnement
    */

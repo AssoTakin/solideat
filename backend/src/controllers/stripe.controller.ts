@@ -72,6 +72,18 @@ export class StripeController {
    * Gère la création/mise à jour d'une subscription
    */
   private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
+    // Si l'abonnement a une période d'essai et n'est pas encore programmé pour être annulé
+    if (subscription.trial_end && !subscription.cancel_at) {
+      try {
+        const { stripe } = await import('../services/stripe.service');
+        await stripe.subscriptions.update(subscription.id, {
+          cancel_at: subscription.trial_end,
+        });
+      } catch (stripeError: any) {
+        console.error(`⚠️ Impossible d'annuler automatiquement l'abonnement sur Stripe :`, stripeError.message);
+      }
+    }
+
     const customerId = subscription.customer as string;
 
     // Trouver l'utilisateur par customer ID

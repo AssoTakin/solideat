@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { subscriptionService, SubscriptionPlan } from '../services/subscription.service';
 import { userService } from '../services/user.service';
 import { USE_MOCK_DATA, mockSubscriptionPlans, mockUsers } from '../data/mockData';
@@ -23,7 +22,6 @@ const colors = {
 };
 
 export default function SubscriptionPlans() {
-  const navigate = useNavigate();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
@@ -89,17 +87,18 @@ export default function SubscriptionPlans() {
 
   const handleSubscribe = async (planId: string) => {
     try {
-      // TODO: Intégrer Stripe Elements pour le paiement
-      // Pour l'instant, on simule la souscription
-      const response = await subscriptionService.createSubscription({ planId });
-      if (response.success) {
-        alert('Abonnement créé avec succès !');
-        navigate('/dashboard');
+      setLoading(true);
+      const response = await subscriptionService.createCheckoutSession(planId);
+      if (response.success && response.data?.url) {
+        // Rediriger l'utilisateur vers Stripe Checkout
+        window.location.href = response.data.url;
       } else {
-        alert(response.error || 'Erreur lors de la souscription');
+        alert(response.error || "Erreur lors de l'initialisation du paiement");
+        setLoading(false);
       }
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Erreur lors de la souscription');
+      alert(err.response?.data?.error || "Erreur lors de la souscription");
+      setLoading(false);
     }
   };
 

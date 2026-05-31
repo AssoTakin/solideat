@@ -16,6 +16,13 @@ router.get(
   subscriptionController.getCurrentSubscription.bind(subscriptionController)
 );
 
+// Création d'une session Stripe Checkout (nécessite authentification)
+router.post(
+  '/checkout-session',
+  authenticate,
+  subscriptionController.createCheckoutSession.bind(subscriptionController)
+);
+
 // Création d'abonnement (nécessite authentification)
 router.post(
   '/',

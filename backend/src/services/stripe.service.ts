@@ -90,6 +90,29 @@ export class StripeService {
   }
 
   /**
+   * Crée une session Stripe Checkout pour un abonnement avec offre de lancement
+   */
+  async createCheckoutSession(
+    customerId: string,
+    priceId: string,
+    successUrl: string,
+    cancelUrl: string
+  ): Promise<Stripe.Checkout.Session> {
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      mode: 'subscription',
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      subscription_data: {
+        trial_period_days: 90, // 90 jours (3 mois) d'essai gratuit pour le lancement
+      },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    };
+
+    return await stripe.checkout.sessions.create(sessionParams);
+  }
+
+  /**
    * Récupère le price ID selon le type d'abonnement
    */
   getPriceId(subscriptionType: SubscriptionType): string {

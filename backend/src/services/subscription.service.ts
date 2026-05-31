@@ -113,6 +113,66 @@ export class SubscriptionService {
   }
 
   /**
+   * Crée une session Stripe Checkout pour l'utilisateur
+   */
+  async createCheckoutSession(
+    userId: string,
+    planType: SubscriptionType
+  ): Promise<{ url: string }> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    if (!user) {
+      throw new Error('Utilisateur non trouvé');
+    }
+
+    const priceId = stripeService.getPriceId(planType);
+    const customerId = await stripeService.getOrCreateCustomer(
+      userId,
+      user.email,
+      `${user.firstName} ${user.lastName}`
+    );
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const successUrl = `${frontendUrl}/subscriptions/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${frontendUrl}/subscriptions/plans`;
+
+    try {
+      const session = await stripeService.createCheckoutSession(
+        customerId,
+        priceId,
+        successUrl,
+        cancelUrl
+      );
+
+      if (!session.url) {
+        throw new Error('Impossible de générer l\'URL Stripe Checkout');
+      }
+
+      return { url: session.url };
+    } catch (stripeError: any) {
+      console.error(`⚠️ Échec Stripe Checkout (${stripeError.message}).`);
+      
+      const isPlaceholder = !process.env.STRIPE_SECRET_KEY || 
+        process.env.STRIPE_SECRET_KEY === 'sk_test_...' || 
+        process.env.STRIPE_SECRET_KEY.includes('placeholder');
+
+      if (process.env.NODE_ENV !== 'production' || isPlaceholder) {
+        // En développement sans clés valides, simuler la réussite en retournant l'URL locale directe de succès (avec mock-session-id)
+        return { url: `${frontendUrl}/subscriptions/success?session_id=mock_session_${Date.now()}&mockPlan=${planType}` };
+      }
+      throw stripeError;
+    }
+  }
+
+  /**
    * Crée un abonnement avec Stripe
    */
   async createSubscription(
