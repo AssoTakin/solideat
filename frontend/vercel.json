@@ -5,36 +5,69 @@
   "framework": "vite",
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/",
       "has": [
         {
           "type": "host",
           "value": "solid-eat.fr"
         }
       ],
-      "destination": "https://solid-eat.com/:path*",
+      "destination": "https://solid-eat.com/",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/:path+",
+      "has": [
+        {
+          "type": "host",
+          "value": "solid-eat.fr"
+        }
+      ],
+      "destination": "https://solid-eat.com/:path+",
+      "permanent": true
+    },
+    {
+      "source": "/",
       "has": [
         {
           "type": "host",
           "value": "www.solid-eat.fr"
         }
       ],
-      "destination": "https://solid-eat.com/:path*",
+      "destination": "https://solid-eat.com/",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/:path+",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.solid-eat.fr"
+        }
+      ],
+      "destination": "https://solid-eat.com/:path+",
+      "permanent": true
+    },
+    {
+      "source": "/",
       "has": [
         {
           "type": "host",
           "value": "www.solid-eat.com"
         }
       ],
-      "destination": "https://solid-eat.com/:path*",
+      "destination": "https://solid-eat.com/",
+      "permanent": true
+    },
+    {
+      "source": "/:path+",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.solid-eat.com"
+        }
+      ],
+      "destination": "https://solid-eat.com/:path+",
       "permanent": true
     }
   ],
