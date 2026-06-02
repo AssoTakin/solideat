@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { authService } from '../services/auth.service';
 import { LoginDto } from '../types/auth';
 import { USE_MOCK_DATA } from '../data/mockData';
+import { resetRedirectState } from '../services/api';
 
 // Design System Colors
 const colors = {
@@ -21,6 +22,7 @@ const colors = {
   backgroundLight: '#ECF0F1',
   backgroundWhite: '#FFFFFF',
   premium: '#9B59B6',
+  badge: '#F1C40F',
 };
 
 const loginSchema = z.object({
@@ -38,8 +40,9 @@ export default function Login() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [diagnosticLogs, setDiagnosticLogs] = useState<any[]>([]);
 
-  // Charger les logs de diagnostic au montage
+  // Charger les logs de diagnostic au montage et réinitialiser l'état de redirection
   useEffect(() => {
+    resetRedirectState();
     const logs = JSON.parse(localStorage.getItem('diagnostic_logs') || '[]');
     if (logs.length > 0) {
       setDiagnosticLogs(logs);

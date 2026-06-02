@@ -13,6 +13,15 @@ export function isRedirectingToLogin(): boolean {
   return isRedirecting;
 }
 
+// Fonction pour réinitialiser l'état de redirection (utile lors de la connexion/inscription)
+export function resetRedirectState() {
+  isRedirecting = false;
+  if (redirectTimeout) {
+    clearTimeout(redirectTimeout);
+    redirectTimeout = null;
+  }
+}
+
 export const api = axios.create({
   baseURL: `${API_URL}/api`,
   headers: {
@@ -23,8 +32,15 @@ export const api = axios.create({
 // Intercepteur pour ajouter le token d'authentification
 api.interceptors.request.use(
   (config) => {
-    // Si une redirection est en cours, annuler la requête
-    if (isRedirecting) {
+    const isAuthRequest = config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
+    
+    // Si c'est une requête d'auth, s'assurer que l'état de redirection est réinitialisé
+    if (isAuthRequest) {
+      resetRedirectState();
+    }
+
+    // Si une redirection est en cours, annuler la requête (sauf pour les requêtes d'authentification)
+    if (isRedirecting && !isAuthRequest) {
       const abortController = new AbortController();
       abortController.abort();
       config.signal = abortController.signal;
@@ -125,6 +141,13 @@ api.interceptors.response.use(
         }
       });
     }
+
+    // Si c'est une réponse de connexion/inscription réussie, réinitialiser l'état
+    const isAuthRequest = response.config.url?.includes('/auth/login') || response.config.url?.includes('/auth/register');
+    if (isAuthRequest && response.data?.success) {
+      resetRedirectState();
+    }
+
     return response;
   },
   (error) => {

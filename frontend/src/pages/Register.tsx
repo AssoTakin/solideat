@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { authService } from '../services/auth.service';
 import { RegisterDto } from '../types/auth';
 import { USE_MOCK_DATA } from '../data/mockData';
+import { resetRedirectState } from '../services/api';
 
 // Design System Colors
 const colors = {
@@ -49,6 +50,11 @@ export default function Register() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [phoneCode, setPhoneCode] = useState<string | null>(null);
+
+  // Réinitialiser l'état de redirection au montage
+  useEffect(() => {
+    resetRedirectState();
+  }, []);
 
   const {
     register,

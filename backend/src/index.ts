@@ -15,10 +15,41 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
 
+// Configuration CORS dynamique (supporte les variantes www/non-www et mobiles)
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
+  : ['http://localhost:5173'];
+
+const originsWithVariants = [...allowedOrigins];
+allowedOrigins.forEach((origin) => {
+  if (origin.startsWith('https://') && !origin.includes('www.')) {
+    originsWithVariants.push(origin.replace('https://', 'https://www.'));
+  } else if (origin.startsWith('https://www.')) {
+    originsWithVariants.push(origin.replace('https://www.', 'https://'));
+  } else if (origin.startsWith('http://') && !origin.includes('www.')) {
+    originsWithVariants.push(origin.replace('http://', 'http://www.'));
+  } else if (origin.startsWith('http://www.')) {
+    originsWithVariants.push(origin.replace('http://www.', 'http://'));
+  }
+});
+
+// Ajouter les schémas mobiles Capacitor pour éviter des soucis CORS sur iOS/Android
+originsWithVariants.push('capacitor://localhost');
+originsWithVariants.push('http://localhost'); // Android local webview origin
+
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Permettre les requêtes sans origine (ex: outils de test API, requêtes serveurs)
+    if (!origin) return callback(null, true);
+    
+    if (originsWithVariants.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Non autorisé par CORS: ${origin}`));
+    }
+  },
   credentials: true,
 }));
 // IMPORTANT: Les webhooks Stripe doivent être configurés AVANT express.json()
