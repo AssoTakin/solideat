@@ -246,7 +246,7 @@ export const mockMeals = [
     portions: 1,
     price: null,
     status: 'AVAILABLE',
-    expirationDate: new Date(Date.now() + 52 * 60 * 60 * 1000).toISOString(), // Dans 52h (expire bientôt - Sauvez-les)
+    expirationDate: new Date(Date.now() + 52 * 60 * 60 * 1000).toISOString(), // Dans 52h (expire bientôt - Anti-Gaspi)
   },
   {
     id: '7',
@@ -273,11 +273,11 @@ export const mockMeals = [
     portions: 1,
     price: null,
     status: 'AVAILABLE',
-    expirationDate: new Date(Date.now() + 54 * 60 * 60 * 1000).toISOString(), // Dans 54h (expire bientôt - Sauvez-les)
+    expirationDate: new Date(Date.now() + 54 * 60 * 60 * 1000).toISOString(), // Dans 54h (expire bientôt - Anti-Gaspi)
   },
 ];
 
-// Repas "Sauvez-les" (expirent dans moins de 24h)
+// Repas "Anti-Gaspi" (expirent dans moins de 24h)
 export const mockSaveThemMeals = mockMeals.filter((meal) => {
   const expiration = new Date(meal.expirationDate);
   const now = new Date();
@@ -436,7 +436,7 @@ export const mockNotifications = [
     id: '4',
     type: 'MEAL_EXPIRING',
     title: 'Repas qui expire bientôt',
-    message: 'Votre repas "Tarte aux pommes" expire dans 24h. Pensez à le proposer dans "Sauvez-les" !',
+    message: 'Votre repas "Tarte aux pommes" expire dans 24h. Pensez à le proposer dans "Anti-Gaspi" !',
     read: false,
     createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
     mealId: '6',
@@ -569,7 +569,7 @@ export const mockSubscriptionPlans = [
       'Quotas illimités (réservations et propositions)',
       'Filtres avancés de recherche',
       'Statistiques d\'impact environnemental',
-      'Accès prioritaire à "Sauvez-les"',
+      'Accès prioritaire à "Anti-Gaspi"',
       'Jusqu\'à 4 parts par repas',
       'Changement d\'adresse illimité',
       'Masquer son numéro de téléphone',

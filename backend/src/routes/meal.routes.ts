@@ -14,8 +14,8 @@ router.post('/', authenticate, validate(createMealSchema), mealController.create
 router.get('/', mealController.getMeals.bind(mealController));
 
 // Repas "Sauvez-les" (accessible sans authentification, mais avec coordonnées si connecté)
-import { saveThemController } from '../controllers/savethem.controller';
-router.get('/save-them', saveThemController.getSaveThemMeals.bind(saveThemController));
+import { antiGaspiController } from '../controllers/antigaspi.controller';
+router.get('/anti-gaspi', antiGaspiController.getAntiGaspiMeals.bind(antiGaspiController));
 
 // Détails d'un repas (accessible sans authentification)
 router.get('/:id', mealController.getMealById.bind(mealController));

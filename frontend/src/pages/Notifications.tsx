@@ -6,7 +6,7 @@ import api from '../services/api';
 import { notificationService } from '../services/notification.service';
 import { USE_MOCK_DATA, mockNotifications } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
-import { CheckIcon, XIcon, StarIcon, SOSIcon, ClockIcon, BellIcon } from '../components/Icons';
+import { CheckIcon, XIcon, StarIcon, LeafIcon, ClockIcon, BellIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -102,7 +102,7 @@ export default function Notifications() {
       case 'REVIEW':
         return <StarIcon size={20} color="#F59E0B" fill="#F59E0B" />;
       case 'SAVE_THEM':
-        return <SOSIcon size={20} color={colors.sosAccent} />;
+        return <LeafIcon size={20} color={colors.sosAccent} />;
       case 'MEAL_EXPIRING':
         return <ClockIcon size={20} color={colors.primary} />;
       default:

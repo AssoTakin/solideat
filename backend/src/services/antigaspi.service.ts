@@ -2,12 +2,12 @@ import { MealStatus } from '@prisma/client';
 import prisma from '../config/database';
 import { geolocationService } from './geolocation.service';
 
-export class SaveThemService {
+export class AntiGaspiService {
   /**
-   * Récupère les repas "Sauvez-les"
+   * Récupère les repas "Anti-Gaspi"
    * Repas avec inSaveThem = true et expirationDate - now <= 24h
    */
-  async getSaveThemMeals(filters: {
+  async getAntiGaspiMeals(filters: {
     userLat?: number;
     userLng?: number;
     distance?: number;
@@ -111,10 +111,10 @@ export class SaveThemService {
   }
 
   /**
-   * Ajoute automatiquement un repas dans "Sauvez-les" si expiration dans 24h
+   * Ajoute automatiquement un repas dans "Anti-Gaspi" si expiration dans 24h
    * Appelé lors de l'annulation d'une réservation ou signalement non récupéré
    */
-  async addToSaveThem(mealId: string): Promise<void> {
+  async addToAntiGaspi(mealId: string): Promise<void> {
     const meal = await prisma.meal.findUnique({
       where: { id: mealId },
     });
@@ -140,7 +140,7 @@ export class SaveThemService {
   }
 
   /**
-   * Job cron : Ajoute automatiquement les repas dans "Sauvez-les"
+   * Job cron : Ajoute automatiquement les repas dans "Anti-Gaspi"
    * Vérifie tous les repas avec expirationDate - now <= 24h
    */
   async processExpiringMeals(): Promise<void> {
@@ -158,7 +158,7 @@ export class SaveThemService {
       },
     });
 
-    // Ajouter dans "Sauvez-les"
+    // Ajouter dans "Anti-Gaspi"
     await prisma.meal.updateMany({
       where: {
         id: {
@@ -169,8 +169,7 @@ export class SaveThemService {
         inSaveThem: true,
       },
     });
-
   }
 }
 
-export const saveThemService = new SaveThemService();
+export const antiGaspiService = new AntiGaspiService();

@@ -948,7 +948,7 @@ export default function CreateMeal() {
                 <AlertTriangleIcon size={16} color="#E65100" /> Règle importante
               </p>
               <p style={{ fontSize: '12px', color: '#E65100' }}>
-                Si le repas n'est pas réservé avant l'expiration, il sera automatiquement retiré et ajouté dans la rubrique "Sauvez-les" 24h avant expiration.
+                Si le repas n'est pas réservé avant l'expiration, il sera automatiquement retiré et ajouté dans la rubrique "Anti-Gaspi" 24h avant expiration.
               </p>
             </div>
           </div>

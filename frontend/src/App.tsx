@@ -15,7 +15,7 @@ import MyReservations from './pages/MyReservations';
 import ReserveMeal from './pages/ReserveMeal';
 import Conversations from './pages/Conversations';
 import Conversation from './pages/Conversation';
-import SaveThem from './pages/SaveThem';
+import AntiGaspi from './pages/AntiGaspi';
 import CreateReview from './pages/CreateReview';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
@@ -69,7 +69,7 @@ function App() {
         <Route path="/meals/:id/edit" element={<EditMeal />} />
         <Route path="/meals/:id/reserve" element={<ReserveMeal />} />
         <Route path="/meals/:mealId/review" element={<CreateReview />} />
-        <Route path="/save-them" element={<SaveThem />} />
+        <Route path="/anti-gaspi" element={<AntiGaspi />} />
         <Route path="/reservations" element={<MyReservations />} />
         <Route path="/messages" element={<Conversations />} />
         <Route path="/messages/:mealId" element={<Conversation />} />

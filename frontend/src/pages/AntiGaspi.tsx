@@ -8,7 +8,7 @@ import { USE_MOCK_DATA, mockSaveThemMeals, mockUsers } from '../data/mockData';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import {
-  SOSIcon,
+  LeafIcon,
   ClockIcon,
   StarIcon,
   MapPinIcon,
@@ -19,12 +19,12 @@ import {
 // Design System Colors
 
 
-interface SaveThemMeal extends Meal {
+interface AntiGaspiMeal extends Meal {
   hoursRemaining?: number;
 }
 
-export default function SaveThem() {
-  const [meals, setMeals] = useState<SaveThemMeal[]>([]);
+export default function AntiGaspi() {
+  const [meals, setMeals] = useState<AntiGaspiMeal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -54,7 +54,7 @@ export default function SaveThem() {
         setLoading(false);
         return;
       }
-      const response = await api.get(`/meals/save-them?page=${page}&limit=20`);
+      const response = await api.get(`/meals/anti-gaspi?page=${page}&limit=20`);
       if (response.data.success && response.data.data) {
         setMeals(response.data.data.meals);
         setTotal(response.data.data.total);
@@ -202,7 +202,7 @@ export default function SaveThem() {
             letterSpacing: '0.5px',
           }}
         >
-          <SOSIcon size={24} color={colors.sosAccent} /> SAUVEZ-LES !
+          <LeafIcon size={24} color={colors.sosAccent} /> Anti-Gaspi !
         </h1>
         <p style={{ fontSize: '14px', color: colors.textSecondary, margin: 0 }}>
           Des repas vont expirer bientôt. Aidez à réduire le gaspillage alimentaire !
@@ -423,7 +423,7 @@ export default function SaveThem() {
                               fontWeight: 'bold',
                             }}
                           >
-                            <SOSIcon size={14} color={colors.backgroundWhite} /> Sauver ce repas
+                            <LeafIcon size={14} color={colors.backgroundWhite} /> Sauver ce repas
                           </div>
                         )}
                       </div>

@@ -21,7 +21,7 @@ import {
   MessageCircleIcon,
   EyeIcon,
   CalendarIcon,
-  SOSIcon,
+  LeafIcon,
   PlusIcon,
 } from '../components/Icons';
 
@@ -634,7 +634,7 @@ export default function Dashboard() {
                 <CalendarIcon size={14} color={colors.primary} /> Voir l'historique
               </Link>
               <Link
-                to="/save-them"
+                to="/anti-gaspi"
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -651,7 +651,7 @@ export default function Dashboard() {
                   boxShadow: `0 4px 12px ${colors.sosAccent}40`,
                 }}
               >
-                <SOSIcon size={16} color={colors.backgroundWhite} /> SAUVEZ-LES (FINIT BIENTÔT)
+                <LeafIcon size={16} color={colors.backgroundWhite} /> ANTI-GASPI (FINIT BIENTÔT)
               </Link>
             </div>
           </div>

@@ -25,8 +25,8 @@ export default function Help() {
     },
     {
       id: '3',
-      question: 'Qu\'est-ce que "Sauvez-les" ?',
-      answer: '"Sauvez-les" est une fonctionnalité premium qui vous permet de réserver des repas qui vont expirer dans moins de 24h. Cela aide à réduire le gaspillage alimentaire et vous permet de gagner des badges.',
+      question: 'Qu\'est-ce que "Anti-Gaspi" ?',
+      answer: '"Anti-Gaspi" est une fonctionnalité premium qui vous permet de réserver des repas qui vont expirer dans moins de 24h. Cela aide à réduire le gaspillage alimentaire et vous permet de gagner des badges.',
     },
     {
       id: '4',

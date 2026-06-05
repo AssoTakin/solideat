@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { MealStatus, NotificationType } from '@prisma/client';
 import prisma from '../config/database';
-import { saveThemService } from '../services/savethem.service';
+import { antiGaspiService } from '../services/antigaspi.service';
 import { notificationService } from '../services/notification.service';
 
 /**
@@ -93,13 +93,13 @@ export function setupMealExpirationJob(): void {
 }
 
 /**
- * Job : Ajout automatique dans "Sauvez-les"
+ * Job : Ajout automatique dans "Anti-Gaspi"
  * Exécuté toutes les heures
  */
-export function setupSaveThemJob(): void {
+export function setupAntiGaspiJob(): void {
   cron.schedule('0 * * * *', async () => {
     try {
-      await saveThemService.processExpiringMeals();
+      await antiGaspiService.processExpiringMeals();
     } catch (error) {
       // Erreur silencieuse - le job sera réexécuté à la prochaine heure
     }

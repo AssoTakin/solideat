@@ -1,14 +1,14 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { saveThemService } from '../services/savethem.service';
+import { antiGaspiService } from '../services/antigaspi.service';
 import prisma from '../config/database';
 
-export class SaveThemController {
+export class AntiGaspiController {
   /**
-   * GET /meals/save-them
-   * Liste des repas "Sauvez-les"
+   * GET /meals/anti-gaspi
+   * Liste des repas "Anti-Gaspi"
    */
-  async getSaveThemMeals(req: AuthRequest | any, res: Response): Promise<void> {
+  async getAntiGaspiMeals(req: AuthRequest | any, res: Response): Promise<void> {
     try {
       const filters: any = {
         distance: req.query.distance ? parseFloat(req.query.distance as string) : undefined,
@@ -30,7 +30,7 @@ export class SaveThemController {
         }
       }
 
-      const result = await saveThemService.getSaveThemMeals(filters);
+      const result = await antiGaspiService.getAntiGaspiMeals(filters);
 
       res.json({
         success: true,
@@ -39,10 +39,10 @@ export class SaveThemController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        error: error.message || 'Erreur lors de la récupération des repas "Sauvez-les"',
+        error: error.message || 'Erreur lors de la récupération des repas "Anti-Gaspi"',
       });
     }
   }
 }
 
-export const saveThemController = new SaveThemController();
+export const antiGaspiController = new AntiGaspiController();

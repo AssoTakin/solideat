@@ -317,6 +317,24 @@ export const GlobeIcon: React.FC<IconProps> = ({ size = 20, color = 'currentColo
   </svg>
 );
 
+export const LeafIcon: React.FC<IconProps> = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.58.1 8.2a7 7 0 0 1-8.1 9.8z" />
+    <path d="M3 22c0-3 1-5.8 3-8" />
+  </svg>
+);
+
 export const SOSIcon: React.FC<IconProps> = ({ size = 20, color = 'currentColor', ...props }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"

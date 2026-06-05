@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import webpush from 'web-push';
 import { PrismaClient } from '@prisma/client';
-import { setupMealExpirationJob, setupSaveThemJob, setupReviewReminderJob } from './jobs/meal.jobs';
+import { setupMealExpirationJob, setupAntiGaspiJob, setupReviewReminderJob } from './jobs/meal.jobs';
 import { setupBonusExpirationJob } from './jobs/bonus.jobs';
 import { setupSubscriptionRenewalJob } from './jobs/subscription.jobs';
 import { setupSanctionCheckJob } from './jobs/sanction.jobs';
@@ -166,7 +166,7 @@ if (process.env.NODE_ENV !== 'test' && require.main === module) {
   const server = app.listen(PORT, () => {
     // Démarrer les jobs cron
     setupMealExpirationJob();
-    setupSaveThemJob();
+    setupAntiGaspiJob();
     setupReviewReminderJob();
     setupBonusExpirationJob();
     setupSubscriptionRenewalJob();

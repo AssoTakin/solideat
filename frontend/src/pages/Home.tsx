@@ -13,7 +13,7 @@ import {
   ClockIcon,
   ChefHatIcon,
   AlertTriangleIcon,
-  SOSIcon,
+  LeafIcon,
   StarIcon,
   HeartIcon,
   GlobeIcon,
@@ -150,7 +150,7 @@ export default function Home() {
       return;
     }
     try {
-      const response = await api.get('/meals/save-them?limit=3');
+      const response = await api.get('/meals/anti-gaspi?limit=3');
       if (response.data.success && response.data.data) {
         setSaveThemMeals(response.data.data.meals || []);
       }
@@ -477,7 +477,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* Sauvez-les Section - Conforme au wireframe avec #4ECDC4 (sos-accent) */}
+            {/* Anti-Gaspi Section - Conforme au wireframe avec #4ECDC4 (sos-accent) */}
             {saveThemMeals.length > 0 && (
               <section style={{ marginBottom: '24px' }}>
                 <div
@@ -501,10 +501,10 @@ export default function Home() {
                         letterSpacing: '0.5px',
                       }}
                     >
-                      <SOSIcon size={20} color={colors.sosAccent} /> SAUVEZ-LES ({saveThemMeals.length} repas)
+                      <LeafIcon size={20} color={colors.sosAccent} /> ANTI-GASPI ({saveThemMeals.length} repas)
                     </h2>
                     <Link
-                      to="/save-them"
+                      to="/anti-gaspi"
                       style={{
                         textDecoration: 'none',
                         color: colors.sosAccent,
@@ -963,13 +963,12 @@ export default function Home() {
                       fontWeight: 'bold',
                       border: 'none',
                       cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(146, 67, 46, 0.15)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                     }}
                   >
-                    <SearchIcon size={18} color={colors.backgroundWhite} /> Explorer la carte
+                    <SearchIcon size={18} color={colors.backgroundWhite} /> Découvrir
                   </button>
                   <Link
                     to="/register"
@@ -985,7 +984,7 @@ export default function Home() {
                       boxShadow: 'var(--shadow-sm)',
                     }}
                   >
-                    Créer un compte
+                    Rejoindre
                   </Link>
                 </div>
               </div>
@@ -1002,9 +1001,6 @@ export default function Home() {
                           <p style={{ margin: 0, fontSize: '11px', color: '#4A4542' }}>4.9 (28 avis) • Paris 11e</p>
                         </div>
                     </div>
-                    <span style={{ fontSize: '11px', backgroundColor: '#f0e0cc', color: '#64594a', padding: '4px 8px', borderRadius: '8px', fontWeight: 'bold' }}>
-                      Premium Cook
-                    </span>
                   </div>
                   {/* Photo fictive du repas */}
                   <div style={{ height: '200px', borderRadius: '8px', backgroundColor: '#FAF9F6', backgroundImage: 'url("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', marginBottom: '16px', border: '1px solid #e9e1dc' }}>
@@ -1057,7 +1053,7 @@ export default function Home() {
                   </div>
                   <h3 style={{ fontSize: '17px', fontWeight: 'bold', color: '#1e1b18', margin: 0 }}>Partagez vos Plats</h3>
                   <p style={{ fontSize: '14px', color: '#4A4542', lineHeight: '1.6', margin: 0 }}>
-                    Vous cuisinez en trop grande quantité ? Proposez vos portions restantes à la communauté plutôt que de les laisser perdre.
+                    La cuisine c'est du partage. Régalez-vous et régalez les autres.
                   </p>
                 </div>
 

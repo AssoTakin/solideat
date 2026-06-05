@@ -9,7 +9,7 @@ import {
   PlusIcon, 
   MessageCircleIcon, 
   UserIcon, 
-  SOSIcon, 
+  LeafIcon, 
   LogOutIcon,
   HelpCircleIcon,
   BarChartIcon,
@@ -184,7 +184,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
           </Link>
           <nav style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <Link
-              to="/save-them"
+              to="/anti-gaspi"
               style={{
                 textDecoration: 'none',
                 color: colors.textPrimary,
@@ -194,11 +194,11 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 position: 'relative',
-                backgroundColor: isActive('/save-them') ? `${colors.sosAccent}20` : 'transparent',
+                backgroundColor: isActive('/anti-gaspi') ? `${colors.sosAccent}20` : 'transparent',
               }}
-              title="Sauvez-les"
+              title="Anti-Gaspi"
             >
-              <SOSIcon size={20} color={isActive('/save-them') ? colors.sosAccent : colors.textPrimary} />
+              <LeafIcon size={20} color={isActive('/anti-gaspi') ? colors.sosAccent : colors.textPrimary} />
             </Link>
             <Link
               to="/notifications"
@@ -545,7 +545,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
             <span style={{ fontSize: '10px', fontWeight: isActive('/') ? 'bold' : 'normal' }}>Accueil</span>
           </Link>
           <Link
-            to="/save-them"
+            to="/anti-gaspi"
             style={{
               textDecoration: 'none',
               display: 'flex',
@@ -554,12 +554,12 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               gap: '4px',
               padding: '8px 16px',
               borderRadius: '12px',
-              color: isActive('/save-them') ? colors.sosAccent : colors.textSecondary,
-              backgroundColor: isActive('/save-them') ? `${colors.sosAccent}10` : 'transparent',
+              color: isActive('/anti-gaspi') ? colors.sosAccent : colors.textSecondary,
+              backgroundColor: isActive('/anti-gaspi') ? `${colors.sosAccent}10` : 'transparent',
             }}
           >
-            <SOSIcon size={20} color={isActive('/save-them') ? colors.sosAccent : colors.textSecondary} />
-            <span style={{ fontSize: '10px', fontWeight: isActive('/save-them') ? 'bold' : 'normal' }}>Sauvez-les</span>
+            <LeafIcon size={20} color={isActive('/anti-gaspi') ? colors.sosAccent : colors.textSecondary} />
+            <span style={{ fontSize: '10px', fontWeight: isActive('/anti-gaspi') ? 'bold' : 'normal' }}>Anti-Gaspi</span>
           </Link>
           <Link
             to={isGuest ? '#' : '/meals/new'}

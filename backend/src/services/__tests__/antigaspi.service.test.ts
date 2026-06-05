@@ -1,4 +1,4 @@
-import { saveThemService } from '../savethem.service';
+import { antiGaspiService } from '../antigaspi.service';
 import prisma from '../../config/database';
 import { MealStatus } from '@prisma/client';
 
@@ -19,12 +19,12 @@ jest.mock('../../config/database', () => ({
   },
 }));
 
-describe('SaveThemService', () => {
+describe('AntiGaspiService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('getSaveThemMeals', () => {
+  describe('getAntiGaspiMeals', () => {
     it('should retrieve expiring meals with calculated remaining hours', async () => {
       const now = new Date();
       const mockMeals = [
@@ -46,7 +46,7 @@ describe('SaveThemService', () => {
       (prisma.meal.findMany as jest.Mock).mockResolvedValue(mockMeals);
       (prisma.meal.count as jest.Mock).mockResolvedValue(1);
 
-      const result = await saveThemService.getSaveThemMeals({});
+      const result = await antiGaspiService.getAntiGaspiMeals({});
 
       expect(result.meals).toHaveLength(1);
       expect(result.meals[0].id).toBe('meal-1');
@@ -75,7 +75,7 @@ describe('SaveThemService', () => {
       (prisma.meal.findMany as jest.Mock).mockResolvedValue(mockMeals);
       (prisma.meal.count as jest.Mock).mockResolvedValue(1);
 
-      const result = await saveThemService.getSaveThemMeals({
+      const result = await antiGaspiService.getAntiGaspiMeals({
         userLat: 48.8566,
         userLng: 2.3522,
       });
@@ -85,11 +85,11 @@ describe('SaveThemService', () => {
     });
   });
 
-  describe('addToSaveThem', () => {
+  describe('addToAntiGaspi', () => {
     it('should throw error if meal is not found', async () => {
       (prisma.meal.findUnique as jest.Mock).mockResolvedValue(null);
 
-      await expect(saveThemService.addToSaveThem('invalid-id')).rejects.toThrow(
+      await expect(antiGaspiService.addToAntiGaspi('invalid-id')).rejects.toThrow(
         'Repas non trouvé'
       );
     });
@@ -104,7 +104,7 @@ describe('SaveThemService', () => {
       (prisma.meal.findUnique as jest.Mock).mockResolvedValue(mockMeal);
       (prisma.meal.update as jest.Mock).mockResolvedValue({ ...mockMeal, inSaveThem: true });
 
-      await saveThemService.addToSaveThem('meal-1');
+      await antiGaspiService.addToAntiGaspi('meal-1');
 
       expect(prisma.meal.update).toHaveBeenCalledWith({
         where: { id: 'meal-1' },
@@ -124,7 +124,7 @@ describe('SaveThemService', () => {
 
       (prisma.meal.findUnique as jest.Mock).mockResolvedValue(mockMeal);
 
-      await saveThemService.addToSaveThem('meal-1');
+      await antiGaspiService.addToAntiGaspi('meal-1');
 
       expect(prisma.meal.update).not.toHaveBeenCalled();
     });
@@ -136,7 +136,7 @@ describe('SaveThemService', () => {
       (prisma.meal.findMany as jest.Mock).mockResolvedValue(expiringMeals);
       (prisma.meal.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
 
-      await saveThemService.processExpiringMeals();
+      await antiGaspiService.processExpiringMeals();
 
       expect(prisma.meal.updateMany).toHaveBeenCalledWith({
         where: {

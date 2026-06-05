@@ -421,7 +421,7 @@ export default function MealDetails() {
                   textTransform: 'uppercase',
                 }}
               >
-                Sauvez-les
+                Anti-Gaspi
               </span>
             )}
             <span style={{ fontSize: '14px', color: colors.textSecondary }}>
