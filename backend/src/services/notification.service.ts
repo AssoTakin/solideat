@@ -1,6 +1,7 @@
 import { NotificationType } from '@prisma/client';
 import prisma from '../config/database';
 import { emailService } from './email.service';
+import { pushNotificationService } from './push-notification.service';
 
 export class NotificationService {
   /**
@@ -25,7 +26,7 @@ export class NotificationService {
   }
 
   /**
-   * Envoie une notification (email + notification en base)
+   * Envoie une notification (email + notification en base + push)
    */
   async sendNotification(
     userId: string,
@@ -46,12 +47,21 @@ export class NotificationService {
       });
 
       if (user) {
-        // TODO: Utiliser un template d'email approprié selon le type
-        emailService.sendVerificationEmail(user.email, `Notification: ${title}`).catch(() => {
+        emailService.sendNotificationEmail(user.email, title, message, link).catch(() => {
           // Erreur silencieuse
         });
       }
     }
+
+    // Envoyer la notification push
+    pushNotificationService.sendPushNotification(userId, {
+      title,
+      message,
+      link,
+      data: { type },
+    }).catch(() => {
+      // Erreur silencieuse
+    });
   }
 }
 

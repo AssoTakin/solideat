@@ -69,6 +69,7 @@ model User {
   bonusDonors       BonusDonor[]
   sanctions         Sanction[]
   notifications     Notification[]
+  pushSubscriptions PushSubscription[]
   
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -305,4 +306,17 @@ enum NotificationType {
   SUBSCRIPTION_RENEWAL
   MESSAGE_RECEIVED
   SYSTEM_MESSAGE
+}
+
+// Modèle pour stocker les abonnements aux notifications push (US-038)
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

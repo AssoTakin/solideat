@@ -1,9 +1,9 @@
-import { MealStatus } from '@prisma/client';
+import { MealStatus, NotificationType } from '@prisma/client';
 import prisma from '../config/database';
 import { quotaService } from './quota.service';
-import { emailService } from './email.service';
 import { sanctionService } from './sanction.service';
 import { bonusDonorService } from './bonus-donor.service';
+import { notificationService } from './notification.service';
 
 export class ReservationService {
   /**
@@ -113,9 +113,13 @@ export class ReservationService {
     });
 
     // Envoyer les notifications (en arrière-plan)
-    emailService.sendVerificationEmail(
-      meal.cook.email,
-      `Nouvelle réservation pour ${meal.name}`
+    notificationService.sendNotification(
+      meal.cookId,
+      NotificationType.MEAL_RESERVED,
+      'Nouvelle réservation',
+      `Un utilisateur a réservé votre repas "${meal.name}"`,
+      `/reservations`,
+      true
     ).catch(() => {
       // Erreur silencieuse
     });
@@ -239,9 +243,13 @@ export class ReservationService {
     }
 
     // Envoyer notification au cuisinier
-    emailService.sendVerificationEmail(
-      reservation.meal.cook.email,
-      `Réservation annulée pour ${reservation.meal.name}`
+    notificationService.sendNotification(
+      reservation.meal.cookId,
+      NotificationType.MEAL_CANCELLED,
+      'Réservation annulée',
+      `La réservation pour votre repas "${reservation.meal.name}" a été annulée.`,
+      `/meals/${reservation.mealId}`,
+      true
     ).catch(() => {
       // Erreur silencieuse
     });
@@ -395,9 +403,13 @@ export class ReservationService {
     }
 
     // Envoyer notification
-    emailService.sendVerificationEmail(
-      reservation.user.email,
-      `Repas non récupéré : ${reservation.meal.name}`
+    notificationService.sendNotification(
+      reservation.userId,
+      NotificationType.SANCTION_APPLIED,
+      'Repas non récupéré',
+      `Le cuisinier a signalé que vous n'avez pas récupéré le repas "${reservation.meal.name}".`,
+      `/reservations`,
+      true
     ).catch(() => {
       // Erreur silencieuse
     });

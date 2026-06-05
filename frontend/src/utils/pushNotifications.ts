@@ -1,3 +1,5 @@
+import api from '../services/api';
+
 // Utilitaires pour les notifications push (US-038)
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -7,7 +9,6 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       return registration;
     } catch (error) {
       // Erreur silencieuse - le service worker n'est pas obligatoire
-      // Ne pas logger en console pour éviter le bruit dans les erreurs
       return null;
     }
   }
@@ -35,7 +36,21 @@ export async function subscribeToPushNotifications(
   registration: ServiceWorkerRegistration
 ): Promise<PushSubscription | null> {
   try {
-    const vapidKey = process.env.VITE_VAPID_PUBLIC_KEY;
+    // Lecture de la clé publique depuis les variables d'environnement Vite
+    let vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    
+    // Si la clé n'est pas présente côté client, on la récupère du backend
+    if (!vapidKey) {
+      try {
+        const response = await api.get('/push/key');
+        if (response.data?.success && response.data?.data?.publicKey) {
+          vapidKey = response.data.data.publicKey;
+        }
+      } catch (err) {
+        // Échec silencieux
+      }
+    }
+
     if (!vapidKey) {
       return null;
     }
@@ -45,9 +60,8 @@ export async function subscribeToPushNotifications(
       applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
     });
 
-    // Envoyer la subscription au backend
-    // TODO: Appeler l'API pour enregistrer la subscription
-    // await api.post('/push/subscribe', subscription);
+    // Envoyer la subscription au backend pour l'enregistrer en base
+    await api.post('/push/subscribe', subscription);
 
     return subscription;
   } catch (error) {

@@ -1,7 +1,8 @@
 import cron from 'node-cron';
-import { MealStatus } from '@prisma/client';
+import { MealStatus, NotificationType } from '@prisma/client';
 import prisma from '../config/database';
 import { saveThemService } from '../services/savethem.service';
+import { notificationService } from '../services/notification.service';
 
 /**
  * Job : Expiration automatique des repas
@@ -60,11 +61,29 @@ export function setupMealExpirationJob(): void {
         });
 
         // Envoyer notification au cuisinier
-        // TODO: Implémenter NotificationService
+        await notificationService.sendNotification(
+          meal.cookId,
+          NotificationType.MEAL_EXPIRED,
+          'Repas expiré',
+          `Votre repas "${meal.name}" a expiré sans être récupéré.`,
+          `/meals/${meal.id}`,
+          true
+        ).catch(() => {
+          // Erreur silencieuse
+        });
 
         // Si le repas était réservé, notifier le membre qui avait réservé
         if (meal.reservation) {
-          // TODO: Envoyer notification
+          await notificationService.sendNotification(
+            meal.reservation.userId,
+            NotificationType.MEAL_CANCELLED,
+            'Réservation annulée - Repas expiré',
+            `Le repas "${meal.name}" que vous aviez réservé a expiré et la réservation a été annulée.`,
+            `/reservations`,
+            true
+          ).catch(() => {
+            // Erreur silencieuse
+          });
         }
       }
     } catch (error) {
@@ -120,8 +139,30 @@ export function setupReviewReminderJob(): void {
 
       for (const meal of meals4h) {
         if (meal.reservation && meal.reviews.length === 0) {
-          // Vérifier qu'un rappel n'a pas déjà été envoyé
-          // TODO: Implémenter système de tracking des rappels
+          const userId = meal.reservation.userId;
+          const link = `/meals/${meal.id}/review`;
+
+          // Vérifier si un rappel a déjà été envoyé pour ce repas
+          const existingNotification = await prisma.notification.findFirst({
+            where: {
+              userId,
+              type: NotificationType.REVIEW_REMINDER,
+              link,
+            },
+          });
+
+          if (!existingNotification) {
+            await notificationService.sendNotification(
+              userId,
+              NotificationType.REVIEW_REMINDER,
+              'Avis obligatoire',
+              `N'oubliez pas de laisser un avis sur le repas "${meal.name}" pour maintenir votre compte actif.`,
+              link,
+              true
+            ).catch(() => {
+              // Erreur silencieuse
+            });
+          }
         }
       }
 

@@ -30,6 +30,8 @@ const colors = {
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [quotaStatus, setQuotaStatus] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -49,16 +51,27 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated || isGuestMode) {
       loadSaveThemMeals();
       loadAvailableMeals();
     }
-  }, [isAuthenticated, filters]);
+  }, [isAuthenticated, isGuestMode, filters]);
 
   const checkAuth = async () => {
     try {
+      const guest = sessionStorage.getItem('isGuestMode') === 'true';
+      setIsGuestMode(guest);
+
       if (USE_MOCK_DATA) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setIsAuthenticated(false);
+          setLoading(false);
+          return;
+        }
         setIsAuthenticated(true);
+        setIsGuestMode(false);
+        sessionStorage.removeItem('isGuestMode');
         setCurrentUser(mockUsers[0]);
         setQuotaStatus({
           weeklyReservations: { used: 1, limit: 3 },
@@ -80,6 +93,8 @@ export default function Home() {
 
           if (userResponse && userResponse.data?.success) {
             setIsAuthenticated(true);
+            setIsGuestMode(false);
+            sessionStorage.removeItem('isGuestMode');
             const userData = userResponse.data.data;
             setCurrentUser(userData);
             if (userData?.id) {
@@ -187,10 +202,10 @@ export default function Home() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: isAuthenticated ? getPagePaddingBottom(true, false) : '0', // Espace pour la bottom bar si authentifié
+        paddingBottom: (isAuthenticated || isGuestMode) ? getPagePaddingBottom(true, false) : '0', // Espace pour la bottom bar si authentifié ou invité
       }}
     >
-      {isAuthenticated ? (
+      {(isAuthenticated || isGuestMode) ? (
         <Navigation showBottomBar={true} />
       ) : (
         <header
@@ -259,7 +274,7 @@ export default function Home() {
 
       {/* Main Content */}
       <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto', ...getMainContentStyle(false) }}>
-        {isAuthenticated ? (
+        {(isAuthenticated || isGuestMode) ? (
           <>
             {/* Search Bar - Conforme au wireframe */}
             <div style={{ marginBottom: '16px', padding: '0 4px' }}>
@@ -618,7 +633,13 @@ export default function Home() {
                   REPAS DISPONIBLES ({availableMeals.length})
                 </h2>
                 <Link
-                  to="/meals/new"
+                  to={isGuestMode ? '#' : '/meals/new'}
+                  onClick={(e) => {
+                    if (isGuestMode) {
+                      e.preventDefault();
+                      setShowAuthModal(true);
+                    }
+                  }}
                   style={{
                     textDecoration: 'none',
                     color: colors.primary,
@@ -784,6 +805,13 @@ export default function Home() {
                           ) : (
                             // Bouton "Réserver" pour les repas des autres
                             <button
+                              onClick={(e) => {
+                                if (isGuestMode) {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setShowAuthModal(true);
+                                }
+                              }}
                               style={{
                                 backgroundColor: colors.primary,
                                 color: colors.backgroundWhite,
@@ -813,7 +841,13 @@ export default function Home() {
 
               <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
                 <Link
-                  to="/meals/new"
+                  to={isGuestMode ? '#' : '/meals/new'}
+                  onClick={(e) => {
+                    if (isGuestMode) {
+                      e.preventDefault();
+                      setShowAuthModal(true);
+                    }
+                  }}
                   style={{
                     textDecoration: 'none',
                     backgroundColor: colors.primary,
@@ -827,7 +861,13 @@ export default function Home() {
                   ➕ Proposer un repas
                 </Link>
                 <Link
-                  to="/meals"
+                  to={isGuestMode ? '#' : '/meals'}
+                  onClick={(e) => {
+                    if (isGuestMode) {
+                      e.preventDefault();
+                      setShowAuthModal(true);
+                    }
+                  }}
                   style={{
                     textDecoration: 'none',
                     color: colors.primary,
@@ -897,20 +937,25 @@ export default function Home() {
               Notre communauté SOLID'EAT vous permet de partager vos savoureux repas avec d'autres chefs amateurs. Ainsi vous cuisinez moins, vous diversifiez vos saveurs et vous aidez à réduire le gaspillage alimentaire.
             </p>
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link
-                to="/register"
+              <button
+                onClick={() => {
+                  sessionStorage.setItem('isGuestMode', 'true');
+                  setIsGuestMode(true);
+                }}
                 style={{
-                  textDecoration: 'none',
                   backgroundColor: colors.primary,
                   color: colors.backgroundWhite,
                   padding: '12px 24px',
                   borderRadius: '8px',
                   fontSize: '16px',
                   fontWeight: 'bold',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
                 }}
               >
                 Commencer maintenant
-              </Link>
+              </button>
               <Link
                 to="/login"
                 style={{
@@ -930,6 +975,93 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* AuthPromptModal pour le mode invité */}
+      {showAuthModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: '16px',
+          }}
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: colors.backgroundWhite,
+              borderRadius: '16px',
+              padding: '32px 24px',
+              maxWidth: '400px',
+              width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>👋</span>
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+              Rejoignez SOLID'EAT !
+            </h3>
+            <p style={{ fontSize: '14px', color: colors.textSecondary, lineHeight: '1.6', marginBottom: '24px' }}>
+              Pour proposer vos repas, échanger avec les autres membres ou réserver un plat, créez un compte gratuit en quelques secondes.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Link
+                to="/register"
+                style={{
+                  textDecoration: 'none',
+                  backgroundColor: colors.primary,
+                  color: colors.backgroundWhite,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  display: 'block',
+                }}
+              >
+                S'inscrire gratuitement
+              </Link>
+              <Link
+                to="/login"
+                style={{
+                  textDecoration: 'none',
+                  backgroundColor: 'transparent',
+                  color: colors.primary,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  border: `2px solid ${colors.primary}`,
+                  display: 'block',
+                }}
+              >
+                Se connecter
+              </Link>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: colors.textSecondary,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  marginTop: '8px',
+                  textDecoration: 'underline',
+                  outline: 'none',
+                }}
+              >
+                Continuer à découvrir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

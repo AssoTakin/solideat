@@ -33,7 +33,15 @@ export default function Conversation() {
 
   useEffect(() => {
     if (mealId) {
-      loadMessages();
+      loadMessages(false);
+
+      if (USE_MOCK_DATA) return;
+
+      const interval = setInterval(() => {
+        loadMessages(true);
+      }, 5000);
+
+      return () => clearInterval(interval);
     }
   }, [mealId]);
 
@@ -45,29 +53,38 @@ export default function Conversation() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const loadMessages = async () => {
+  const loadMessages = async (silent = false) => {
     if (!mealId) return;
 
-    setLoading(true);
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
     try {
       if (USE_MOCK_DATA) {
         // Filtrer les messages pour cette conversation
         const conversationMessages = mockMessages.filter((m) => m.conversationId === '1');
         setMessages(conversationMessages as any[]);
-        setLoading(false);
+        if (!silent) setLoading(false);
         return;
       }
       const response = await messageService.getConversationMessages(mealId);
       if (response.success && response.data) {
-        setMessages(response.data);
+        const newMessages = response.data;
+        // Pour éviter de rafraîchir l'UI si les messages sont les mêmes, on peut comparer les ID ou la longueur
+        setMessages((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(newMessages)) {
+            return prev; // Conserver la référence identique pour éviter des renders inutiles
+          }
+          return newMessages;
+        });
       } else {
-        setError(response.error || 'Erreur lors du chargement');
+        if (!silent) setError(response.error || 'Erreur lors du chargement');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors du chargement');
+      if (!silent) setError(err.response?.data?.error || 'Erreur lors du chargement');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 

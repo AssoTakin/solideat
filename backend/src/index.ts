@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import webpush from 'web-push';
 import { PrismaClient } from '@prisma/client';
 import { setupMealExpirationJob, setupSaveThemJob, setupReviewReminderJob } from './jobs/meal.jobs';
 import { setupBonusExpirationJob } from './jobs/bonus.jobs';
@@ -10,6 +13,30 @@ import { setupSanctionCheckJob } from './jobs/sanction.jobs';
 
 // Charger les variables d'environnement
 dotenv.config();
+
+// Générer les clés VAPID locales si elles n'existent pas
+if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+  console.log("🔑 Génération des clés VAPID locales pour le développement...");
+  const keys = webpush.generateVAPIDKeys();
+  process.env.VAPID_PUBLIC_KEY = keys.publicKey;
+  process.env.VAPID_PRIVATE_KEY = keys.privateKey;
+
+  try {
+    const envPath = path.resolve(__dirname, '../.env');
+    if (fs.existsSync(envPath)) {
+      let envContent = fs.readFileSync(envPath, 'utf-8');
+      envContent = envContent
+        .split('\n')
+        .filter((line) => !line.startsWith('VAPID_PUBLIC_KEY=') && !line.startsWith('VAPID_PRIVATE_KEY='))
+        .join('\n');
+      envContent += `\nVAPID_PUBLIC_KEY=${keys.publicKey}\nVAPID_PRIVATE_KEY=${keys.privateKey}\n`;
+      fs.writeFileSync(envPath, envContent, 'utf-8');
+      console.log("✅ Clés VAPID enregistrées dans .env");
+    }
+  } catch (error: any) {
+    console.warn("⚠️ Échec de l'écriture des clés VAPID dans .env :", error.message);
+  }
+}
 
 const app = express();
 const prisma = new PrismaClient();
@@ -103,6 +130,8 @@ import notificationRoutes from './routes/notification.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import bonusDonorRoutes from './routes/bonus-donor.routes';
 import badgeRoutes from './routes/badge.routes';
+import pushRoutes from './routes/push.routes';
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/meals', mealRoutes);
@@ -113,7 +142,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/bonus-donors', bonusDonorRoutes);
 app.use('/api/badges', badgeRoutes);
-// etc.
+app.use('/api/push', pushRoutes);
 
 // 404 handler
 app.use((req, res) => {

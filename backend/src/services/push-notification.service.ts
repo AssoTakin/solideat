@@ -1,14 +1,16 @@
-// import webpush from 'web-push'; // TODO: Installer web-push: npm install web-push @types/web-push
+import webpush from 'web-push';
 import prisma from '../config/database';
 
 // Configuration Web Push (à configurer avec les clés VAPID)
-// const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';
-// const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
-// const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:contact@solideat.fr';
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
+const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:contact@solideat.fr';
 
-// if (vapidPublicKey && vapidPrivateKey) {
-//   webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
-// }
+if (vapidPublicKey && vapidPrivateKey) {
+  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+} else {
+  console.warn("⚠️ Clés VAPID non configurées. Les notifications push réelles seront inactives.");
+}
 
 export interface PushSubscription {
   endpoint: string;
@@ -20,27 +22,60 @@ export interface PushSubscription {
 
 export class PushNotificationService {
   /**
+   * Retourne la clé publique VAPID configurée
+   */
+  getPublicKey(): string {
+    return process.env.VAPID_PUBLIC_KEY || '';
+  }
+
+  /**
    * Enregistre une subscription push pour un utilisateur (US-038)
    */
-  async registerSubscription(_userId: string, _subscription: PushSubscription): Promise<void> {
-    // Stocker la subscription dans la base de données
-    // Pour l'instant, on stocke dans un champ JSON de l'utilisateur
-    // Dans une vraie implémentation, on créerait une table PushSubscription
-    // await prisma.user.update({
-    //   where: { id: userId },
-    //   data: {
-    //     // TODO: Créer un champ pushSubscriptions dans le schéma Prisma
-    //     // pushSubscriptions: {
-    //     //   push: [subscription],
-    //     // },
-    //   },
-    // });
+  async registerSubscription(userId: string, subscription: PushSubscription): Promise<void> {
+    // Vérifier si l'abonnement existe déjà
+    const existing = await prisma.pushSubscription.findUnique({
+      where: { endpoint: subscription.endpoint },
+    });
+
+    if (existing) {
+      if (existing.userId !== userId) {
+        // Mettre à jour l'utilisateur si l'abonnement appartenait à quelqu'un d'autre
+        await prisma.pushSubscription.update({
+          where: { id: existing.id },
+          data: { userId },
+        });
+      }
+      return;
+    }
+
+    // Créer l'abonnement
+    await prisma.pushSubscription.create({
+      data: {
+        userId,
+        endpoint: subscription.endpoint,
+        p256dh: subscription.keys.p256dh,
+        auth: subscription.keys.auth,
+      },
+    });
+  }
+
+  /**
+   * Désenregistre une subscription push
+   */
+  async unregisterSubscription(endpoint: string): Promise<void> {
+    try {
+      await prisma.pushSubscription.delete({
+        where: { endpoint },
+      });
+    } catch (error) {
+      // Ignorer si déjà supprimé
+    }
   }
 
   /**
    * Envoie une notification push à un utilisateur
    */
-  async sendPushNotification(userId: string, _payload: {
+  async sendPushNotification(userId: string, payload: {
     title: string;
     message: string;
     icon?: string;
@@ -48,52 +83,54 @@ export class PushNotificationService {
     data?: any;
     link?: string;
   }): Promise<void> {
-    // Récupérer les subscriptions de l'utilisateur
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      // TODO: Récupérer les pushSubscriptions
-    });
-
-    if (!user) {
+    // Si les clés ne sont pas configurées, on ne fait rien
+    if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
       return;
     }
 
-    // TODO: Récupérer les subscriptions depuis la base de données
-    // Pour l'instant, on retourne sans rien faire
-    // const subscriptions = user.pushSubscriptions || [];
+    // Récupérer les souscriptions de l'utilisateur
+    const subscriptions = await prisma.pushSubscription.findMany({
+      where: { userId },
+    });
+
+    if (subscriptions.length === 0) {
+      return;
+    }
 
     // Préparer le payload
-    // const notificationPayload = JSON.stringify({
-    //   title: payload.title,
-    //   body: payload.message,
-    //   icon: payload.icon || '/icon-192x192.png',
-    //   badge: payload.badge || '/badge-72x72.png',
-    //   data: {
-    //     ...payload.data,
-    //     link: payload.link,
-    //   },
-    // });
+    const notificationPayload = JSON.stringify({
+      title: payload.title,
+      body: payload.message,
+      icon: payload.icon || '/icon-192x192.png',
+      badge: payload.badge || '/badge-72x72.png',
+      data: {
+        ...payload.data,
+        link: payload.link,
+      },
+    });
 
-    // TODO: Envoyer à toutes les subscriptions
-    // for (const subscription of subscriptions) {
-    //   try {
-    //     await webpush.sendNotification(
-    //       {
-    //         endpoint: subscription.endpoint,
-    //         keys: {
-    //           p256dh: subscription.keys.p256dh,
-    //           auth: subscription.keys.auth,
-    //         },
-    //       },
-    //       notificationPayload
-    //     );
-    //   } catch (error) {
-    //     // Si la subscription est invalide, la supprimer
-    //     if (error.statusCode === 410 || error.statusCode === 404) {
-    //       // Supprimer la subscription
-    //     }
-    //   }
-    // }
+    // Envoyer à toutes les souscriptions actives
+    const sendPromises = subscriptions.map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          {
+            endpoint: sub.endpoint,
+            keys: {
+              p256dh: sub.p256dh,
+              auth: sub.auth,
+            },
+          },
+          notificationPayload
+        );
+      } catch (error: any) {
+        // Si la souscription est obsolète (410 Gone ou 404 Not Found), on la supprime de la base
+        if (error.statusCode === 410 || error.statusCode === 404) {
+          await this.unregisterSubscription(sub.endpoint);
+        }
+      }
+    });
+
+    await Promise.all(sendPromises);
   }
 
   /**

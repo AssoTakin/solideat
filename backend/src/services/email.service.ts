@@ -130,6 +130,35 @@ export class EmailService {
   }
 
   /**
+   * Envoie un email de notification générique (US-038)
+   */
+  async sendNotificationEmail(to: string, title: string, message: string, link?: string): Promise<void> {
+    const actionUrl = link
+      ? (link.startsWith('http') ? link : `${process.env.FRONTEND_URL || 'http://localhost:5173'}${link}`)
+      : `${process.env.FRONTEND_URL || 'http://localhost:5173'}/notifications`;
+
+    const subject = `${title} - SOLID'EAT`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #2C3E50; max-width: 600px; margin: 0 auto; border: 1px solid #ECF0F1; border-radius: 8px; padding: 20px;">
+        <h1 style="color: #FF6B35; font-size: 24px; margin-top: 0;">SOLID'EAT</h1>
+        <h2 style="font-size: 18px; border-bottom: 2px solid #FF6B35; padding-bottom: 8px;">${title}</h2>
+        <p style="font-size: 16px;">${message}</p>
+        <p style="margin-top: 24px;">
+          <a href="${actionUrl}" style="background-color: #FF6B35; color: #FFFFFF; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; display: inline-block;">Voir sur SOLID'EAT</a>
+        </p>
+        <hr style="border: none; border-top: 1px solid #ECF0F1; margin-top: 30px;" />
+        <p style="font-size: 12px; color: #7F8C8D; text-align: center; margin-bottom: 0;">
+          Vous recevez cet e-mail suite à une activité sur votre compte SOLID'EAT.<br/>
+          Vous pouvez ajuster vos préférences de notification depuis votre profil.
+        </p>
+      </div>
+    `;
+    const text = `${title} : ${message}\n\nPour voir les détails, rendez-vous à l'adresse suivante : ${actionUrl}`;
+
+    await this.sendMail(to, subject, html, text, true);
+  }
+
+  /**
    * Envoie un email pour les bonus donateurs reçus
    */
   async sendBonusDonorEmail(to: string, count: number): Promise<void> {

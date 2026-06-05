@@ -29,6 +29,8 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -63,10 +65,32 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
     checkAuth();
   }, [location]);
 
+  // Polling périodique des notifications (toutes les 30 secondes)
+  useEffect(() => {
+    if (!isAuthenticated || isGuest) return;
+
+    loadNotifications();
+
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, isGuest]);
+
   const checkAuth = async () => {
     try {
+      const guest = sessionStorage.getItem('isGuestMode') === 'true';
       if (USE_MOCK_DATA) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setIsAuthenticated(false);
+          setIsGuest(guest);
+          return;
+        }
         setIsAuthenticated(true);
+        setIsGuest(false);
+        sessionStorage.removeItem('isGuestMode');
         setUser(mockUsers[0]);
         const unread = mockNotifications.filter((n) => !n.read).length;
         setUnreadNotifications(unread);
@@ -77,6 +101,8 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
         const userResponse = await api.get('/users/me');
         if (userResponse.data.success) {
           setIsAuthenticated(true);
+          setIsGuest(false);
+          sessionStorage.removeItem('isGuestMode');
           const userData = userResponse.data.data;
           setUser(userData);
           if (userData?.id) {
@@ -86,9 +112,11 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
         }
       } else {
         setIsAuthenticated(false);
+        setIsGuest(guest);
       }
     } catch (error) {
       setIsAuthenticated(false);
+      setIsGuest(sessionStorage.getItem('isGuestMode') === 'true');
     }
   };
 
@@ -110,306 +138,371 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
 
   const isActive = (path: string) => location.pathname === path;
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isGuest) {
     return null;
   }
 
   return (
     <>
       {/* Top Header */}
-      <header
-        style={{
-          backgroundColor: `${colors.backgroundWhite}E6`,
-          backdropFilter: 'blur(12px)',
-          padding: '12px 16px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          borderBottom: `1px solid ${colors.backgroundLight}`,
-        }}
-      >
-        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img
-            src="/logo.png"
-            alt="SOLID'EAT"
-            style={{
-              height: '40px',
-              width: 'auto',
-            }}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-              const parent = (e.target as HTMLImageElement).parentElement;
-              if (parent) {
-                const span = document.createElement('span');
-                span.style.cssText = `font-size: 18px; font-weight: bold; color: ${colors.primary}`;
-                span.textContent = "SOLID'EAT";
-                parent.appendChild(span);
-              }
-            }}
-          />
-        </Link>
-        <nav style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <Link
-            to="/save-them"
-            style={{
-              textDecoration: 'none',
-              color: colors.textPrimary,
-              fontSize: '20px',
-              padding: '8px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              backgroundColor: isActive('/save-them') ? `${colors.sosAccent}20` : 'transparent',
-            }}
-            title="Sauvez-les"
-          >
-            🆘
-          </Link>
-          <Link
-            to="/notifications"
-            style={{
-              textDecoration: 'none',
-              color: colors.textPrimary,
-              fontSize: '20px',
-              padding: '8px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              backgroundColor: isActive('/notifications') ? `${colors.primary}20` : 'transparent',
-            }}
-          >
-            🔔
-            {unreadNotifications > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  backgroundColor: colors.primary,
-                  color: colors.backgroundWhite,
-                  borderRadius: '50%',
-                  minWidth: '18px',
-                  height: '18px',
-                  padding: '0 4px',
-                  border: `2px solid ${colors.backgroundWhite}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                }}
-              >
-                {unreadNotifications > 9 ? '9+' : unreadNotifications}
-              </span>
-            )}
-          </Link>
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowDropdown(!showDropdown);
-              }}
+      {isAuthenticated ? (
+        <header
+          style={{
+            backgroundColor: `${colors.backgroundWhite}E6`,
+            backdropFilter: 'blur(12px)',
+            padding: '12px 16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'sticky',
+            top: 0,
+            zIndex: 100,
+            borderBottom: `1px solid ${colors.backgroundLight}`,
+          }}
+        >
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img
+              src="/logo.png"
+              alt="SOLID'EAT"
               style={{
-                background: 'none',
-                border: 'none',
+                height: '40px',
+                width: 'auto',
+              }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                const parent = (e.target as HTMLImageElement).parentElement;
+                if (parent) {
+                  const span = document.createElement('span');
+                  span.style.cssText = `font-size: 18px; font-weight: bold; color: ${colors.primary}`;
+                  span.textContent = "SOLID'EAT";
+                  parent.appendChild(span);
+                }
+              }}
+            />
+          </Link>
+          <nav style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Link
+              to="/save-them"
+              style={{
+                textDecoration: 'none',
+                color: colors.textPrimary,
+                fontSize: '20px',
                 padding: '8px',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
-                backgroundColor: showDropdown || isActive('/dashboard') ? `${colors.primary}20` : 'transparent',
-                outline: 'none',
+                position: 'relative',
+                backgroundColor: isActive('/save-them') ? `${colors.sosAccent}20` : 'transparent',
               }}
-              title={user?.username || 'Menu Profil'}
+              title="Sauvez-les"
             >
-              {user?.profilePhoto ? (
-                <img
-                  src={user.profilePhoto}
-                  alt={user.username}
+              🆘
+            </Link>
+            <Link
+              to="/notifications"
+              style={{
+                textDecoration: 'none',
+                color: colors.textPrimary,
+                fontSize: '20px',
+                padding: '8px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                backgroundColor: isActive('/notifications') ? `${colors.primary}20` : 'transparent',
+              }}
+            >
+              🔔
+              {unreadNotifications > 0 && (
+                <span
                   style={{
-                    width: '32px',
-                    height: '32px',
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
+                    backgroundColor: colors.primary,
+                    color: colors.backgroundWhite,
                     borderRadius: '50%',
-                    border: `2px solid ${isActive('/dashboard') ? colors.primary : colors.backgroundLight}`,
+                    minWidth: '18px',
+                    height: '18px',
+                    padding: '0 4px',
+                    border: `2px solid ${colors.backgroundWhite}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
                   }}
-                />
-              ) : (
-                <span style={{ fontSize: '20px' }}>👤</span>
+                >
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </span>
               )}
-            </button>
-
-            {showDropdown && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '48px',
-                  right: 0,
-                  backgroundColor: colors.backgroundWhite,
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                  border: `1px solid ${colors.backgroundLight}`,
-                  padding: '8px 0',
-                  minWidth: '220px',
-                  zIndex: 200,
-                  display: 'flex',
-                  flexDirection: 'column',
+            </Link>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDropdown(!showDropdown);
                 }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: '8px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: showDropdown || isActive('/dashboard') ? `${colors.primary}20` : 'transparent',
+                  outline: 'none',
+                }}
+                title={user?.username || 'Menu Profil'}
               >
-                {/* Infos utilisateur */}
-                <div style={{ padding: '12px 16px', borderBottom: `1px solid ${colors.backgroundLight}`, marginBottom: '4px' }}>
-                  <p style={{ margin: 0, fontWeight: 'bold', color: colors.textPrimary, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    @{user?.username || 'Utilisateur'}
-                  </p>
-                  <p style={{ margin: '2px 0 0 0', color: colors.textSecondary, fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {user?.email}
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        padding: '3px 8px',
-                        borderRadius: '12px',
-                        fontWeight: 'bold',
-                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                        color: colors.textSecondary,
-                        border: '1px solid rgba(0, 0, 0, 0.1)',
-                      }}
-                    >
-                      {`🤝 Membre depuis ${user?.createdAt ? new Date(user.createdAt).getFullYear() : '2025'}`}
-                    </span>
+                {user?.profilePhoto ? (
+                  <img
+                    src={user.profilePhoto}
+                    alt={user.username}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      border: `2px solid ${isActive('/dashboard') ? colors.primary : colors.backgroundLight}`,
+                    }}
+                  />
+                ) : (
+                  <span style={{ fontSize: '20px' }}>👤</span>
+                )}
+              </button>
+  
+              {showDropdown && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '48px',
+                    right: 0,
+                    backgroundColor: colors.backgroundWhite,
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                    border: `1px solid ${colors.backgroundLight}`,
+                    padding: '8px 0',
+                    minWidth: '220px',
+                    zIndex: 200,
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  {/* Infos utilisateur */}
+                  <div style={{ padding: '12px 16px', borderBottom: `1px solid ${colors.backgroundLight}`, marginBottom: '4px' }}>
+                    <p style={{ margin: 0, fontWeight: 'bold', color: colors.textPrimary, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      @{user?.username || 'Utilisateur'}
+                    </p>
+                    <p style={{ margin: '2px 0 0 0', color: colors.textSecondary, fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {user?.email}
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          fontWeight: 'bold',
+                          backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                          color: colors.textSecondary,
+                          border: '1px solid rgba(0, 0, 0, 0.1)',
+                        }}
+                      >
+                        {`🤝 Membre depuis ${user?.createdAt ? new Date(user.createdAt).getFullYear() : '2025'}`}
+                      </span>
+                    </div>
                   </div>
+  
+                  {/* Liens du menu */}
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setShowDropdown(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      color: colors.textPrimary,
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    📊 Tableau de bord
+                  </Link>
+                  <Link
+                    to={`/users/${user?.id || 'me'}`}
+                    onClick={() => setShowDropdown(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      color: colors.textPrimary,
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    👤 Mon profil public
+                  </Link>
+                  <Link
+                    to="/profile/edit"
+                    onClick={() => setShowDropdown(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      color: colors.textPrimary,
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    ⚙️ Modifier mon profil
+                  </Link>
+                  <Link
+                    to="/subscriptions/plans"
+                    onClick={() => setShowDropdown(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      color: colors.premium,
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    👑 Formules & Abonnements
+                  </Link>
+                  <Link
+                    to="/help"
+                    onClick={() => setShowDropdown(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      color: colors.textPrimary,
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    ❓ Aide & FAQ
+                  </Link>
+                  <div style={{ height: '1px', backgroundColor: colors.backgroundLight, margin: '4px 0' }} />
+                  <button
+                    onClick={() => {
+                      setShowDropdown(false);
+                      handleLogout();
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      color: colors.error,
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      width: '100%',
+                      textAlign: 'left',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FEE')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    🚪 Se déconnecter
+                  </button>
                 </div>
-
-                {/* Liens du menu */}
-                <Link
-                  to="/dashboard"
-                  onClick={() => setShowDropdown(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    color: colors.textPrimary,
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  📊 Tableau de bord
-                </Link>
-                <Link
-                  to={`/users/${user?.id || 'me'}`}
-                  onClick={() => setShowDropdown(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    color: colors.textPrimary,
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  👤 Mon profil public
-                </Link>
-                <Link
-                  to="/profile/edit"
-                  onClick={() => setShowDropdown(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    color: colors.textPrimary,
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  ⚙️ Modifier mon profil
-                </Link>
-                <Link
-                  to="/subscriptions/plans"
-                  onClick={() => setShowDropdown(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    color: colors.premium,
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  👑 Formules & Abonnements
-                </Link>
-                <Link
-                  to="/help"
-                  onClick={() => setShowDropdown(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    color: colors.textPrimary,
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  ❓ Aide & FAQ
-                </Link>
-                <div style={{ height: '1px', backgroundColor: colors.backgroundLight, margin: '4px 0' }} />
-                <button
-                  onClick={() => {
-                    setShowDropdown(false);
-                    handleLogout();
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    color: colors.error,
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    width: '100%',
-                    textAlign: 'left',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FEE')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  🚪 Se déconnecter
-                </button>
-              </div>
-            )}
-          </div>
-        </nav>
-      </header>
+              )}
+            </div>
+          </nav>
+        </header>
+      ) : (
+        <header
+          style={{
+            backgroundColor: `${colors.backgroundWhite}E6`,
+            backdropFilter: 'blur(12px)',
+            padding: '12px 16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'sticky',
+            top: 0,
+            zIndex: 100,
+            borderBottom: `1px solid ${colors.backgroundLight}`,
+          }}
+        >
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img
+              src="/logo.png"
+              alt="SOLID'EAT"
+              style={{
+                height: '40px',
+                width: 'auto',
+              }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                const parent = (e.target as HTMLImageElement).parentElement;
+                if (parent) {
+                  const span = document.createElement('span');
+                  span.style.cssText = `font-size: 18px; font-weight: bold; color: ${colors.primary}`;
+                  span.textContent = "SOLID'EAT";
+                  parent.appendChild(span);
+                }
+              }}
+            />
+          </Link>
+          <nav style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <Link
+              to="/login"
+              style={{
+                textDecoration: 'none',
+                color: colors.primary,
+                fontSize: '16px',
+                fontWeight: 600,
+              }}
+            >
+              Connexion
+            </Link>
+            <Link
+              to="/register"
+              style={{
+                textDecoration: 'none',
+                backgroundColor: colors.primary,
+                color: colors.backgroundWhite,
+                padding: '10px 20px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+              }}
+            >
+              S'inscrire
+            </Link>
+          </nav>
+        </header>
+      )}
 
       {/* Bottom Navigation Bar (Mobile) */}
       {showBottomBar && (
@@ -484,7 +577,13 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
             <span style={{ fontSize: '10px', fontWeight: isActive('/save-them') ? 'bold' : 'normal' }}>Sauvez-les</span>
           </Link>
           <Link
-            to="/meals/new"
+            to={isGuest ? '#' : '/meals/new'}
+            onClick={(e) => {
+              if (isGuest) {
+                e.preventDefault();
+                setShowAuthModal(true);
+              }
+            }}
             style={{
               textDecoration: 'none',
               display: 'flex',
@@ -501,7 +600,13 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
             <span style={{ fontSize: '10px', fontWeight: isActive('/meals/new') ? 'bold' : 'normal' }}>Proposer</span>
           </Link>
           <Link
-            to="/messages"
+            to={isGuest ? '#' : '/messages'}
+            onClick={(e) => {
+              if (isGuest) {
+                e.preventDefault();
+                setShowAuthModal(true);
+              }
+            }}
             style={{
               textDecoration: 'none',
               display: 'flex',
@@ -519,7 +624,13 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
             <span style={{ fontSize: '10px', fontWeight: isActive('/messages') ? 'bold' : 'normal' }}>Messages</span>
           </Link>
           <Link
-            to="/dashboard"
+            to={isGuest ? '#' : '/dashboard'}
+            onClick={(e) => {
+              if (isGuest) {
+                e.preventDefault();
+                setShowAuthModal(true);
+              }
+            }}
             style={{
               textDecoration: 'none',
               display: 'flex',
@@ -537,6 +648,94 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
           </Link>
         </nav>
       )}
+
+      {/* AuthPromptModal pour le mode invité */}
+      {showAuthModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: '16px',
+          }}
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: colors.backgroundWhite,
+              borderRadius: '16px',
+              padding: '32px 24px',
+              maxWidth: '400px',
+              width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>👋</span>
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+              Rejoignez SOLID'EAT !
+            </h3>
+            <p style={{ fontSize: '14px', color: colors.textSecondary, lineHeight: '1.6', marginBottom: '24px' }}>
+              Pour proposer vos repas, échanger avec les autres membres ou réserver un plat, créez un compte gratuit en quelques secondes.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Link
+                to="/register"
+                style={{
+                  textDecoration: 'none',
+                  backgroundColor: colors.primary,
+                  color: colors.backgroundWhite,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  display: 'block',
+                }}
+              >
+                S'inscrire gratuitement
+              </Link>
+              <Link
+                to="/login"
+                style={{
+                  textDecoration: 'none',
+                  backgroundColor: 'transparent',
+                  color: colors.primary,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  border: `2px solid ${colors.primary}`,
+                  display: 'block',
+                }}
+              >
+                Se connecter
+              </Link>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: colors.textSecondary,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  marginTop: '8px',
+                  textDecoration: 'underline',
+                  outline: 'none',
+                }}
+              >
+                Continuer à découvrir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
+

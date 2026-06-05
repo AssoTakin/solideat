@@ -1,5 +1,6 @@
-import { MealStatus } from '@prisma/client';
+import { MealStatus, NotificationType } from '@prisma/client';
 import prisma from '../config/database';
+import { notificationService } from './notification.service';
 
 export class MessageService {
   /**
@@ -136,7 +137,16 @@ export class MessageService {
     });
 
     // Envoyer notification (en arrière-plan)
-    // TODO: Implémenter NotificationService
+    notificationService.sendNotification(
+      receiverId,
+      NotificationType.MESSAGE_RECEIVED,
+      `Nouveau message de ${message.sender?.username || 'Un utilisateur'}`,
+      message.content.length > 60 ? `${message.content.substring(0, 57)}...` : message.content,
+      `/messages/${mealId}`,
+      false
+    ).catch(() => {
+      // Erreur silencieuse
+    });
 
     return message;
   }

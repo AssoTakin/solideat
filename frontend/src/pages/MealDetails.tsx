@@ -35,6 +35,8 @@ export default function MealDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -45,8 +47,18 @@ export default function MealDetails() {
 
   const checkAuth = async () => {
     try {
+      const guest = sessionStorage.getItem('isGuestMode') === 'true';
+      setIsGuestMode(guest);
+
       if (USE_MOCK_DATA) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setIsAuthenticated(false);
+          return;
+        }
         setIsAuthenticated(true);
+        setIsGuestMode(false);
+        sessionStorage.removeItem('isGuestMode');
         setCurrentUser(mockUsers[0]);
         setQuotaStatus({
           weeklyReservations: { used: 1, limit: 1 },
@@ -59,6 +71,8 @@ export default function MealDetails() {
         const userResponse = await api.get('/users/me');
         if (userResponse.data.success) {
           setIsAuthenticated(true);
+          setIsGuestMode(false);
+          sessionStorage.removeItem('isGuestMode');
           const userData = userResponse.data.data;
           setCurrentUser(userData);
           if (userData?.id) {
@@ -66,6 +80,8 @@ export default function MealDetails() {
           }
           loadQuotaStatus();
         }
+      } else {
+        setIsAuthenticated(false);
       }
     } catch (error) {
       setIsAuthenticated(false);
@@ -263,7 +279,7 @@ export default function MealDetails() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: getPagePaddingBottom(true, isAuthenticated), // Espace pour bottom bar + footer si authentifié
+        paddingBottom: getPagePaddingBottom(true, isAuthenticated || isGuestMode), // Espace pour bottom bar + footer si authentifié ou invité
       }}
     >
       <Navigation showBottomBar={true} />
@@ -378,7 +394,7 @@ export default function MealDetails() {
       </div>
 
       {/* Contenu principal */}
-      <main style={{ padding: '16px', ...getMainContentStyle(isAuthenticated), maxWidth: '600px', margin: '0 auto' }}>
+      <main style={{ padding: '16px', ...getMainContentStyle(isAuthenticated || isGuestMode), maxWidth: '600px', margin: '0 auto' }}>
         {/* Titre et badges */}
         <div style={{ marginBottom: '16px' }}>
           <h1
@@ -451,7 +467,14 @@ export default function MealDetails() {
             </p>
           </div>
           <button
-            onClick={() => navigate(`/messages/${meal.id}`)}
+            onClick={(e) => {
+              if (isGuestMode) {
+                e.preventDefault();
+                setShowAuthModal(true);
+              } else {
+                navigate(`/messages/${meal.id}`);
+              }
+            }}
             style={{
               width: '40px',
               height: '40px',
@@ -750,7 +773,7 @@ export default function MealDetails() {
       </main>
 
       {/* Footer avec actions */}
-      {isAuthenticated && (
+      {(isAuthenticated || isGuestMode) && (
         <footer
           style={{
             position: 'fixed',
@@ -769,7 +792,14 @@ export default function MealDetails() {
           <div style={{ display: 'flex', gap: '16px', maxWidth: '600px', margin: '0 auto' }}>
             {!(currentUser && meal && meal.cook.id === currentUser.id) && (
               <button
-                onClick={() => navigate(`/messages/${meal.id}`)}
+                onClick={(e) => {
+                  if (isGuestMode) {
+                    e.preventDefault();
+                    setShowAuthModal(true);
+                  } else {
+                    navigate(`/messages/${meal.id}`);
+                  }
+                }}
                 style={{
                   width: '56px',
                   height: '56px',
@@ -895,21 +925,30 @@ export default function MealDetails() {
               // Actions pour l'utilisateur normal
               meal.status === 'AVAILABLE' ? (
                 <button
-                  onClick={() => (isQuotaReached ? null : navigate(`/meals/${meal.id}/reserve`))}
-                  disabled={isQuotaReached}
+                  onClick={(e) => {
+                    if (isGuestMode) {
+                      e.preventDefault();
+                      setShowAuthModal(true);
+                    } else {
+                      if (!isQuotaReached) {
+                        navigate(`/meals/${meal.id}/reserve`);
+                      }
+                    }
+                  }}
+                  disabled={!isGuestMode && isQuotaReached}
                   style={{
                     flex: 1,
                     height: '56px',
                     borderRadius: '12px',
-                    backgroundColor: isQuotaReached ? colors.backgroundLight : colors.primary,
-                    color: isQuotaReached ? colors.textSecondary : colors.backgroundWhite,
+                    backgroundColor: (!isGuestMode && isQuotaReached) ? colors.backgroundLight : colors.primary,
+                    color: (!isGuestMode && isQuotaReached) ? colors.textSecondary : colors.backgroundWhite,
                     fontSize: '16px',
                     fontWeight: 'bold',
                     border: 'none',
-                    cursor: isQuotaReached ? 'not-allowed' : 'pointer',
+                    cursor: (!isGuestMode && isQuotaReached) ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {isQuotaReached ? 'QUOTA ATTEINT' : '✅ RÉSERVER CE REPAS'}
+                  {(!isGuestMode && isQuotaReached) ? 'QUOTA ATTEINT' : '✅ RÉSERVER CE REPAS'}
                 </button>
               ) : (
                 <div
@@ -932,6 +971,93 @@ export default function MealDetails() {
             )}
           </div>
         </footer>
+      )}
+
+      {/* AuthPromptModal pour le mode invité */}
+      {showAuthModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: '16px',
+          }}
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: colors.backgroundWhite,
+              borderRadius: '16px',
+              padding: '32px 24px',
+              maxWidth: '400px',
+              width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>👋</span>
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+              Rejoignez SOLID'EAT !
+            </h3>
+            <p style={{ fontSize: '14px', color: colors.textSecondary, lineHeight: '1.6', marginBottom: '24px' }}>
+              Pour proposer vos repas, échanger avec les autres membres ou réserver un plat, créez un compte gratuit en quelques secondes.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Link
+                to="/register"
+                style={{
+                  textDecoration: 'none',
+                  backgroundColor: colors.primary,
+                  color: colors.backgroundWhite,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  display: 'block',
+                }}
+              >
+                S'inscrire gratuitement
+              </Link>
+              <Link
+                to="/login"
+                style={{
+                  textDecoration: 'none',
+                  backgroundColor: 'transparent',
+                  color: colors.primary,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  border: `2px solid ${colors.primary}`,
+                  display: 'block',
+                }}
+              >
+                Se connecter
+              </Link>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: colors.textSecondary,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  marginTop: '8px',
+                  textDecoration: 'underline',
+                  outline: 'none',
+                }}
+              >
+                Continuer à découvrir
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -37,8 +37,12 @@ export default function SaveThem() {
   const [quotaStatus, setQuotaStatus] = useState<any>(null);
   const [hasBonuses, setHasBonuses] = useState(false);
   const [isReservationBlocked, setIsReservationBlocked] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
+    const guest = sessionStorage.getItem('isGuestMode') === 'true';
+    setIsGuestMode(guest);
     loadMeals();
     loadUserContext();
   }, [page]);
@@ -70,8 +74,20 @@ export default function SaveThem() {
 
   const loadUserContext = async () => {
     try {
+      const guest = sessionStorage.getItem('isGuestMode') === 'true';
+      setIsGuestMode(guest);
+
       if (USE_MOCK_DATA) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setCurrentUser(null);
+          setQuotaStatus(null);
+          setHasBonuses(false);
+          setIsReservationBlocked(false);
+          return;
+        }
         setCurrentUser(mockUsers[0]);
+        sessionStorage.removeItem('isGuestMode');
         setQuotaStatus({
           weeklyReservations: { used: 1, limit: 3 },
           weeklyProposals: { used: 0, limit: 3 },
@@ -91,6 +107,7 @@ export default function SaveThem() {
 
       if (userResponse && userResponse.data?.success) {
         setCurrentUser(userResponse.data.data);
+        sessionStorage.removeItem('isGuestMode');
       }
 
       if (quotaResponse && quotaResponse.data?.success) {
@@ -161,7 +178,7 @@ export default function SaveThem() {
         minHeight: '100vh',
         backgroundColor: colors.backgroundLight,
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        paddingBottom: getPagePaddingBottom(true, false),
+        paddingBottom: getPagePaddingBottom(true, !!currentUser || isGuestMode),
       }}
     >
       <Navigation showBottomBar={true} />
@@ -194,7 +211,7 @@ export default function SaveThem() {
         </p>
       </div>
 
-      <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto', ...getMainContentStyle(false) }}>
+      <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto', ...getMainContentStyle(!!currentUser || isGuestMode) }}>
         {error && (
           <div
             style={{
@@ -391,6 +408,13 @@ export default function SaveThem() {
                           </div>
                         ) : (
                           <div
+                            onClick={(e) => {
+                              if (isGuestMode) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setShowAuthModal(true);
+                              }
+                            }}
                             style={{
                               padding: '10px',
                               backgroundColor: colors.sosAccent,
@@ -461,6 +485,93 @@ export default function SaveThem() {
           </>
         )}
       </main>
+
+      {/* AuthPromptModal pour le mode invité */}
+      {showAuthModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: '16px',
+          }}
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: colors.backgroundWhite,
+              borderRadius: '16px',
+              padding: '32px 24px',
+              maxWidth: '400px',
+              width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>👋</span>
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+              Rejoignez SOLID'EAT !
+            </h3>
+            <p style={{ fontSize: '14px', color: colors.textSecondary, lineHeight: '1.6', marginBottom: '24px' }}>
+              Pour proposer vos repas, échanger avec les autres membres ou réserver un plat, créez un compte gratuit en quelques secondes.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Link
+                to="/register"
+                style={{
+                  textDecoration: 'none',
+                  backgroundColor: colors.primary,
+                  color: colors.backgroundWhite,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  display: 'block',
+                }}
+              >
+                S'inscrire gratuitement
+              </Link>
+              <Link
+                to="/login"
+                style={{
+                  textDecoration: 'none',
+                  backgroundColor: 'transparent',
+                  color: colors.primary,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  border: `2px solid ${colors.primary}`,
+                  display: 'block',
+                }}
+              >
+                Se connecter
+              </Link>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: colors.textSecondary,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  marginTop: '8px',
+                  textDecoration: 'underline',
+                  outline: 'none',
+                }}
+              >
+                Continuer à découvrir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
