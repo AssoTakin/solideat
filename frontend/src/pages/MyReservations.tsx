@@ -34,7 +34,7 @@ export default function MyReservations() {
       if (USE_MOCK_DATA) {
         let reservations = [...mockReservations];
         if (filter !== 'all') {
-          reservations = reservations.filter((r: any) => r.meal.status === filter);
+          reservations = reservations.filter((r: any) => r.status === filter);
         }
         setReservations(reservations as any[]);
         setLoading(false);
@@ -216,11 +216,11 @@ export default function MyReservations() {
             <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
               Aucune réservation
             </p>
-            <p style={{ fontSize: '14px', color: colors.textSecondary }}>
-              {filter === 'all'
-                ? "Vous n'avez pas encore de réservations. Explorez les repas disponibles !"
-                : `Aucune réservation avec le statut "${filter}"`}
-            </p>
+            {filter === 'all' && (
+              <p style={{ fontSize: '14px', color: colors.textSecondary }}>
+                Vous n'avez pas encore de réservations. Explorez les repas disponibles !
+              </p>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

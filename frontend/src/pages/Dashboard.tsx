@@ -202,7 +202,7 @@ export default function Dashboard() {
           </div>
         </div>
         <Link
-          to="/help"
+          to="/profile/edit"
           style={{
             padding: '8px',
             borderRadius: '50%',
@@ -314,7 +314,7 @@ export default function Dashboard() {
                       borderRadius: '8px',
                       fontSize: '13px',
                       fontWeight: 'bold',
-                      boxShadow: '0 4px 10px rgba(146, 67, 46, 0.15)',
+                      
                     }}
                   >
                     Mon profil

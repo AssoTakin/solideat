@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { userService } from '../services/user.service';
+import { colors } from '../utils/theme';
 
 export interface MealFilters {
   maxDistance?: number;
@@ -25,6 +26,7 @@ export default function MealFiltersComponent({ filters, onFiltersChange }: MealF
   const [localFilters, setLocalFilters] = useState<MealFilters>(filters);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [userLoaded, setUserLoaded] = useState(false);
 
   useEffect(() => {
     // Charger les infos utilisateur pour vérifier si premium
@@ -34,8 +36,11 @@ export default function MealFiltersComponent({ filters, onFiltersChange }: MealF
         if (response.success && response.data) {
           setUser(response.data);
         }
+        setUserLoaded(true);
       })
-      .catch(() => {});
+      .catch(() => {
+        setUserLoaded(true);
+      });
   }, []);
 
   useEffect(() => {
@@ -186,13 +191,13 @@ export default function MealFiltersComponent({ filters, onFiltersChange }: MealF
       </div>
 
       {/* Filtres avancés (premium) */}
-      {isUserPremium && (
+      {userLoaded && isUserPremium && (
         <div style={{ marginTop: '1.5rem' }}>
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             style={{
               padding: '0.5rem 1rem',
-              backgroundColor: '#007bff',
+              backgroundColor: colors.primary,
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -239,7 +244,7 @@ export default function MealFiltersComponent({ filters, onFiltersChange }: MealF
         </div>
       )}
 
-      {!isUserPremium && (
+      {userLoaded && !isUserPremium && (
         <Link
           to="/subscriptions/plans"
           style={{
