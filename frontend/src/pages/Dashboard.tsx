@@ -12,6 +12,18 @@ import EnvironmentalStats from '../components/EnvironmentalStats';
 import BonusDonorList from '../components/BonusDonorList';
 import { USE_MOCK_DATA, mockMeals, mockReservations, mockUsers, mockDashboardStats } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import {
+  SettingsIcon,
+  StarIcon,
+  ChefHatIcon,
+  HeartIcon,
+  ClockIcon,
+  MessageCircleIcon,
+  EyeIcon,
+  CalendarIcon,
+  SOSIcon,
+  PlusIcon,
+} from '../components/Icons';
 
 // Design System Colors EXACTES depuis UX_DESIGN.md
 
@@ -118,8 +130,10 @@ export default function Dashboard() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement...</p>
         </div>
       </div>
@@ -202,7 +216,7 @@ export default function Dashboard() {
           }}
           title="Paramètres"
         >
-          ⚙️
+          <SettingsIcon size={20} color={colors.textPrimary} />
         </Link>
       </div>
 
@@ -276,7 +290,7 @@ export default function Dashboard() {
                       borderRadius: '9999px',
                     }}
                   >
-                    <span style={{ color: colors.primary, fontSize: '14px' }}>⭐</span>
+                    <StarIcon size={14} color={colors.primary} fill={colors.primary} />
                     <span style={{ color: colors.primary, fontSize: '14px', fontWeight: 'bold' }}>
                       {dashboardStats?.personal.globalRating?.toFixed(1) || '0.0'}
                     </span>
@@ -284,11 +298,10 @@ export default function Dashboard() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 6px 0' }}>
-                      Activité globale sur SOLID'EAT
-                    </p>
-                    <p style={{ fontSize: '15px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
-                      🔥 {dashboardStats?.history.mealsServed || 0} Servis <span style={{ color: 'rgba(30,27,24,0.15)', margin: '0 6px' }}>|</span> 😋 {dashboardStats?.history.mealsReceived || 0} Reçus
+                    <p style={{ fontSize: '15px', fontWeight: 'bold', color: colors.textPrimary, margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <ChefHatIcon size={16} color={colors.primary} style={{ marginRight: '4px' }} /> {dashboardStats?.history.mealsServed || 0} Servis
+                      <span style={{ color: 'rgba(30,27,24,0.15)', margin: '0 8px' }}>|</span>
+                      <HeartIcon size={16} color={colors.primary} fill={colors.primary} style={{ marginRight: '4px' }} /> {dashboardStats?.history.mealsReceived || 0} Reçus
                     </p>
                   </div>
                   <Link
@@ -428,6 +441,7 @@ export default function Dashboard() {
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         gap: '8px',
                         padding: '10px 20px',
                         backgroundColor: colors.primary,
@@ -438,7 +452,7 @@ export default function Dashboard() {
                         fontWeight: 'bold',
                       }}
                     >
-                      ➕ Ajouter un repas
+                      <PlusIcon size={16} color={colors.backgroundWhite} /> Ajouter un repas
                     </Link>
                   </div>
                 ) : (
@@ -544,7 +558,7 @@ export default function Dashboard() {
                               Chef : {reservation.meal?.cook?.username} • {reservation.meal?.distance?.toFixed(1) || 'N/A'} km
                             </p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: colors.primary }}>
-                              <span style={{ fontSize: '14px' }}>🕐</span>
+                              <ClockIcon size={14} color={colors.primary} />
                               <span style={{ fontSize: '12px', fontWeight: 'bold' }}>
                                 Récupération : {formatTime(reservation.meal?.pickupTimeStart)}
                               </span>
@@ -569,7 +583,7 @@ export default function Dashboard() {
                               fontWeight: 500,
                             }}
                           >
-                            💬 Message
+                            <MessageCircleIcon size={14} color={colors.textPrimary} /> Message
                           </Link>
                           <Link
                             to={`/meals/${reservation.mealId}`}
@@ -588,7 +602,7 @@ export default function Dashboard() {
                               fontWeight: 500,
                             }}
                           >
-                            👁️ Voir
+                            <EyeIcon size={14} color={colors.textPrimary} /> Voir
                           </Link>
                         </div>
                       </div>
@@ -617,7 +631,7 @@ export default function Dashboard() {
                   fontWeight: 'bold',
                 }}
               >
-                📜 Voir l'historique
+                <CalendarIcon size={14} color={colors.primary} /> Voir l'historique
               </Link>
               <Link
                 to="/save-them"
@@ -637,7 +651,7 @@ export default function Dashboard() {
                   boxShadow: `0 4px 12px ${colors.sosAccent}40`,
                 }}
               >
-                ⚡ SAUVEZ-LES (FINIT BIENTÔT)
+                <SOSIcon size={16} color={colors.backgroundWhite} /> SAUVEZ-LES (FINIT BIENTÔT)
               </Link>
             </div>
           </div>

@@ -8,6 +8,19 @@ import { reservationService } from '../services/reservation.service';
 import api from '../services/api';
 import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import {
+  ClockIcon,
+  MessageCircleIcon,
+  CalendarIcon,
+  MapPinIcon,
+  ChefHatIcon,
+  AlertTriangleIcon,
+  BarChartIcon,
+  InfoIcon,
+  CheckIcon,
+  XIcon,
+  EditIcon,
+} from '../components/Icons';
 
 // Design System Colors
 
@@ -375,7 +388,7 @@ export default function MealDetails() {
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             }}
           >
-            ⏰ EXPIRE DANS {hoursRemaining}H
+            <ClockIcon size={14} color={colors.backgroundWhite} /> EXPIRE DANS {hoursRemaining}H
           </div>
         )}
       </div>
@@ -476,7 +489,7 @@ export default function MealDetails() {
               fontSize: '20px',
             }}
           >
-            💬
+            <MessageCircleIcon size={20} color={colors.primary} />
           </button>
         </div>
 
@@ -493,7 +506,7 @@ export default function MealDetails() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
-            <span style={{ fontSize: '24px', color: colors.primary, marginBottom: '4px' }}>📅</span>
+            <CalendarIcon size={24} color={colors.primary} style={{ marginBottom: '4px' }} />
             <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>
               DATE
             </span>
@@ -512,7 +525,7 @@ export default function MealDetails() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
-            <span style={{ fontSize: '24px', color: colors.primary, marginBottom: '4px' }}>🕐</span>
+            <ClockIcon size={24} color={colors.primary} style={{ marginBottom: '4px' }} />
             <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>
               PLAGE HORAIRE
             </span>
@@ -534,7 +547,7 @@ export default function MealDetails() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
-            <span style={{ fontSize: '24px', color: colors.primary, marginBottom: '4px' }}>📍</span>
+            <MapPinIcon size={24} color={colors.primary} style={{ marginBottom: '4px' }} />
             <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>
               DISTANCE
             </span>
@@ -553,7 +566,7 @@ export default function MealDetails() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
-            <span style={{ fontSize: '24px', color: colors.primary, marginBottom: '4px' }}>🍽️</span>
+            <ChefHatIcon size={24} color={colors.primary} style={{ marginBottom: '4px' }} />
             <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px', textAlign: 'center' }}>
               PARTS RESTANTES
             </span>
@@ -593,10 +606,10 @@ export default function MealDetails() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: '4px',
-                    fontSize: '24px',
+                    color: colors.textSecondary,
                   }}
                 >
-                  🥘
+                  <ChefHatIcon size={24} color={colors.textSecondary} />
                 </div>
                 <span style={{ fontSize: '11px', color: colors.textPrimary, textAlign: 'center' }}>
                   {ingredient.name}
@@ -619,7 +632,7 @@ export default function MealDetails() {
                 gap: '12px',
               }}
             >
-              <span style={{ fontSize: '20px', color: colors.error }}>⚠️</span>
+              <AlertTriangleIcon size={20} color={colors.error} />
               <div>
                 <p style={{ fontSize: '12px', fontWeight: 'bold', color: colors.error, textTransform: 'uppercase', marginBottom: '4px' }}>
                   ALERTE ALLERGÈNES
@@ -707,12 +720,13 @@ export default function MealDetails() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#E65100', margin: 0 }}>
-                  📊 Votre quota de réservation
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#E65100' }}>
+                <BarChartIcon size={16} color="#E65100" />
+                <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0 }}>
+                  Votre quota de réservation
                 </p>
-                <span style={{ fontSize: '12px', color: '#E65100' }} title="Les quotas sont réinitialisés chaque lundi">
-                  ℹ️
+                <span style={{ display: 'inline-flex', alignItems: 'center', color: '#E65100', cursor: 'pointer' }} title="Les quotas sont réinitialisés chaque lundi">
+                  <InfoIcon size={14} color="#E65100" />
                 </span>
               </div>
               <span
@@ -725,7 +739,7 @@ export default function MealDetails() {
                   borderRadius: '9999px',
                 }}
               >
-                {quotaStatus.weeklyReservations?.used || 0}/{quotaStatus.weeklyReservations?.limit || 1} {isQuotaReached ? '❌' : '✅'}
+                {quotaStatus.weeklyReservations?.used || 0}/{quotaStatus.weeklyReservations?.limit || 1}
               </span>
             </div>
             <div
@@ -747,12 +761,12 @@ export default function MealDetails() {
               />
             </div>
             {isQuotaReached ? (
-              <p style={{ fontSize: '12px', color: '#E65100', margin: '4px 0 0 0' }}>
-                ⚠️ <strong>Quota atteint.</strong> Vous pourrez réserver à nouveau <strong>lundi prochain</strong> (réinitialisation hebdomadaire).
+              <p style={{ fontSize: '12px', color: '#E65100', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <AlertTriangleIcon size={12} color="#E65100" /> <strong>Quota atteint.</strong> Vous pourrez réserver à nouveau <strong>lundi prochain</strong> (réinitialisation hebdomadaire).
               </p>
             ) : (
-              <p style={{ fontSize: '12px', color: '#E65100', margin: '4px 0 0 0' }}>
-                💡 Vous pouvez toujours proposer des repas même si votre quota de réservation est atteint.
+              <p style={{ fontSize: '12px', color: '#E65100', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <InfoIcon size={12} color="#E65100" /> Vous pouvez toujours proposer des repas même si votre quota de réservation est atteint.
               </p>
             )}
           </div>
@@ -794,14 +808,13 @@ export default function MealDetails() {
                   border: `2px solid ${colors.primary}50`,
                   backgroundColor: 'transparent',
                   color: colors.primary,
-                  fontSize: '24px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                ✉️
+                <MessageCircleIcon size={24} color={colors.primary} />
               </button>
             )}
             {currentUser && meal && meal.cook.id === currentUser.id ? (
@@ -829,7 +842,7 @@ export default function MealDetails() {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primaryHover)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.primary)}
                   >
-                    ✏️ MODIFIER CE REPAS
+                    <EditIcon size={20} color={colors.backgroundWhite} /> MODIFIER
                   </button>
                   <button
                     onClick={handleDeleteMeal}
@@ -852,7 +865,7 @@ export default function MealDetails() {
                     onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(0.9)')}
                     onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}
                   >
-                    ❌ ANNULER CE REPAS
+                    <XIcon size={20} color={colors.backgroundWhite} /> ANNULER
                   </button>
                 </div>
               ) : meal.status === 'RESERVED' && meal.reservation ? (
@@ -869,9 +882,13 @@ export default function MealDetails() {
                       fontWeight: 'bold',
                       border: 'none',
                       cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
                     }}
                   >
-                    ✅ MARQUER RÉCUPÉRÉ
+                    <CheckIcon size={18} color={colors.backgroundWhite} /> RÉCUPÉRÉ
                   </button>
                   <button
                     onClick={handleReportNotPickedUp}
@@ -885,9 +902,13 @@ export default function MealDetails() {
                       fontWeight: 'bold',
                       border: 'none',
                       cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
                     }}
                   >
-                    ⚠️ NON RÉCUPÉRÉ
+                    <AlertTriangleIcon size={18} color={colors.backgroundWhite} /> NON RÉCUPÉRÉ
                   </button>
                 </>
               ) : (

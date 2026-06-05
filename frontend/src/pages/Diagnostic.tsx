@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { SearchIcon, XIcon, CheckIcon, ClockIcon } from '../components/Icons';
 
 interface DiagnosticResult {
   name: string;
@@ -35,9 +36,9 @@ export default function Diagnostic() {
         ? `API URL: ${apiUrl}`
         : 'VITE_API_URL non définie',
       details: {
-        VITE_API_URL: apiUrl || '❌ Manquante',
-        VITE_STRIPE_PUBLISHABLE_KEY: stripeKey ? '✅ Définie' : '❌ Manquante',
-        VITE_GOOGLE_MAPS_API_KEY: mapsKey ? '✅ Définie' : '❌ Manquante',
+        VITE_API_URL: apiUrl || 'Manquante',
+        VITE_STRIPE_PUBLISHABLE_KEY: stripeKey ? 'Définie' : 'Manquante',
+        VITE_GOOGLE_MAPS_API_KEY: mapsKey ? 'Définie' : 'Manquante',
       },
     };
     setResults([...newResults]);
@@ -174,7 +175,7 @@ export default function Diagnostic() {
           ? `Base URL: ${axiosBaseURL}`
           : 'Base URL non configurée',
         details: {
-          baseURL: axiosBaseURL || '❌ Non définie',
+          baseURL: axiosBaseURL || 'Non définie',
         },
       };
     } catch (error: any) {
@@ -212,8 +213,8 @@ export default function Diagnostic() {
           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         }}
       >
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#2C3E50', marginBottom: '8px' }}>
-          🔍 Diagnostic SOLID'EAT
+        <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#2C3E50', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <SearchIcon size={28} color="#2C3E50" /> Diagnostic SOLID'EAT
         </h1>
         <p style={{ fontSize: '14px', color: '#7F8C8D', marginBottom: '24px' }}>
           Tests automatiques de configuration et connexion
@@ -234,7 +235,7 @@ export default function Diagnostic() {
             marginBottom: '24px',
           }}
         >
-          {running ? 'Tests en cours...' : '🔄 Relancer les tests'}
+          {running ? 'Tests en cours...' : 'Relancer les tests'}
         </button>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -260,10 +261,10 @@ export default function Diagnostic() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '20px' }}>
-                  {result.status === 'checking' && '⏳'}
-                  {result.status === 'success' && '✅'}
-                  {result.status === 'error' && '❌'}
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {result.status === 'checking' && <ClockIcon size={20} color="#2196F3" />}
+                  {result.status === 'success' && <CheckIcon size={20} color="#4CAF50" />}
+                  {result.status === 'error' && <XIcon size={20} color="#F44336" />}
                 </span>
                 <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#2C3E50', margin: 0 }}>
                   {result.name}

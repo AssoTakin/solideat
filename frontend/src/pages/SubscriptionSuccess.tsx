@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { subscriptionService } from '../services/subscription.service';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { ClockIcon, AlertTriangleIcon, CheckIcon, GiftIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -73,7 +74,9 @@ export default function SubscriptionSuccess() {
         >
           {loading ? (
             <div>
-              <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'spin 2s linear infinite' }}>⏳</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                <ClockIcon size={48} color={colors.primary} style={{ animation: 'spin 2s linear infinite' }} />
+              </div>
               <h2 style={{ fontSize: '20px', color: colors.textPrimary, fontWeight: 'bold' }}>
                 Confirmation de votre abonnement...
               </h2>
@@ -83,7 +86,9 @@ export default function SubscriptionSuccess() {
             </div>
           ) : error ? (
             <div>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                <AlertTriangleIcon size={48} color={colors.error} />
+              </div>
               <h2 style={{ fontSize: '20px', color: colors.textPrimary, fontWeight: 'bold' }}>
                 Une erreur est survenue
               </h2>
@@ -120,15 +125,15 @@ export default function SubscriptionSuccess() {
                   margin: '0 auto 24px auto',
                 }}
               >
-                <span style={{ fontSize: '40px', color: colors.success }}>✓</span>
+                <CheckIcon size={40} color={colors.success} />
               </div>
               
               <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
                 Félicitations !
               </h1>
               
-              <p style={{ fontSize: '16px', color: colors.textPrimary, fontWeight: 500, marginBottom: '8px' }}>
-                Votre abonnement **Premium** est activé ! 🎉
+              <p style={{ fontSize: '16px', color: colors.textPrimary, fontWeight: 500, marginBottom: '12px' }}>
+                Votre abonnement **Premium** est activé !
               </p>
 
               <div
@@ -141,11 +146,17 @@ export default function SubscriptionSuccess() {
                   fontSize: '14px',
                   color: colors.textPrimary,
                   lineHeight: '1.5',
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'start',
                 }}
               >
-                🎁 **Offre de Lancement appliquée** :  
-                Votre abonnement est à **0 € pour les 3 prochains mois**.  
-                Il s'arrêtera automatiquement à la fin de cette période (sans prélèvement).
+                <GiftIcon size={18} color={colors.success} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ textAlign: 'left' }}>
+                  <strong>Offre de Lancement appliquée</strong> :  
+                  Votre abonnement est à **0 € pour les 3 prochains mois**.  
+                  Il s'arrêtera automatiquement à la fin de cette période (sans prélèvement).
+                </div>
               </div>
 
               <p style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '32px' }}>

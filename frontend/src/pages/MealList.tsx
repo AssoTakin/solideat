@@ -6,6 +6,14 @@ import MealFiltersComponent, { MealFilters } from '../components/MealFilters';
 import Navigation from '../components/Navigation';
 import { USE_MOCK_DATA, mockMeals } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import {
+  SearchIcon,
+  ChefHatIcon,
+  StarIcon,
+  MapPinIcon,
+  UsersIcon,
+  ClockIcon,
+} from '../components/Icons';
 
 // Design System Colors
 
@@ -141,8 +149,10 @@ export default function MealList() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement...</p>
         </div>
       </div>
@@ -192,7 +202,7 @@ export default function MealList() {
               color: colors.textSecondary,
             }}
           >
-            🔍
+            <SearchIcon size={20} color={colors.textSecondary} />
           </div>
           <input
             type="text"
@@ -255,7 +265,9 @@ export default function MealList() {
               marginTop: '24px',
             }}
           >
-            <p style={{ fontSize: '48px', marginBottom: '16px' }}>🍽️</p>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <ChefHatIcon size={48} color={colors.textSecondary} />
+            </div>
             <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
               Aucun repas disponible
             </p>
@@ -326,7 +338,7 @@ export default function MealList() {
                         {meal.name}
                       </h3>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '14px', color: colors.primary }}>⭐</span>
+                        <StarIcon size={14} color={colors.primary} fill={colors.primary} />
                         <span style={{ fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
                           {meal.cook.globalRating?.toFixed(1) || 'N/A'}
                         </span>
@@ -335,13 +347,13 @@ export default function MealList() {
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
                         <span style={{ fontSize: '12px', color: colors.textSecondary, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          📍 {meal.distance ? `${meal.distance.toFixed(1)} km` : 'N/A'}
+                          <MapPinIcon size={12} color={colors.textSecondary} /> {meal.distance ? `${meal.distance.toFixed(1)} km` : 'N/A'}
                         </span>
                         <span style={{ fontSize: '12px', color: colors.textSecondary, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          👥 {meal.portions} part{meal.portions > 1 ? 's' : ''}
+                          <UsersIcon size={12} color={colors.textSecondary} /> {meal.portions} part{meal.portions > 1 ? 's' : ''}
                         </span>
                         <span style={{ fontSize: '12px', color: colors.textSecondary, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          🕐 {formatPickupTime(meal.pickupTimeStart, meal.pickupTimeEnd)}
+                          <ClockIcon size={12} color={colors.textSecondary} /> {formatPickupTime(meal.pickupTimeStart, meal.pickupTimeEnd)}
                         </span>
                       </div>
                       <div

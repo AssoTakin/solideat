@@ -8,6 +8,7 @@ import { badgeService, UserBadge } from '../services/badge.service';
 import Navigation from '../components/Navigation';
 import BadgeList from '../components/BadgeList';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { ClockIcon, StarIcon, MapPinIcon, MessageCircleIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -83,8 +84,10 @@ export default function UserProfile() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement...</p>
         </div>
       </div>
@@ -180,7 +183,7 @@ export default function UserProfile() {
           @{user.username}
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '20px' }}>⭐</span>
+          <StarIcon size={18} color="#F59E0B" fill="#F59E0B" />
           <span style={{ fontSize: '18px', fontWeight: 'bold', color: colors.primary }}>
             {user.globalRating ? user.globalRating.toFixed(1) : 'N/A'}
           </span>
@@ -188,9 +191,9 @@ export default function UserProfile() {
             ({reviews.length} avis)
           </span>
         </div>
-        <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '8px 0 0 0' }}>
-          📍 {user.addressCity}
-        </p>
+        <div style={{ fontSize: '14px', color: colors.textSecondary, margin: '8px 0 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <MapPinIcon size={14} color={colors.textSecondary} /> {user.addressCity}
+        </div>
       </div>
 
       {/* Contenu */}
@@ -239,8 +242,8 @@ export default function UserProfile() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
-            <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
-              💬 Avis récents ({reviews.length})
+            <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <MessageCircleIcon size={18} color={colors.textPrimary} /> Avis récents ({reviews.length})
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {reviews.map((review) => (
@@ -288,15 +291,12 @@ export default function UserProfile() {
                     </div>
                     <div style={{ display: 'flex', gap: '2px' }}>
                       {[...Array(5)].map((_, i) => (
-                        <span
+                        <StarIcon
                           key={i}
-                          style={{
-                            fontSize: '16px',
-                            color: i < review.rating ? colors.primary : colors.backgroundLight,
-                          }}
-                        >
-                          ★
-                        </span>
+                          size={14}
+                          color={i < review.rating ? '#F59E0B' : colors.textSecondary}
+                          fill={i < review.rating ? '#F59E0B' : 'none'}
+                        />
                       ))}
                     </div>
                   </div>

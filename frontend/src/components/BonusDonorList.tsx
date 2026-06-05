@@ -4,6 +4,7 @@ import { bonusDonorService, BonusDonor } from '../services/bonus-donor.service';
 import BonusDonorTransfer from './BonusDonorTransfer';
 import api from '../services/api';
 import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
+import { GiftIcon, InfoIcon } from './Icons';
 
 
 
@@ -98,7 +99,7 @@ export default function BonusDonorList() {
           gap: '8px',
         }}
       >
-        🎁 Mes bonus donateurs
+        <GiftIcon size={20} color={colors.textPrimary} /> Mes bonus donateurs
       </h2>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -131,7 +132,7 @@ export default function BonusDonorList() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ fontSize: '24px' }}>🎁</div>
+                  <GiftIcon size={24} color={isExpiringSoon ? colors.warning : colors.success} />
                   {user?.subscriptionType !== 'FREE' && (
                     <BonusDonorTransfer bonus={bonus} onTransferComplete={loadBonuses} />
                   )}
@@ -142,9 +143,12 @@ export default function BonusDonorList() {
         })}
       </div>
 
-      <p style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '12px', marginBottom: 0 }}>
-        💡 Utilisez vos bonus lors d'une réservation pour réserver sans en proposer en retour (quota hebdomadaire : 2 max)
-      </p>
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'start', marginTop: '12px' }}>
+        <InfoIcon size={14} color={colors.textSecondary} style={{ flexShrink: 0, marginTop: '2px' }} />
+        <p style={{ fontSize: '12px', color: colors.textSecondary, margin: 0 }}>
+          Utilisez vos bonus lors d'une réservation pour réserver sans en proposer en retour (quota hebdomadaire : 2 max)
+        </p>
+      </div>
     </div>
   );
 }

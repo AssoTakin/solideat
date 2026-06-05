@@ -6,6 +6,7 @@ import api from '../services/api';
 import { notificationService } from '../services/notification.service';
 import { USE_MOCK_DATA, mockNotifications } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { CheckIcon, XIcon, StarIcon, SOSIcon, ClockIcon, BellIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -92,20 +93,20 @@ export default function Notifications() {
     }
   };
 
-  const getNotificationIcon = (type: string): string => {
+  const getNotificationIcon = (type: string): React.ReactNode => {
     switch (type) {
       case 'RESERVATION':
-        return '✅';
+        return <CheckIcon size={20} color={colors.success} />;
       case 'CANCELLATION':
-        return '❌';
+        return <XIcon size={20} color={colors.error} />;
       case 'REVIEW':
-        return '⭐';
+        return <StarIcon size={20} color="#F59E0B" fill="#F59E0B" />;
       case 'SAVE_THEM':
-        return '🆘';
+        return <SOSIcon size={20} color={colors.sosAccent} />;
       case 'MEAL_EXPIRING':
-        return '⏰';
+        return <ClockIcon size={20} color={colors.primary} />;
       default:
-        return '🔔';
+        return <BellIcon size={20} color={colors.textSecondary} />;
     }
   };
 
@@ -250,7 +251,9 @@ export default function Notifications() {
 
         {notifications.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px', color: colors.textSecondary }}>
-            <p style={{ fontSize: '48px', marginBottom: '16px' }}>🔔</p>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: colors.textSecondary }}>
+              <BellIcon size={48} color={colors.textSecondary} />
+            </div>
             <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
               Aucune notification
             </p>
@@ -286,11 +289,17 @@ export default function Notifications() {
                     : '0 4px 12px rgba(0,0,0,0.15)';
                 }}
               >
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <div
                     style={{
-                      fontSize: '32px',
                       flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      backgroundColor: notification.read ? colors.backgroundLight : colors.backgroundWhite,
                     }}
                   >
                     {getNotificationIcon(notification.type)}

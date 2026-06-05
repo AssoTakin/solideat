@@ -8,6 +8,7 @@ import { authService } from '../services/auth.service';
 import { LoginDto } from '../types/auth';
 import { USE_MOCK_DATA } from '../data/mockData';
 import { resetRedirectState } from '../services/api';
+import { XIcon, InfoIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -191,7 +192,7 @@ export default function Login() {
               boxShadow: '0 2px 8px rgba(231, 76, 60, 0.2)',
             }}
           >
-            <span style={{ fontSize: '20px', flexShrink: 0 }}>❌</span>
+            <XIcon size={20} color={colors.error} style={{ flexShrink: 0, marginTop: '2px' }} />
             <div style={{ flex: 1 }}>
               <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Erreur de connexion</strong>
               <p style={{ margin: 0, lineHeight: '1.5' }}>{error}</p>
@@ -265,9 +266,13 @@ export default function Login() {
               borderRadius: '8px',
               marginBottom: '16px',
               fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            💡 Mode développement : Utilisez n'importe quel email/mot de passe pour vous connecter
+            <InfoIcon size={14} color="#1976D2" style={{ flexShrink: 0 }} />
+            <span>Mode développement : Utilisez n'importe quel email/mot de passe pour vous connecter</span>
           </div>
         )}
 

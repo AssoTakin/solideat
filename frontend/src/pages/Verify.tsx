@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { USE_MOCK_DATA } from '../data/mockData';
+import { InfoIcon, CheckIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -212,9 +213,13 @@ export default function Verify() {
               borderRadius: '8px',
               marginBottom: '16px',
               fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            💡 Mode développement : La vérification est automatique, utilisez n'importe quel code
+            <InfoIcon size={14} color="#1976D2" style={{ flexShrink: 0 }} />
+            <span>Mode développement : La vérification est automatique, utilisez n'importe quel code</span>
           </div>
         )}
 
@@ -237,7 +242,8 @@ export default function Verify() {
                   marginBottom: '12px',
                 }}
               >
-                ✅ Email vérifié avec succès !
+                <CheckIcon size={18} color={colors.success} />
+                <span>Email vérifié avec succès !</span>
               </div>
               <p style={{ fontSize: '14px', color: colors.textSecondary }}>
                 Vous allez être redirigé vers la page de connexion dans quelques secondes...
@@ -315,7 +321,8 @@ export default function Verify() {
                 fontWeight: 'bold',
               }}
             >
-              ✅ Téléphone vérifié
+              <CheckIcon size={18} color={colors.success} />
+              <span>Téléphone vérifié</span>
             </div>
           ) : (
             <div>
@@ -389,9 +396,14 @@ export default function Verify() {
               marginTop: '24px',
               textAlign: 'center',
               fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
             }}
           >
-            ✅ Votre compte est maintenant vérifié ! Redirection vers la connexion...
+            <CheckIcon size={18} color={colors.success} />
+            <span>Votre compte est maintenant vérifié ! Redirection vers la connexion...</span>
           </div>
         )}
 

@@ -8,6 +8,7 @@ import { authService } from '../services/auth.service';
 import { RegisterDto } from '../types/auth';
 import { USE_MOCK_DATA } from '../data/mockData';
 import { resetRedirectState } from '../services/api';
+import { InfoIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -225,9 +226,13 @@ export default function Register() {
               borderRadius: '8px',
               marginBottom: '16px',
               fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            💡 Mode développement : L'inscription sera simulée, vous pourrez vous connecter immédiatement
+            <InfoIcon size={14} color="#1976D2" style={{ flexShrink: 0 }} />
+            <span>Mode développement : L'inscription sera simulée, vous pourrez vous connecter immédiatement</span>
           </div>
         )}
 

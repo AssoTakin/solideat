@@ -9,6 +9,7 @@ import { reviewService } from '../services/review.service';
 import Navigation from '../components/Navigation';
 import { USE_MOCK_DATA } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { ClockIcon, StarIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -43,6 +44,7 @@ export default function CreateReview() {
   });
 
   const commentLength = watch('comment')?.length || 0;
+  const currentRating = watch('rating') || 5;
 
   useEffect(() => {
     if (mealId) {
@@ -115,8 +117,10 @@ export default function CreateReview() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement...</p>
         </div>
       </div>
@@ -284,7 +288,11 @@ export default function CreateReview() {
                     {...register('rating', { valueAsNumber: true })}
                     style={{ display: 'none' }}
                   />
-                  <span style={{ fontSize: '32px' }}>⭐</span>
+                  <StarIcon
+                    size={32}
+                    color={star <= currentRating ? '#F59E0B' : colors.textSecondary}
+                    fill={star <= currentRating ? '#F59E0B' : 'none'}
+                  />
                 </label>
               ))}
             </div>
@@ -351,7 +359,7 @@ export default function CreateReview() {
                 cursor: submitting || commentLength < 20 ? 'not-allowed' : 'pointer',
               }}
             >
-              {submitting ? 'Envoi...' : '⭐ Publier l\'avis'}
+              {submitting ? 'Envoi...' : 'Publier l\'avis'}
             </button>
             <button
               type="button"

@@ -8,6 +8,7 @@ import api from '../services/api';
 import Navigation from '../components/Navigation';
 import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { ClockIcon, CheckIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -147,8 +148,10 @@ export default function ReserveMeal() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement...</p>
         </div>
       </div>
@@ -358,10 +361,21 @@ export default function ReserveMeal() {
               borderRadius: '8px',
               fontSize: '16px',
               fontWeight: 'bold',
-              cursor: meal.status === 'AVAILABLE' && !reserving ? 'pointer' : 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
             }}
           >
-            {reserving ? 'Réservation...' : '✅ Confirmer la réservation'}
+            {reserving ? (
+              <>
+                <ClockIcon size={18} color={colors.backgroundWhite} /> Réservation...
+              </>
+            ) : (
+              <>
+                <CheckIcon size={18} color={colors.backgroundWhite} /> Confirmer la réservation
+              </>
+            )}
           </button>
           <button
             onClick={() => navigate(`/meals/${id}`)}

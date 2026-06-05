@@ -1,6 +1,23 @@
 import { colors } from '../utils/theme';
 import { useEffect, useState } from 'react';
 import { badgeService, UserBadge } from '../services/badge.service';
+import { TrophyIcon, ChefHatIcon, StarIcon } from './Icons';
+
+function getBadgeIcon(icon: string, color: string) {
+  switch (icon) {
+    case '👨‍🍳':
+    case '👩‍🍳':
+    case '🍽️':
+      return <ChefHatIcon size={32} color={color} />;
+    case '⭐':
+    case '🌟':
+      return <StarIcon size={32} color={color} fill={color} />;
+    case '🏆':
+    case '👑':
+    default:
+      return <TrophyIcon size={32} color={color} />;
+  }
+}
 
 
 
@@ -70,7 +87,7 @@ export default function BadgeList({ userId, badges: providedBadges }: BadgeListP
           gap: '8px',
         }}
       >
-        🏆 Badges obtenus
+        <TrophyIcon size={20} color={colors.textPrimary} /> Badges obtenus
       </h3>
 
       <div
@@ -80,19 +97,23 @@ export default function BadgeList({ userId, badges: providedBadges }: BadgeListP
           gap: '12px',
         }}
       >
-        {badges.map((userBadge) => (
-          <div
-            key={userBadge.id}
-            style={{
-              padding: '12px',
-              backgroundColor: userBadge.badge.premiumOnly ? colors.premium + '20' : colors.badge + '20',
-              borderRadius: '8px',
-              textAlign: 'center',
-              border: `1px solid ${userBadge.badge.premiumOnly ? colors.premium : colors.badge}40`,
-            }}
-            title={userBadge.badge.condition}
-          >
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>{userBadge.badge.icon}</div>
+        {badges.map((userBadge) => {
+          const iconColor = userBadge.badge.premiumOnly ? colors.premium : colors.primary;
+          return (
+            <div
+              key={userBadge.id}
+              style={{
+                padding: '12px',
+                backgroundColor: userBadge.badge.premiumOnly ? colors.premium + '20' : colors.badge + '20',
+                borderRadius: '8px',
+                textAlign: 'center',
+                border: `1px solid ${userBadge.badge.premiumOnly ? colors.premium : colors.badge}40`,
+              }}
+              title={userBadge.badge.condition}
+            >
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+                {getBadgeIcon(userBadge.badge.icon, iconColor)}
+              </div>
             <div style={{ fontSize: '12px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '4px' }}>
               {userBadge.badge.description}
             </div>
@@ -108,11 +129,12 @@ export default function BadgeList({ userId, badges: providedBadges }: BadgeListP
                 PREMIUM
               </div>
             )}
-            <div style={{ fontSize: '10px', color: colors.textSecondary, marginTop: '4px' }}>
-              {new Date(userBadge.earnedAt).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
+              <div style={{ fontSize: '10px', color: colors.textSecondary, marginTop: '4px' }}>
+                {new Date(userBadge.earnedAt).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

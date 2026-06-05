@@ -3,6 +3,20 @@ import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { USE_MOCK_DATA, mockNotifications, mockUsers } from '../data/mockData';
+import { 
+  BellIcon, 
+  SettingsIcon, 
+  PlusIcon, 
+  MessageCircleIcon, 
+  UserIcon, 
+  SOSIcon, 
+  LogOutIcon,
+  HelpCircleIcon,
+  BarChartIcon,
+  CrownIcon,
+  HandshakeIcon,
+  HomeIcon
+} from './Icons';
 
 // Design System Colors
 
@@ -174,7 +188,6 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               style={{
                 textDecoration: 'none',
                 color: colors.textPrimary,
-                fontSize: '20px',
                 padding: '8px',
                 borderRadius: '50%',
                 display: 'flex',
@@ -185,14 +198,13 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               }}
               title="Sauvez-les"
             >
-              🆘
+              <SOSIcon size={20} color={isActive('/save-them') ? colors.sosAccent : colors.textPrimary} />
             </Link>
             <Link
               to="/notifications"
               style={{
                 textDecoration: 'none',
                 color: colors.textPrimary,
-                fontSize: '20px',
                 padding: '8px',
                 borderRadius: '50%',
                 display: 'flex',
@@ -202,7 +214,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                 backgroundColor: isActive('/notifications') ? `${colors.primary}20` : 'transparent',
               }}
             >
-              🔔
+              <BellIcon size={20} color={isActive('/notifications') ? colors.primary : colors.textPrimary} />
               {unreadNotifications > 0 && (
                 <span
                   style={{
@@ -259,7 +271,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                     }}
                   />
                 ) : (
-                  <span style={{ fontSize: '20px' }}>👤</span>
+                  <UserIcon size={20} color={isActive('/dashboard') ? colors.primary : colors.textPrimary} />
                 )}
               </button>
   
@@ -298,9 +310,13 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                           backgroundColor: 'rgba(0, 0, 0, 0.05)',
                           color: colors.textSecondary,
                           border: '1px solid rgba(0, 0, 0, 0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
                         }}
                       >
-                        {`🤝 Membre depuis ${user?.createdAt ? new Date(user.createdAt).getFullYear() : '2025'}`}
+                        <HandshakeIcon size={12} color={colors.textSecondary} />
+                        {`Membre depuis ${user?.createdAt ? new Date(user.createdAt).getFullYear() : '2025'}`}
                       </span>
                     </div>
                   </div>
@@ -322,7 +338,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    📊 Tableau de bord
+                    <BarChartIcon size={16} color={colors.textPrimary} /> Tableau de bord
                   </Link>
                   <Link
                     to={`/users/${user?.id || 'me'}`}
@@ -340,7 +356,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    👤 Mon profil public
+                    <UserIcon size={16} color={colors.textPrimary} /> Mon profil public
                   </Link>
                   <Link
                     to="/profile/edit"
@@ -358,7 +374,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    ⚙️ Modifier mon profil
+                    <SettingsIcon size={16} color={colors.textPrimary} /> Modifier mon profil
                   </Link>
                   <Link
                     to="/subscriptions/plans"
@@ -377,7 +393,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    👑 Formules & Abonnements
+                    <CrownIcon size={16} color={colors.premium} /> Formules & Abonnements
                   </Link>
                   <Link
                     to="/help"
@@ -395,7 +411,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    ❓ Aide & FAQ
+                    <HelpCircleIcon size={16} color={colors.textPrimary} /> Aide & FAQ
                   </Link>
                   <div style={{ height: '1px', backgroundColor: colors.backgroundLight, margin: '4px 0' }} />
                   <button
@@ -420,7 +436,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FEE')}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    🚪 Se déconnecter
+                    <LogOutIcon size={16} color={colors.error} /> Se déconnecter
                   </button>
                 </div>
               )}
@@ -525,26 +541,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               backgroundColor: isActive('/') ? `${colors.primary}10` : 'transparent',
             }}
           >
-            <img
-              src="/logo.png"
-              alt="Accueil"
-              style={{
-                height: '24px',
-                width: 'auto',
-                filter: isActive('/') ? 'none' : 'grayscale(100%) opacity(70%)',
-                transition: 'filter 0.2s',
-              }}
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-                const parent = (e.target as HTMLImageElement).parentElement;
-                if (parent) {
-                  const span = document.createElement('span');
-                  span.style.fontSize = '24px';
-                  span.textContent = '🏠';
-                  parent.insertBefore(span, parent.firstChild);
-                }
-              }}
-            />
+            <HomeIcon size={20} color={isActive('/') ? colors.primary : colors.textSecondary} />
             <span style={{ fontSize: '10px', fontWeight: isActive('/') ? 'bold' : 'normal' }}>Accueil</span>
           </Link>
           <Link
@@ -561,7 +558,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               backgroundColor: isActive('/save-them') ? `${colors.sosAccent}10` : 'transparent',
             }}
           >
-            <span style={{ fontSize: '24px' }}>🆘</span>
+            <SOSIcon size={20} color={isActive('/save-them') ? colors.sosAccent : colors.textSecondary} />
             <span style={{ fontSize: '10px', fontWeight: isActive('/save-them') ? 'bold' : 'normal' }}>Sauvez-les</span>
           </Link>
           <Link
@@ -584,7 +581,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               backgroundColor: isActive('/meals/new') ? `${colors.primary}10` : 'transparent',
             }}
           >
-            <span style={{ fontSize: '24px' }}>➕</span>
+            <PlusIcon size={20} color={isActive('/meals/new') ? colors.primary : colors.textSecondary} />
             <span style={{ fontSize: '10px', fontWeight: isActive('/meals/new') ? 'bold' : 'normal' }}>Proposer</span>
           </Link>
           <Link
@@ -608,7 +605,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               position: 'relative',
             }}
           >
-            <span style={{ fontSize: '24px' }}>💬</span>
+            <MessageCircleIcon size={20} color={isActive('/messages') ? colors.primary : colors.textSecondary} />
             <span style={{ fontSize: '10px', fontWeight: isActive('/messages') ? 'bold' : 'normal' }}>Messages</span>
           </Link>
           <Link
@@ -631,7 +628,7 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
               backgroundColor: isActive('/dashboard') ? `${colors.primary}10` : 'transparent',
             }}
           >
-            <span style={{ fontSize: '24px' }}>👤</span>
+            <UserIcon size={20} color={isActive('/dashboard') ? colors.primary : colors.textSecondary} />
             <span style={{ fontSize: '10px', fontWeight: isActive('/dashboard') ? 'bold' : 'normal' }}>Profil</span>
           </Link>
         </nav>

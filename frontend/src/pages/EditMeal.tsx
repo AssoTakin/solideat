@@ -12,6 +12,14 @@ import { addressService, AddressSuggestion } from '../services/address.service';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 import { compressImage } from '../utils/image';
+import {
+  ClockIcon,
+  AlertTriangleIcon,
+  PlusIcon,
+  CrownIcon,
+  MapPinIcon,
+  SaveIcon,
+} from '../components/Icons';
 
 // Design System Colors
 
@@ -342,8 +350,10 @@ export default function EditMeal() {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: colors.backgroundLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement du repas...</p>
         </div>
       </div>
@@ -405,7 +415,9 @@ export default function EditMeal() {
               fontWeight: 500,
             }}
           >
-            ⚠️ {error}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <AlertTriangleIcon size={16} color={colors.error} /> {error}
+            </span>
           </div>
         )}
 
@@ -504,7 +516,7 @@ export default function EditMeal() {
                     gap: '8px',
                   }}
                 >
-                  <span style={{ fontSize: '32px' }}>📸</span>
+                  <PlusIcon size={32} color={colors.primary} />
                   <span style={{ fontSize: '14px', fontWeight: 'bold', color: colors.primary }}>Modifier la photo</span>
                   <span style={{ fontSize: '11px', color: colors.textSecondary }}>PNG, JPG ou JPEG (max 10 Mo)</span>
                   <input
@@ -620,7 +632,9 @@ export default function EditMeal() {
                       fontWeight: 500,
                     }}
                   >
-                    👑 Passez à <span style={{ fontWeight: 'bold' }}>Premium</span> pour proposer jusqu'à 4 parts.
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <CrownIcon size={14} color={colors.premium} /> Passez à <span style={{ fontWeight: 'bold' }}>Premium</span> pour proposer jusqu'à 4 parts.
+                    </span>
                   </div>
                 )}
               </div>
@@ -664,7 +678,8 @@ export default function EditMeal() {
                   />
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span>💰 Vendre ce repas</span>
+                      <CrownIcon size={16} color={colors.premium} />
+                      <span style={{ fontWeight: 'bold' }}>Vendre ce repas</span>
                       <span style={{ 
                         fontSize: '12px', 
                         padding: '2px 8px', 
@@ -805,7 +820,9 @@ export default function EditMeal() {
                   }}
                 />
                 {addressLoading && (
-                  <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px' }}>⏳</div>
+                  <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
+                    <ClockIcon size={16} color={colors.primary} />
+                  </div>
                 )}
               </div>
               <p style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '4px' }}>
@@ -875,7 +892,9 @@ export default function EditMeal() {
                     allowFullScreen
                   />
                   <div style={{ padding: '8px 12px', backgroundColor: '#F8F9FA', fontSize: '12px', color: colors.textSecondary, borderTop: `1px solid ${colors.backgroundLight}`, display: 'flex', justifyContent: 'space-between' }}>
-                    <span>📍 Coordonnées : {typeof mapCoords.lat === 'number' ? mapCoords.lat.toFixed(5) : 'N/A'}, {typeof mapCoords.lng === 'number' ? mapCoords.lng.toFixed(5) : 'N/A'}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <MapPinIcon size={12} color={colors.textSecondary} /> Coordonnées : {typeof mapCoords.lat === 'number' ? mapCoords.lat.toFixed(5) : 'N/A'}, {typeof mapCoords.lng === 'number' ? mapCoords.lng.toFixed(5) : 'N/A'}
+                    </span>
                   </div>
                 </div>
               )}
@@ -922,7 +941,15 @@ export default function EditMeal() {
                   gap: '8px',
                 }}
               >
-                {saving ? 'Enregistrement... ⏳' : '💾 Enregistrer'}
+                {saving ? (
+                  <>
+                    <ClockIcon size={18} color={colors.backgroundWhite} /> Enregistrement...
+                  </>
+                ) : (
+                  <>
+                    <SaveIcon size={18} color={colors.backgroundWhite} /> Enregistrer
+                  </>
+                )}
               </button>
             </div>
           </form>

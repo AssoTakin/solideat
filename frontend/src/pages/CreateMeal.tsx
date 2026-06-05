@@ -10,6 +10,14 @@ import { subscriptionService } from '../services/subscription.service';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import { addressService, AddressSuggestion } from '../services/address.service';
 import { compressImage } from '../utils/image';
+import {
+  AlertTriangleIcon,
+  PlusIcon,
+  InfoIcon,
+  ClockIcon,
+  MapPinIcon,
+  CrownIcon,
+} from '../components/Icons';
 
 // Design System Colors
 
@@ -521,7 +529,7 @@ export default function CreateMeal() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-              <span style={{ fontSize: '20px', flexShrink: 0 }}>❌</span>
+              <AlertTriangleIcon size={20} color={colors.error} style={{ flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Erreur de validation</strong>
                 <pre style={{ 
@@ -589,7 +597,9 @@ export default function CreateMeal() {
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: '48px' }}>📷</div>
+                  <div style={{ color: colors.primary, marginBottom: '8px' }}>
+                    <PlusIcon size={48} color={colors.primary} />
+                  </div>
                   <div style={{ textAlign: 'center' }}>
                     <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '4px' }}>
                       Ajouter une photo <span style={{ color: colors.error }}>*</span>
@@ -598,7 +608,7 @@ export default function CreateMeal() {
                       Prenez une photo ou importez de la galerie
                     </p>
                     <p style={{ fontSize: '12px', color: colors.warning, fontStyle: 'italic', marginTop: '4px' }}>
-                      📸 Veuillez ajouter une <strong>vraie photo de votre plat cuisiné</strong>. Les photos de stock ou d'illustration ne sont pas acceptées.
+                      Veuillez ajouter une <strong>vraie photo de votre plat cuisiné</strong>. Les photos de stock ou d'illustration ne sont pas acceptées.
                     </p>
                   </div>
                   <label
@@ -841,8 +851,8 @@ export default function CreateMeal() {
                 <label style={{ fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
                   Nombre de parts *
                 </label>
-                <span style={{ fontSize: '12px', color: colors.textSecondary }} title="Les membres gratuits sont limités à 1 part">
-                  ℹ️
+                <span style={{ display: 'inline-flex', alignItems: 'center', color: colors.textSecondary, cursor: 'pointer' }} title="Les membres gratuits sont limités à 1 part">
+                  <InfoIcon size={14} color={colors.textSecondary} />
                 </span>
               </div>
               <select
@@ -897,8 +907,9 @@ export default function CreateMeal() {
                     e.currentTarget.style.backgroundColor = `${colors.primary}10`;
                   }}
                 >
-                  <p style={{ fontSize: '12px', color: colors.primary, fontWeight: 500, margin: 0 }}>
-                    💡 <strong>Passez au Premium</strong> pour partager jusqu'à 4 parts par repas et accéder à plus de fonctionnalités !
+                  <p style={{ fontSize: '12px', color: colors.primary, fontWeight: 500, margin: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <InfoIcon size={14} color={colors.primary} />
+                    <span><strong>Passez au Premium</strong> pour partager jusqu'à 4 parts par repas et accéder à plus de fonctionnalités !</span>
                   </p>
                 </Link>
               )}
@@ -914,8 +925,8 @@ export default function CreateMeal() {
                   border: '1px solid #90CAF9',
                 }}
               >
-                <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#1976D2', marginBottom: '4px' }}>
-                  ⏰ Expiration automatique calculée
+                <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#1976D2', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <ClockIcon size={16} color="#1976D2" /> Expiration automatique calculée
                 </p>
                 <p style={{ fontSize: '12px', color: '#1565C0' }}>
                   Ce repas expirera automatiquement le{' '}
@@ -933,8 +944,8 @@ export default function CreateMeal() {
                 border: '1px solid #FFB74D',
               }}
             >
-              <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#E65100', marginBottom: '4px' }}>
-                ⚠️ Règle importante
+              <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#E65100', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <AlertTriangleIcon size={16} color="#E65100" /> Règle importante
               </p>
               <p style={{ fontSize: '12px', color: '#E65100' }}>
                 Si le repas n'est pas réservé avant l'expiration, il sera automatiquement retiré et ajouté dans la rubrique "Sauvez-les" 24h avant expiration.
@@ -972,10 +983,12 @@ export default function CreateMeal() {
                       right: '12px',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      fontSize: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      color: colors.primary,
                     }}
                   >
-                    ⏳
+                    <ClockIcon size={16} color={colors.primary} />
                   </div>
                 )}
               </div>
@@ -1047,8 +1060,8 @@ export default function CreateMeal() {
                     src={`https://maps.google.com/maps?q=${mapCoords.lat},${mapCoords.lng}&z=16&output=embed`}
                     allowFullScreen
                   />
-                  <div style={{ padding: '8px 12px', backgroundColor: '#F8F9FA', fontSize: '12px', color: colors.textSecondary, borderTop: `1px solid ${colors.backgroundLight}`, display: 'flex', justifyContent: 'space-between' }}>
-                    <span>📍 Coordonnées : {mapCoords.lat.toFixed(5)}, {mapCoords.lng.toFixed(5)}</span>
+                  <div style={{ padding: '8px 12px', backgroundColor: '#F8F9FA', fontSize: '12px', color: colors.textSecondary, borderTop: `1px solid ${colors.backgroundLight}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPinIcon size={12} color={colors.textSecondary} /> Coordonnées : {mapCoords.lat.toFixed(5)}, {mapCoords.lng.toFixed(5)}</span>
                     <span style={{ color: colors.success }}>✓ Géolocalisation active</span>
                   </div>
                 </div>
@@ -1063,7 +1076,10 @@ export default function CreateMeal() {
                     fontSize: '14px',
                   }}
                 >
-                  🗺️ Entrez une adresse pour afficher l'emplacement sur la carte
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+                    <MapPinIcon size={32} color={colors.textSecondary} />
+                  </div>
+                  Entrez une adresse pour afficher l'emplacement sur la carte
                 </div>
               )}
             </div>
@@ -1188,7 +1204,8 @@ export default function CreateMeal() {
                   />
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span>💰 Vendre ce repas</span>
+                      <CrownIcon size={16} color={colors.premium} />
+                      <span style={{ fontWeight: 'bold' }}>Vendre ce repas</span>
                       <span style={{ 
                         fontSize: '12px', 
                         padding: '2px 8px', 

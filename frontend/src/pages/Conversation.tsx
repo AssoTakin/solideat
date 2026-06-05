@@ -5,6 +5,7 @@ import { messageService, Message } from '../services/message.service';
 import { USE_MOCK_DATA, mockMessages, mockUsers } from '../data/mockData';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { MessageCircleIcon, ClockIcon, SendIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -139,8 +140,10 @@ export default function Conversation() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement...</p>
         </div>
       </div>
@@ -220,7 +223,9 @@ export default function Conversation() {
         >
           {messages.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px', color: colors.textSecondary }}>
-              <p style={{ fontSize: '48px', marginBottom: '16px' }}>💬</p>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                <MessageCircleIcon size={48} color={colors.textSecondary} />
+              </div>
               <p style={{ fontSize: '16px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
                 Aucun message
               </p>
@@ -349,9 +354,16 @@ export default function Conversation() {
                 fontSize: '14px',
                 fontWeight: 'bold',
                 height: 'fit-content',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              {sending ? '⏳' : '📤'}
+              {sending ? (
+                <ClockIcon size={16} color={colors.backgroundWhite} />
+              ) : (
+                <SendIcon size={16} color={colors.backgroundWhite} />
+              )}
             </button>
           </div>
           {newMessage.length > 0 && (

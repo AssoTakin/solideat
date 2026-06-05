@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { quotaService, QuotaStatus } from '../services/quota.service';
 import { isRedirectingToLogin } from '../services/api';
+import { AlertTriangleIcon } from './Icons';
 
 export default function QuotaStatusComponent() {
   const [quotaStatus, setQuotaStatus] = useState<QuotaStatus | null>(null);
@@ -90,7 +91,7 @@ export default function QuotaStatusComponent() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-            <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
+            <AlertTriangleIcon size={20} color="#E74C3C" style={{ flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Erreur de chargement</strong>
               <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.5' }}>{error}</p>
@@ -148,8 +149,8 @@ export default function QuotaStatusComponent() {
                 marginBottom: '0.5rem',
               }}
             >
-              <p style={{ margin: 0, color: '#ff4444', fontWeight: 'bold' }}>
-                ⚠️ Vos réservations sont temporairement bloquées
+              <p style={{ margin: 0, color: '#ff4444', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <AlertTriangleIcon size={16} color="#ff4444" /> Vos réservations sont temporairement bloquées
               </p>
             </div>
           )}
@@ -164,8 +165,8 @@ export default function QuotaStatusComponent() {
                 marginBottom: '0.5rem',
               }}
             >
-              <p style={{ margin: 0, color: '#ff4444', fontWeight: 'bold' }}>
-                ⚠️ Vos annulations sont temporairement bloquées
+              <p style={{ margin: 0, color: '#ff4444', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <AlertTriangleIcon size={16} color="#ff4444" /> Vos annulations sont temporairement bloquées
               </p>
             </div>
           )}
@@ -284,7 +285,9 @@ export default function QuotaStatusComponent() {
             <span style={{ fontSize: '14px' }}>
               Annulations
               {quotaStatus.monthly.cancellations.isReduced && (
-                <span style={{ color: '#ff4444', marginLeft: '0.5rem', fontSize: '12px' }}>⚠️ Réduit</span>
+                <span style={{ color: '#ff4444', marginLeft: '0.5rem', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                  <AlertTriangleIcon size={12} color="#ff4444" /> Réduit
+                </span>
               )}
             </span>
             <span style={{ fontSize: '14px', fontWeight: 'bold' }}>
@@ -327,7 +330,9 @@ export default function QuotaStatusComponent() {
             <span style={{ fontSize: '14px' }}>
               Repas non récupérés
               {quotaStatus.monthly.notPickedUp.isReduced && (
-                <span style={{ color: '#ff4444', marginLeft: '0.5rem', fontSize: '12px' }}>⚠️ Réduit</span>
+                <span style={{ color: '#ff4444', marginLeft: '0.5rem', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                  <AlertTriangleIcon size={12} color="#ff4444" /> Réduit
+                </span>
               )}
             </span>
             <span style={{ fontSize: '14px', fontWeight: 'bold' }}>

@@ -5,6 +5,7 @@ import { messageService, Conversation } from '../services/message.service';
 import { USE_MOCK_DATA, mockConversations } from '../data/mockData';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { ClockIcon, MessageCircleIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -52,8 +53,10 @@ export default function Conversations() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement...</p>
         </div>
       </div>
@@ -123,7 +126,9 @@ export default function Conversations() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
-            <p style={{ fontSize: '48px', marginBottom: '16px' }}>💬</p>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <MessageCircleIcon size={48} color={colors.textSecondary} />
+            </div>
             <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
               Aucune conversation
             </p>

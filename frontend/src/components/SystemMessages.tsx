@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { notificationService, SystemMessage } from '../services/notification.service';
 import { isRedirectingToLogin } from '../services/api';
+import { AlertTriangleIcon } from './Icons';
 
 interface SystemMessagesProps {
   onMessageRead?: () => void;
@@ -125,7 +126,7 @@ export default function SystemMessages({ onMessageRead }: SystemMessagesProps) {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-            <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
+            <AlertTriangleIcon size={20} color="#E74C3C" style={{ flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Erreur de chargement</strong>
               <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.5' }}>{error}</p>

@@ -7,6 +7,20 @@ import { bonusDonorService } from '../services/bonus-donor.service';
 import Navigation from '../components/Navigation';
 import { USE_MOCK_DATA, mockSaveThemMeals, mockUsers } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import {
+  SearchIcon,
+  MapPinIcon,
+  ClockIcon,
+  ChefHatIcon,
+  AlertTriangleIcon,
+  SOSIcon,
+  StarIcon,
+  HeartIcon,
+  GlobeIcon,
+  UsersIcon,
+  PlusIcon,
+  BarChartIcon,
+} from '../components/Icons';
 
 // Design System Colors EXACTES depuis les maquettes HTML (code_improved.html)
 
@@ -280,7 +294,7 @@ export default function Home() {
                     color: colors.textSecondary,
                   }}
                 >
-                  🔍
+                  <SearchIcon size={20} color={colors.textSecondary} />
                 </div>
                 <input
                   type="text"
@@ -314,8 +328,8 @@ export default function Home() {
               }}
             >
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: colors.textSecondary }}>
-                  📍 Distance
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px', fontSize: '14px', color: colors.textSecondary }}>
+                  <MapPinIcon size={14} color={colors.textSecondary} /> Distance
                 </label>
                 <select
                   value={filters.maxDistance}
@@ -337,8 +351,8 @@ export default function Home() {
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: colors.textSecondary }}>
-                  🕐 Heure
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px', fontSize: '14px', color: colors.textSecondary }}>
+                  <ClockIcon size={14} color={colors.textSecondary} /> Heure
                 </label>
                 <select
                   value={filters.hour}
@@ -360,8 +374,8 @@ export default function Home() {
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: colors.textSecondary }}>
-                  🍽️ Type cuisine
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px', fontSize: '14px', color: colors.textSecondary }}>
+                  <ChefHatIcon size={14} color={colors.textSecondary} /> Type cuisine
                 </label>
                 <select
                   value={filters.cuisine}
@@ -384,8 +398,8 @@ export default function Home() {
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: colors.textSecondary }}>
-                  👥 Parts
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px', fontSize: '14px', color: colors.textSecondary }}>
+                  <UsersIcon size={14} color={colors.textSecondary} /> Parts
                 </label>
                 <select
                   value={filters.portions}
@@ -422,8 +436,9 @@ export default function Home() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <div>
-                    <p style={{ fontSize: '16px', fontWeight: 600, color: colors.textPrimary, margin: 0 }}>
-                      ⚠️ Votre quota: {quotaStatus.weeklyReservations?.used || 0}/{quotaStatus.weeklyReservations?.limit || 1} repas réservé cette semaine
+                    <p style={{ fontSize: '16px', fontWeight: 600, color: colors.textPrimary, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <AlertTriangleIcon size={16} color={quotaStatus.weeklyReservations?.used === quotaStatus.weeklyReservations?.limit ? colors.error : colors.warning} />
+                      Votre quota: {quotaStatus.weeklyReservations?.used || 0}/{quotaStatus.weeklyReservations?.limit || 1} repas réservé cette semaine
                     </p>
                     <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '4px 0 0 0' }}>
                       Réinitialisé chaque lundi
@@ -439,7 +454,7 @@ export default function Home() {
                       borderRadius: '9999px',
                     }}
                   >
-                    {quotaStatus.weeklyReservations?.used || 0}/{quotaStatus.weeklyReservations?.limit || 1} ✅
+                    {quotaStatus.weeklyReservations?.used || 0}/{quotaStatus.weeklyReservations?.limit || 1}
                   </span>
                 </div>
                 <div
@@ -486,7 +501,7 @@ export default function Home() {
                         letterSpacing: '0.5px',
                       }}
                     >
-                      🆘 SAUVEZ-LES ({saveThemMeals.length} repas)
+                      <SOSIcon size={20} color={colors.sosAccent} /> SAUVEZ-LES ({saveThemMeals.length} repas)
                     </h2>
                     <Link
                       to="/save-them"
@@ -580,7 +595,7 @@ export default function Home() {
                                   gap: '4px',
                                 }}
                               >
-                                ⏰ Finit dans {hoursRemaining}h
+                                 <ClockIcon size={14} color={colors.backgroundWhite} /> Finit dans {hoursRemaining}h
                               </div>
                             </div>
                             <div style={{ padding: '12px' }}>
@@ -588,7 +603,7 @@ export default function Home() {
                                 {meal.name}
                               </p>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: colors.textSecondary }}>
-                                <span>📍</span>
+                                <span><MapPinIcon size={14} color={colors.textSecondary} /></span>
                                 <span>{meal.distance ? `${meal.distance.toFixed(1)} km` : 'Distance N/A'}</span>
                                 <span>•</span>
                                 <span>{meal.cook.username}</span>
@@ -724,7 +739,7 @@ export default function Home() {
                             </span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
-                            <span style={{ color: colors.badge, fontSize: '12px' }}>⭐</span>
+                            <StarIcon size={12} color={colors.badge} fill={colors.badge} />
                             <span style={{ fontSize: '12px', fontWeight: 500, color: colors.textPrimary }}>
                               {meal.cook.globalRating ? meal.cook.globalRating.toFixed(1) : 'N/A'} ({meal.cook.username})
                             </span>
@@ -732,7 +747,7 @@ export default function Home() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: '12px', color: colors.textSecondary, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            📍 {meal.distance ? `${meal.distance.toFixed(1)} km` : 'Distance N/A'}
+                            <MapPinIcon size={12} color={colors.textSecondary} /> {meal.distance ? `${meal.distance.toFixed(1)} km` : 'Distance N/A'}
                           </span>
                           {/* Bouton contextuel selon le propriétaire et l'éligibilité */}
                           {currentUser && meal.cook.id === currentUser.id ? (
@@ -839,9 +854,12 @@ export default function Home() {
                     borderRadius: '8px',
                     fontSize: '16px',
                     fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
                   }}
                 >
-                  ➕ Proposer un repas
+                  <PlusIcon size={18} color={colors.backgroundWhite} /> Proposer un repas
                 </Link>
                 <Link
                   to={isGuestMode ? '#' : '/meals'}
@@ -860,9 +878,12 @@ export default function Home() {
                     fontWeight: 600,
                     border: `2px solid ${colors.primary}`,
                     backgroundColor: 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
                   }}
                 >
-                  📊 Voir plus
+                  <BarChartIcon size={18} color={colors.primary} /> Voir plus
                 </Link>
               </div>
             </section>
@@ -943,9 +964,12 @@ export default function Home() {
                       border: 'none',
                       cursor: 'pointer',
                       boxShadow: '0 4px 12px rgba(146, 67, 46, 0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
                     }}
                   >
-                    🍴 Explorer la carte
+                    <SearchIcon size={18} color={colors.backgroundWhite} /> Explorer la carte
                   </button>
                   <Link
                     to="/register"
@@ -973,10 +997,10 @@ export default function Home() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#FAF9F6', border: '1px solid #D1DBD3', color: '#92432e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>S</div>
-                      <div>
-                        <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: '#1e1b18' }}>Chef Sophie L.</p>
-                        <p style={{ margin: 0, fontSize: '11px', color: '#4A4542' }}>⭐ 4.9 (28 avis) • Paris 11e</p>
-                      </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <StarIcon size={11} color="#f59e0b" fill="#f59e0b" style={{ flexShrink: 0 }} />
+                          <p style={{ margin: 0, fontSize: '11px', color: '#4A4542' }}>4.9 (28 avis) • Paris 11e</p>
+                        </div>
                     </div>
                     <span style={{ fontSize: '11px', backgroundColor: '#f0e0cc', color: '#64594a', padding: '4px 8px', borderRadius: '8px', fontWeight: 'bold' }}>
                       Premium Cook
@@ -984,8 +1008,8 @@ export default function Home() {
                   </div>
                   {/* Photo fictive du repas */}
                   <div style={{ height: '200px', borderRadius: '8px', backgroundColor: '#FAF9F6', backgroundImage: 'url("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', marginBottom: '16px', border: '1px solid #e9e1dc' }}>
-                    <span style={{ position: 'absolute', bottom: '8px', left: '8px', backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #D1DBD3', color: '#4e6356', fontSize: '11px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px' }}>
-                      🥗 Cuisine Saine
+                    <span style={{ position: 'absolute', bottom: '8px', left: '8px', backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #D1DBD3', color: '#4e6356', fontSize: '11px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <ChefHatIcon size={12} color="#4e6356" /> Cuisine Saine
                     </span>
                   </div>
                   {/* Titre & Description du repas */}
@@ -1028,8 +1052,8 @@ export default function Home() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%' }}>
                 {/* Feature 1 */}
                 <div className="feature-card" style={{ padding: '32px 24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: '#f5ece7', color: '#92432e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                    🍳
+                  <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: '#f5ece7', color: '#92432e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ChefHatIcon size={24} color="#92432e" />
                   </div>
                   <h3 style={{ fontSize: '17px', fontWeight: 'bold', color: '#1e1b18', margin: 0 }}>Partagez vos Plats</h3>
                   <p style={{ fontSize: '14px', color: '#4A4542', lineHeight: '1.6', margin: 0 }}>
@@ -1039,8 +1063,8 @@ export default function Home() {
 
                 {/* Feature 2 */}
                 <div className="feature-card" style={{ padding: '32px 24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: '#cbe3d2', color: '#4e6356', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                    🥗
+                  <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: '#cbe3d2', color: '#4e6356', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <HeartIcon size={24} color="#4e6356" />
                   </div>
                   <h3 style={{ fontSize: '17px', fontWeight: 'bold', color: '#1e1b18', margin: 0 }}>Diversifiez vos Saveurs</h3>
                   <p style={{ fontSize: '14px', color: '#4A4542', lineHeight: '1.6', margin: 0 }}>
@@ -1050,8 +1074,8 @@ export default function Home() {
 
                 {/* Feature 3 */}
                 <div className="feature-card" style={{ padding: '32px 24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: '#f0e0cc', color: '#64594a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                    🌍
+                  <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: '#f0e0cc', color: '#64594a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <GlobeIcon size={24} color="#64594a" />
                   </div>
                   <h3 style={{ fontSize: '17px', fontWeight: 'bold', color: '#1e1b18', margin: 0 }}>Zéro Gaspillage</h3>
                   <p style={{ fontSize: '14px', color: '#4A4542', lineHeight: '1.6', margin: 0 }}>
@@ -1120,7 +1144,9 @@ export default function Home() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>👋</span>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: colors.primary }}>
+              <UsersIcon size={48} color={colors.primary} />
+            </div>
             <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
               Rejoignez SOLID'EAT !
             </h3>

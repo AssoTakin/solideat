@@ -5,6 +5,7 @@ import { userService } from '../services/user.service';
 import { USE_MOCK_DATA, mockSubscriptionPlans, mockUsers } from '../data/mockData';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import { ClockIcon, CheckIcon } from '../components/Icons';
 
 // Design System Colors
 
@@ -124,8 +125,10 @@ export default function SubscriptionPlans() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement...</p>
         </div>
       </div>
@@ -391,7 +394,7 @@ export default function SubscriptionPlans() {
                 <ul style={{ listStyle: 'none', padding: 0, marginBottom: '24px' }}>
                   {plan.features.map((feature, index) => (
                     <li key={index} style={{ marginBottom: '12px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                      <span style={{ color: colors.success, fontSize: '18px', flexShrink: 0 }}>✓</span>
+                      <CheckIcon size={18} color={colors.success} style={{ flexShrink: 0, marginTop: '2px' }} />
                       <span style={{ fontSize: '14px', color: colors.textPrimary, lineHeight: '1.5' }}>{feature}</span>
                     </li>
                   ))}
@@ -443,7 +446,7 @@ export default function SubscriptionPlans() {
             {['Réserver 1 repas par semaine', 'Proposer 1 repas par semaine', 'Accéder aux fonctionnalités de base'].map(
               (feature, index) => (
                 <li key={index} style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ color: colors.success, fontSize: '16px' }}>✓</span>
+                  <CheckIcon size={16} color={colors.success} style={{ flexShrink: 0 }} />
                   <span style={{ fontSize: '14px', color: colors.textPrimary }}>{feature}</span>
                 </li>
               )

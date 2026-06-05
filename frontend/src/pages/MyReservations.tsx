@@ -5,6 +5,14 @@ import { reservationService, Reservation } from '../services/reservation.service
 import { USE_MOCK_DATA, mockReservations } from '../data/mockData';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
+import {
+  ClockIcon,
+  CalendarIcon,
+  MapPinIcon,
+  EyeIcon,
+  XIcon,
+  StarIcon,
+} from '../components/Icons';
 
 // Design System Colors
 
@@ -100,8 +108,10 @@ export default function MyReservations() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+        <div style={{ textAlign: 'center', color: colors.primary }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <ClockIcon size={48} color={colors.primary} />
+          </div>
           <p style={{ color: colors.textPrimary }}>Chargement...</p>
         </div>
       </div>
@@ -200,7 +210,9 @@ export default function MyReservations() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
-            <p style={{ fontSize: '48px', marginBottom: '16px' }}>📋</p>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <CalendarIcon size={48} color={colors.textSecondary} />
+            </div>
             <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
               Aucune réservation
             </p>
@@ -254,18 +266,18 @@ export default function MyReservations() {
                         {reservation.meal.cook.username}
                       </Link>
                     </p>
-                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0' }}>
-                      📅 {new Date(reservation.meal.serviceDate).toLocaleDateString('fr-FR', {
+                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CalendarIcon size={14} color={colors.textSecondary} /> {new Date(reservation.meal.serviceDate).toLocaleDateString('fr-FR', {
                         weekday: 'long',
                         day: 'numeric',
                         month: 'long',
                       })}
                     </p>
-                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0' }}>
-                      🕐 {formatPickupTime(reservation.meal.pickupTimeStart, reservation.meal.pickupTimeEnd)}
+                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <ClockIcon size={14} color={colors.textSecondary} /> {formatPickupTime(reservation.meal.pickupTimeStart, reservation.meal.pickupTimeEnd)}
                     </p>
-                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0' }}>
-                      📍 {reservation.meal.pickupAddress}
+                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPinIcon size={14} color={colors.textSecondary} /> {reservation.meal.pickupAddress}
                     </p>
                     <div
                       style={{
@@ -285,14 +297,14 @@ export default function MyReservations() {
                       }}
                     >
                       {reservation.meal.status === 'SERVED'
-                        ? '✅ Servi'
+                        ? 'Servi'
                         : reservation.meal.status === 'RESERVED'
-                        ? '⏳ Réservé'
+                        ? 'Réservé'
                         : reservation.meal.status}
                     </div>
                     {reservation.cancelledAt && (
                       <p style={{ color: colors.error, fontSize: '12px', margin: '8px 0 0 0' }}>
-                        ❌ Annulé le {new Date(reservation.cancelledAt).toLocaleDateString('fr-FR')}
+                        Annulé le {new Date(reservation.cancelledAt).toLocaleDateString('fr-FR')}
                         {reservation.cancellationReason && (
                           <>
                             <br />
@@ -303,7 +315,7 @@ export default function MyReservations() {
                     )}
                     {reservation.pickedUpAt && (
                       <p style={{ color: colors.success, fontSize: '12px', margin: '8px 0 0 0' }}>
-                        ✅ Récupéré le {new Date(reservation.pickedUpAt).toLocaleDateString('fr-FR')}
+                        Récupéré le {new Date(reservation.pickedUpAt).toLocaleDateString('fr-FR')}
                       </p>
                     )}
                   </div>
@@ -319,9 +331,12 @@ export default function MyReservations() {
                       borderRadius: '8px',
                       fontSize: '14px',
                       fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
                     }}
                   >
-                    👁️ Voir le repas
+                    <EyeIcon size={14} color={colors.backgroundWhite} /> Voir le repas
                   </Link>
                   {reservation.meal.status === 'RESERVED' && !reservation.cancelledAt && (
                     <button
@@ -335,9 +350,12 @@ export default function MyReservations() {
                         fontSize: '14px',
                         fontWeight: 'bold',
                         cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
                       }}
                     >
-                      ❌ Annuler
+                      <XIcon size={14} color={colors.backgroundWhite} /> Annuler
                     </button>
                   )}
                   {reservation.meal.status === 'SERVED' && reservation.pickedUpAt && !reservation.cancelledAt && (
@@ -351,9 +369,12 @@ export default function MyReservations() {
                         borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
                       }}
                     >
-                      ⭐ Noter ce repas
+                      <StarIcon size={14} color={colors.textPrimary} fill={colors.textPrimary} /> Noter ce repas
                     </Link>
                   )}
                 </div>

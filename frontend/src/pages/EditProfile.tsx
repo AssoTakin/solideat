@@ -7,6 +7,13 @@ import { userService } from '../services/user.service';
 import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import { compressImage } from '../utils/image';
+import {
+  UserIcon,
+  CrownIcon,
+  SettingsIcon,
+  EyeIcon,
+  MapPinIcon,
+} from '../components/Icons';
 
 // Design System Colors
 
@@ -294,8 +301,8 @@ export default function EditProfile() {
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '48px', color: colors.textSecondary }}>
-                      👤
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.textSecondary }}>
+                      <UserIcon size={48} color={colors.textSecondary} />
                     </div>
                   )}
                 </div>
@@ -584,8 +591,8 @@ export default function EditProfile() {
               padding: '16px 20px',
               border: `1px solid ${colors.premium}30`,
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '20px' }}>🛡️</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: colors.premium }}>
+                <CrownIcon size={20} color={colors.premium} />
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
                   Confidentialité Premium
                 </h2>
@@ -598,25 +605,25 @@ export default function EditProfile() {
             {/* Toggle Card: Numéro de téléphone */}
             {[{
               key: 'hidePhoneNumber' as const,
-              icon: '📱',
+              icon: <SettingsIcon size={24} color={colors.premium} />,
               title: 'Numéro de téléphone masqué',
               description: 'Votre numéro est masqué par défaut. Désactivez pour l\'afficher lors des réservations. La messagerie intégrée reste disponible.',
               checked: hidePhoneNumber,
             }, {
               key: 'incognitoMode' as const,
-              icon: '🕵️',
+              icon: <EyeIcon size={24} color={colors.premium} />,
               title: 'Mode Incognito',
               description: 'Naviguez anonymement : vos visites sur les profils et les repas ne seront pas enregistrées ni visibles par les autres membres.',
               checked: incognitoMode,
             }, {
               key: 'blurAddress' as const,
-              icon: '📍',
+              icon: <MapPinIcon size={24} color={colors.premium} />,
               title: 'Floutage d\'adresse',
               description: 'Votre adresse exacte est remplacée par un rayon approximatif (~500m) tant que la réservation n\'est pas confirmée.',
               checked: blurAddress,
             }, {
               key: 'hideActivityHistory' as const,
-              icon: '👤',
+              icon: <UserIcon size={24} color={colors.premium} />,
               title: 'Profil d\'activité masqué',
               description: 'Masquez votre historique public (repas servis, reçus, badges) aux membres gratuits uniquement. Les autres membres Premium continueront de voir votre activité.',
               checked: hideActivityHistory,
