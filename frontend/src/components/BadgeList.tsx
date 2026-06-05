@@ -1,13 +1,8 @@
+import { colors } from '../utils/theme';
 import { useEffect, useState } from 'react';
 import { badgeService, UserBadge } from '../services/badge.service';
 
-const colors = {
-  badge: '#F1C40F',
-  premium: '#9B59B6',
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  backgroundWhite: '#FFFFFF',
-};
+
 
 interface BadgeListProps {
   userId?: string; // Si fourni, charge les badges de cet utilisateur (profil public)

@@ -28,6 +28,12 @@ import { initializePushNotifications } from './utils/pushNotifications';
 
 function App() {
   useEffect(() => {
+    // Initialiser la version du design (modern par défaut)
+    const designVersion = localStorage.getItem('design_version') || 'modern';
+    document.documentElement.className = `design-${designVersion}`;
+  }, []);
+
+  useEffect(() => {
     // Initialiser les notifications push au chargement de l'app
     // Fait de manière asynchrone pour ne pas bloquer le chargement
     const initNotifications = async () => {

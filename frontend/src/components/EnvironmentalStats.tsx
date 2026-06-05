@@ -1,15 +1,8 @@
+import { colors } from '../utils/theme';
 import { useEffect, useState } from 'react';
 import { environmentalService, EnvironmentalImpact } from '../services/environmental.service';
 
-const colors = {
-  primary: '#FF6B35',
-  sosAccent: '#4ECDC4',
-  success: '#2ECC71',
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  backgroundWhite: '#FFFFFF',
-  premium: '#9B59B6',
-};
+
 
 export default function EnvironmentalStats() {
   const [stats, setStats] = useState<EnvironmentalImpact | null>(null);

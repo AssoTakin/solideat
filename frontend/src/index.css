@@ -1,18 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* ----------------------------------------------------
+   DESIGN SYSTEM - TOKENS DE COULEUR
+---------------------------------------------------- */
+
+/* THEME CLASSIQUE ORIGINAL */
+.design-classic, :root.design-classic {
+  --color-primary: #ff6933;
+  --color-primary-hover: #ff8c5a;
+  --color-primary-active: #e55a2b;
+  --color-sos-accent: #4ECDC4;
+  --color-sos-accent-hover: #6EDDD6;
+  --color-sos-accent-active: #3BB5AE;
+  --color-success: #2ECC71;
+  --color-warning: #F39C12;
+  --color-error: #E74C3C;
+  --color-text-primary: #181210;
+  --color-text-secondary: #8d6a5e;
+  --color-background-light: #f8f6f5;
+  --color-background-white: #FFFFFF;
+  --color-premium: #9B59B6;
+  --color-badge: #F1C40F;
+}
+
+/* THEME MODERNE PREMIUM (REFONTE ÉLÉGANTE) */
+.design-modern, :root.design-modern {
+  --color-primary: #FF5A1F; /* Coral Orange */
+  --color-primary-hover: #FF7543;
+  --color-primary-active: #E0420E;
+  --color-sos-accent: #05C7B7; /* Teal */
+  --color-sos-accent-hover: #07DEC0;
+  --color-sos-accent-active: #04AC9E;
+  --color-success: #10B981; /* Emerald */
+  --color-warning: #F59E0B; /* Amber */
+  --color-error: #EF4444; /* Rose */
+  --color-text-primary: #0F172A; /* Deep Slate */
+  --color-text-secondary: #475569; /* Slate 600 */
+  --color-background-light: #F8FAFC; /* Slate 50 */
+  --color-background-white: #FFFFFF;
+  --color-premium: #6366F1; /* Indigo */
+  --color-badge: #FBBF24; /* Amber 400 */
+  
+  /* Ombres premium */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.04), 0 4px 6px -4px rgba(15, 23, 42, 0.02);
+  --shadow-premium: 0 20px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+}
+
+/* ----------------------------------------------------
+   FONTS & TYPOGRAPHIE
+---------------------------------------------------- */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background-light);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Application de la police premium en mode moderne */
+.design-modern,
+.design-modern button,
+.design-modern input,
+.design-modern select,
+.design-modern textarea {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* ----------------------------------------------------
+   REVAMP DU DESIGN MODERNE (SURCHARGES CSS)
+---------------------------------------------------- */
+
+/* 1. Titres et textes */
+.design-modern h1,
+.design-modern h2,
+.design-modern h3,
+.design-modern h4 {
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* 2. Boutons & Liens boutons */
+.design-modern button,
+.design-modern a[style*="backgroundColor"],
+.design-modern button[style*="backgroundColor"] {
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.design-modern button:not(:disabled):hover,
+.design-modern a[style*="backgroundColor"]:hover {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.05) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.design-modern button:not(:disabled):active,
+.design-modern a[style*="backgroundColor"]:active {
+  transform: translateY(0) !important;
+}
+
+/* 3. Inputs, Selects & Textareas */
+.design-modern input,
+.design-modern select,
+.design-modern textarea {
+  border-radius: 12px !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  padding: 12px 16px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background-color: var(--color-background-white) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+}
+
+.design-modern input:focus,
+.design-modern select:focus,
+.design-modern textarea:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 4px rgba(255, 90, 31, 0.12) !important;
+  outline: none !important;
+}
+
+/* 4. Cartes, Box & Modals (Effet de verre poli / Glassmorphism) */
+.design-modern [style*="boxShadow"],
+.design-modern [style*="box-shadow"],
+.design-modern [style*="boxshadow"] {
+  border-radius: 16px !important;
+  background-color: var(--color-background-white) !important;
+  border: 1px solid rgba(15, 23, 42, 0.05) !important;
+  box-shadow: var(--shadow-lg) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Effet hover sur les cartes de repas et de réservations */
+.design-modern [style*="cursor: 'pointer'"]:hover,
+.design-modern [style*="cursor: pointer"]:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-premium) !important;
+  border-color: rgba(255, 90, 31, 0.15) !important;
+}
+
+/* 5. Header de navigation et Barre de navigation du bas */
+.design-modern header {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02) !important;
+}
+
+.design-modern nav[style*="position: fixed"],
+.design-modern nav[style*="position:fixed"] {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+  border-top: 1px solid rgba(15, 23, 42, 0.06) !important;
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.03) !important;
+  padding: 10px 0 !important;
+  border-radius: 24px 24px 0 0 !important;
+}
+
+.design-modern nav[style*="position: fixed"] a,
+.design-modern nav[style*="position:fixed"] a {
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Hover sur les onglets de navigation */
+.design-modern nav[style*="position: fixed"] a:hover,
+.design-modern nav[style*="position:fixed"] a:hover {
+  background-color: rgba(15, 23, 42, 0.03) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* 6. Badges */
+.design-modern [style*="borderRadius: '50%'"],
+.design-modern [style*="border-radius: 50%"] {
+  border-radius: 50% !important; /* garder ronds */
+}
+
+/* 7. Barres de défilement (Scrollbar) premium */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.1);
+  border-radius: 100px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.25);
+}
+
+/* 8. Modals stylés */
+.design-modern [style*="zIndex: 2000"],
+.design-modern [style*="z-index: 2000"] {
+  backdrop-filter: blur(12px) !important;
+  background-color: rgba(15, 23, 42, 0.4) !important;
+}
+
+.design-modern [style*="zIndex: 2000"] > div,
+.design-modern [style*="z-index: 2000"] > div {
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Animations */
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }

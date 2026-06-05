@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
@@ -11,20 +12,7 @@ import { addressService, AddressSuggestion } from '../services/address.service';
 import { compressImage } from '../utils/image';
 
 // Design System Colors
-const colors = {
-  primary: '#FF6B35',
-  primaryHover: '#FF8C5A',
-  primaryActive: '#E55A2B',
-  sosAccent: '#4ECDC4',
-  success: '#2ECC71',
-  warning: '#F39C12',
-  error: '#E74C3C',
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  backgroundLight: '#ECF0F1',
-  backgroundWhite: '#FFFFFF',
-  premium: '#9B59B6',
-};
+
 
 // Schéma de validation pour l'étape 1
 const step1Schema = z.object({

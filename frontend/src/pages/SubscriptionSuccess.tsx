@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { subscriptionService } from '../services/subscription.service';
@@ -5,14 +6,7 @@ import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
-const colors = {
-  primary: '#FF6B35',
-  success: '#2ECC71',
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  backgroundLight: '#ECF0F1',
-  backgroundWhite: '#FFFFFF',
-};
+
 
 export default function SubscriptionSuccess() {
   const navigate = useNavigate();

@@ -1,15 +1,8 @@
+import { colors } from '../utils/theme';
 import { useState } from 'react';
 import { bonusDonorService, BonusDonor } from '../services/bonus-donor.service';
 
-const colors = {
-  primary: '#FF6B35',
-  success: '#2ECC71',
-  error: '#E74C3C',
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  backgroundWhite: '#FFFFFF',
-  premium: '#9B59B6',
-};
+
 
 interface BonusDonorTransferProps {
   bonus: BonusDonor;

@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
@@ -13,21 +14,7 @@ import { USE_MOCK_DATA, mockMeals, mockReservations, mockUsers, mockDashboardSta
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors EXACTES depuis UX_DESIGN.md
-const colors = {
-  primary: '#FF6B35', // Orange chaleureux
-  primaryHover: '#FF8C5A',
-  primaryActive: '#E55A2B',
-  sosAccent: '#4ECDC4', // Turquoise pour "Sauvez-les"
-  success: '#2ECC71', // Vert
-  warning: '#F39C12', // Orange attention
-  error: '#E74C3C', // Rouge
-  textPrimary: '#2C3E50', // Texte principal
-  textSecondary: '#7F8C8D', // Texte secondaire
-  backgroundLight: '#ECF0F1', // Fond clair
-  backgroundWhite: '#FFFFFF', // Fond blanc
-  premium: '#9B59B6', // Violet premium
-  badge: '#F1C40F', // Or pour badges
-};
+
 
 export default function Dashboard() {
   const navigate = useNavigate();

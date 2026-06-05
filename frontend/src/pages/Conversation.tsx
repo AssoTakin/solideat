@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { messageService, Message } from '../services/message.service';
@@ -6,20 +7,7 @@ import Navigation from '../components/Navigation';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors
-const colors = {
-  primary: '#FF6B35',
-  primaryHover: '#FF8C5A',
-  primaryActive: '#E55A2B',
-  sosAccent: '#4ECDC4',
-  success: '#2ECC71',
-  warning: '#F39C12',
-  error: '#E74C3C',
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  backgroundLight: '#ECF0F1',
-  backgroundWhite: '#FFFFFF',
-  premium: '#9B59B6',
-};
+
 
 export default function Conversation() {
   const { mealId } = useParams<{ mealId: string }>();

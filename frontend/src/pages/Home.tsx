@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
@@ -8,25 +9,7 @@ import { USE_MOCK_DATA, mockSaveThemMeals, mockUsers } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 
 // Design System Colors EXACTES depuis les maquettes HTML (code_improved.html)
-const colors = {
-  primary: '#ff6933', // Orange chaleureux (utilisé dans toutes les maquettes HTML)
-  primaryHover: '#ff8c5a',
-  primaryActive: '#e55a2b',
-  sosAccent: '#4ECDC4', // Turquoise pour "Sauvez-les" (selon AMELIORATIONS_UX.md)
-  sosAccentHover: '#6EDDD6',
-  sosAccentActive: '#3BB5AE',
-  secondaryHover: '#6EDDD6',
-  secondaryActive: '#3BB5AE',
-  success: '#2ECC71', // Vert
-  warning: '#F39C12', // Orange attention
-  error: '#E74C3C', // Rouge
-  textPrimary: '#181210', // Texte principal (utilisé dans les maquettes HTML)
-  textSecondary: '#8d6a5e', // Texte secondaire (utilisé dans les maquettes HTML)
-  backgroundLight: '#f8f6f5', // Fond clair (utilisé dans les maquettes HTML)
-  backgroundWhite: '#FFFFFF', // Fond blanc
-  premium: '#9B59B6', // Violet
-  badge: '#F1C40F', // Or
-};
+
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

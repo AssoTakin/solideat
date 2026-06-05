@@ -1,18 +1,11 @@
+import { colors } from '../utils/theme';
 import { useEffect, useState } from 'react';
 import { bonusDonorService, BonusDonor } from '../services/bonus-donor.service';
 import BonusDonorTransfer from './BonusDonorTransfer';
 import api from '../services/api';
 import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 
-const colors = {
-  primary: '#FF6B35',
-  success: '#2ECC71',
-  warning: '#F39C12',
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  backgroundWhite: '#FFFFFF',
-  premium: '#9B59B6',
-};
+
 
 export default function BonusDonorList() {
   const [bonuses, setBonuses] = useState<BonusDonor[]>([]);

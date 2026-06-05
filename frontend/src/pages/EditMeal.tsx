@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -13,18 +14,7 @@ import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 import { compressImage } from '../utils/image';
 
 // Design System Colors
-const colors = {
-  primary: '#FF6B35',
-  primaryHover: '#FF8C5A',
-  primaryActive: '#E55A2B',
-  success: '#2ECC71',
-  error: '#E74C3C',
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  backgroundLight: '#ECF0F1',
-  backgroundWhite: '#FFFFFF',
-  premium: '#9B59B6',
-};
+
 
 // Schéma de validation pour l'édition
 const editMealSchema = z.object({
