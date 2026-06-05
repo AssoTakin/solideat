@@ -219,13 +219,29 @@ export default function Home() {
             borderBottom: `1px solid ${colors.backgroundLight}`,
           }}
         >
-          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link
+            to="/"
+            style={{
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              transition: 'transform 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.04)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
             <img
               src="/logo.png"
               alt="SOLID'EAT"
               style={{
-                height: '40px',
+                height: '52px',
                 width: 'auto',
+                filter: 'drop-shadow(0px 2px 6px rgba(146, 67, 46, 0.2))',
               }}
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';

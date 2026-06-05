@@ -147,13 +147,28 @@ export default function ResetPassword() {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '20px' }}>
+          <Link
+            to="/"
+            style={{
+              textDecoration: 'none',
+              display: 'inline-block',
+              marginBottom: '20px',
+              transition: 'transform 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.04)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
             <img
               src="/logo.png"
               alt="SOLID'EAT"
               style={{
-                height: '80px',
+                height: '100px',
                 width: 'auto',
+                filter: 'drop-shadow(0px 4px 10px rgba(146, 67, 46, 0.25))',
               }}
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
