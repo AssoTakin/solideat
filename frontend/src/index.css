@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 * {
   margin: 0;
@@ -8,7 +8,7 @@
 
 /* ----------------------------------------------------
    DESIGN SYSTEM - TOKENS DE COULEUR
----------------------------------------------------- */
+   ---------------------------------------------------- */
 
 /* THEME CLASSIQUE ORIGINAL */
 .design-classic, :root.design-classic {
@@ -29,34 +29,34 @@
   --color-badge: #F1C40F;
 }
 
-/* THEME MODERNE PREMIUM (REFONTE ÉLÉGANTE) */
+/* THEME MODERNE PREMIUM (CHARTE OFFICIELLE STITCH) */
 .design-modern, :root.design-modern {
-  --color-primary: #FF5A1F; /* Coral Orange */
-  --color-primary-hover: #FF7543;
-  --color-primary-active: #E0420E;
-  --color-sos-accent: #05C7B7; /* Teal */
-  --color-sos-accent-hover: #07DEC0;
-  --color-sos-accent-active: #04AC9E;
-  --color-success: #10B981; /* Emerald */
-  --color-warning: #F59E0B; /* Amber */
-  --color-error: #EF4444; /* Rose */
-  --color-text-primary: #0F172A; /* Deep Slate */
-  --color-text-secondary: #475569; /* Slate 600 */
-  --color-background-light: #F8FAFC; /* Slate 50 */
+  --color-primary: #92432e; /* Terracotta Gastronomique */
+  --color-primary-hover: #b15b44; /* Terracotta Light */
+  --color-primary-active: #79301c; /* Terracotta Dark */
+  --color-sos-accent: #4e6356; /* Soft Sage (Nature/Santé) */
+  --color-sos-accent-hover: #b4ccbc; /* Soft Sage Light */
+  --color-sos-accent-active: #364b3f; /* Soft Sage Dark */
+  --color-success: #4e6356; /* Soft Sage */
+  --color-warning: #64594a; /* Oatmeal */
+  --color-error: #ba1a1a;
+  --color-text-primary: #1e1b18; /* Deep Charcoal */
+  --color-text-secondary: #4A4542; /* Charcoal Muted */
+  --color-background-light: #FAF9F6; /* Cream Background */
   --color-background-white: #FFFFFF;
-  --color-premium: #6366F1; /* Indigo */
-  --color-badge: #FBBF24; /* Amber 400 */
+  --color-premium: #64594a; /* Oatmeal */
+  --color-badge: #d3c4b1; /* Oatmeal Dim */
   
-  /* Ombres premium */
-  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.04), 0 4px 6px -4px rgba(15, 23, 42, 0.02);
-  --shadow-premium: 0 20px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+  /* Ombres très douces et subtiles (ambiance tactile minimale) */
+  --shadow-sm: 0 1px 3px rgba(30, 27, 24, 0.02);
+  --shadow-md: 0 4px 12px rgba(30, 27, 24, 0.03);
+  --shadow-lg: 0 8px 24px rgba(30, 27, 24, 0.04);
+  --shadow-premium: 0 16px 32px rgba(30, 27, 24, 0.05);
 }
 
 /* ----------------------------------------------------
    FONTS & TYPOGRAPHIE
----------------------------------------------------- */
+   ---------------------------------------------------- */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -73,18 +73,18 @@ code {
     monospace;
 }
 
-/* Application de la police premium en mode moderne */
+/* Application de la police Hanken Grotesk en mode moderne */
 .design-modern,
 .design-modern button,
 .design-modern input,
 .design-modern select,
 .design-modern textarea {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 /* ----------------------------------------------------
    REVAMP DU DESIGN MODERNE (SURCHARGES CSS)
----------------------------------------------------- */
+   ---------------------------------------------------- */
 
 /* 1. Titres et textes */
 .design-modern h1,
@@ -96,11 +96,11 @@ code {
   color: var(--color-text-primary) !important;
 }
 
-/* 2. Boutons & Liens boutons */
+/* 2. Boutons & Liens boutons (Coins arrondis à 8px selon Stitch) */
 .design-modern button,
 .design-modern a[style*="backgroundColor"],
 .design-modern button[style*="backgroundColor"] {
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   font-weight: 600 !important;
   letter-spacing: -0.01em !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -109,7 +109,7 @@ code {
 
 .design-modern button:not(:disabled):hover,
 .design-modern a[style*="backgroundColor"]:hover {
-  transform: translateY(-2px) !important;
+  transform: translateY(-1px) !important;
   filter: brightness(1.05) !important;
   box-shadow: var(--shadow-md) !important;
 }
@@ -119,117 +119,117 @@ code {
   transform: translateY(0) !important;
 }
 
-/* 3. Inputs, Selects & Textareas */
+/* 3. Inputs, Selects & Textareas (Bords de 8px et focus Terracotta) */
 .design-modern input,
 .design-modern select,
 .design-modern textarea {
-  border-radius: 12px !important;
-  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  border-radius: 8px !important;
+  border: 1px solid #D1DBD3 !important; /* Sage-light */
   padding: 12px 16px !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   background-color: var(--color-background-white) !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+  box-shadow: 0 1px 2px rgba(30, 27, 24, 0.01) !important;
 }
 
 .design-modern input:focus,
 .design-modern select:focus,
 .design-modern textarea:focus {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 4px rgba(255, 90, 31, 0.12) !important;
+  box-shadow: 0 0 0 3px rgba(146, 67, 46, 0.1) !important;
   outline: none !important;
 }
 
-/* 4. Cartes, Box & Modals (Effet de verre poli / Glassmorphism) */
+/* 4. Cartes, Box & Modals (Élévation tonale, bords à 16px) */
 .design-modern [style*="boxShadow"],
 .design-modern [style*="box-shadow"],
 .design-modern [style*="boxshadow"] {
   border-radius: 16px !important;
   background-color: var(--color-background-white) !important;
-  border: 1px solid rgba(15, 23, 42, 0.05) !important;
-  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid #e9e1dc !important; /* Oatmeal light border */
+  box-shadow: var(--shadow-sm) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Effet hover sur les cartes de repas et de réservations */
 .design-modern [style*="cursor: 'pointer'"]:hover,
 .design-modern [style*="cursor: pointer"]:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: var(--shadow-premium) !important;
-  border-color: rgba(255, 90, 31, 0.15) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-color: #D1DBD3 !important; /* Sage-light hover */
 }
 
 /* 5. Header de navigation et Barre de navigation du bas */
 .design-modern header {
-  background-color: rgba(255, 255, 255, 0.8) !important;
+  background-color: rgba(250, 249, 246, 0.95) !important; /* Cream background translucide */
   backdrop-filter: blur(16px) !important;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02) !important;
+  border-bottom: 1px solid #D1DBD3 !important;
+  box-shadow: none !important;
 }
 
 .design-modern nav[style*="position: fixed"],
 .design-modern nav[style*="position:fixed"] {
-  background-color: rgba(255, 255, 255, 0.85) !important;
+  background-color: rgba(250, 249, 246, 0.95) !important;
   backdrop-filter: blur(16px) !important;
-  border-top: 1px solid rgba(15, 23, 42, 0.06) !important;
-  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.03) !important;
+  border-top: 1px solid #D1DBD3 !important;
+  box-shadow: 0 -4px 15px rgba(30, 27, 24, 0.02) !important;
   padding: 10px 0 !important;
-  border-radius: 24px 24px 0 0 !important;
+  border-radius: 16px 16px 0 0 !important;
 }
 
 .design-modern nav[style*="position: fixed"] a,
 .design-modern nav[style*="position:fixed"] a {
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   transition: all 0.2s ease !important;
 }
 
 /* Hover sur les onglets de navigation */
 .design-modern nav[style*="position: fixed"] a:hover,
 .design-modern nav[style*="position:fixed"] a:hover {
-  background-color: rgba(15, 23, 42, 0.03) !important;
-  transform: translateY(-2px) !important;
+  background-color: rgba(78, 99, 86, 0.05) !important;
+  transform: translateY(-1px) !important;
 }
 
 /* 6. Badges */
 .design-modern [style*="borderRadius: '50%'"],
 .design-modern [style*="border-radius: 50%"] {
-  border-radius: 50% !important; /* garder ronds */
+  border-radius: 50% !important;
 }
 
 /* 7. Barres de défilement (Scrollbar) premium */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.1);
+  background: rgba(78, 99, 86, 0.15);
   border-radius: 100px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 23, 42, 0.25);
+  background: rgba(78, 99, 86, 0.3);
 }
 
 /* 8. Modals stylés */
 .design-modern [style*="zIndex: 2000"],
 .design-modern [style*="z-index: 2000"] {
-  backdrop-filter: blur(12px) !important;
-  background-color: rgba(15, 23, 42, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  background-color: rgba(30, 27, 24, 0.3) !important;
 }
 
 .design-modern [style*="zIndex: 2000"] > div,
 .design-modern [style*="z-index: 2000"] > div {
-  border-radius: 24px !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  border-radius: 16px !important;
+  border: 1px solid #D1DBD3 !important;
+  box-shadow: 0 20px 40px rgba(30, 27, 24, 0.1) !important;
+  animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Animations */
 @keyframes modalSlideIn {
   from {
-    transform: translateY(20px) scale(0.95);
+    transform: translateY(15px) scale(0.97);
     opacity: 0;
   }
   to {
@@ -239,66 +239,55 @@ code {
 }
 
 /* ----------------------------------------------------
-   UTILITIES POUR REFONTE PREMUM (MESH GRADIENT, GLASS)
+   UTILITIES POUR REFONTE PREMUM (TOMS TERREUX ET TACTILES)
    ---------------------------------------------------- */
 
-/* Mesh Gradient Background */
+/* Mesh Gradient remplacé par Cream Background lisse */
 .mesh-gradient-bg {
   position: relative;
-  background-color: #f8fafc;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(255, 90, 31, 0.06) 0px, transparent 50%),
-    radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(5, 199, 183, 0.06) 0px, transparent 50%);
-  overflow: hidden;
+  background-color: #FAF9F6 !important;
 }
 
-/* Glassmorphism Card styling */
+/* Carte blanche minimaliste */
 .glass-card {
-  background: rgba(255, 255, 255, 0.75) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #D1DBD3 !important;
+  box-shadow: 0 8px 24px rgba(30, 27, 24, 0.02) !important;
 }
 
-/* Gradient text */
+/* Titre dégradé élégant Terracotta */
 .gradient-text {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-premium) 100%);
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
-  color: transparent !important;
+  color: #92432e !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
 }
 
 /* Feature grid item styling */
 .feature-card {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #e9e1dc !important;
+  box-shadow: 0 4px 15px rgba(30, 27, 24, 0.01) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .feature-card:hover {
-  transform: translateY(-6px) !important;
-  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.08) !important;
-  border-color: rgba(255, 90, 31, 0.2) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 24px rgba(30, 27, 24, 0.05) !important;
+  border-color: #D1DBD3 !important;
 }
 
 /* Mockup container hover animations */
 .ui-mockup {
   position: relative;
-  border-radius: 20px;
+  border-radius: 16px;
   background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.15);
+  border: 1px solid #D1DBD3;
+  box-shadow: 0 20px 40px rgba(30, 27, 24, 0.04);
   overflow: hidden;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
 }
 
 .ui-mockup:hover {
-  transform: scale(1.02) translateY(-4px);
-  box-shadow: 0 40px 80px -20px rgba(15, 23, 42, 0.25);
+  transform: scale(1.01) translateY(-2px);
+  box-shadow: 0 35px 70px rgba(30, 27, 24, 0.08);
 }
-

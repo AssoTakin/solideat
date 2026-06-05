@@ -252,12 +252,13 @@ export default function Dashboard() {
                 overflow: 'hidden',
               }}
             >
-              {/* Image de fond optionnelle */}
+              {/* Fond de profil uni minimaliste */}
               <div
                 style={{
                   height: '100px',
-                  background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.premium} 50%, ${colors.sosAccent} 100%)`,
+                  background: '#f5ece7', // Oatmeal-light
                   position: 'relative',
+                  borderBottom: '1px solid #e9e1dc',
                 }}
               />
               <div style={{ padding: '24px 20px' }}>
@@ -270,7 +271,7 @@ export default function Dashboard() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      backgroundColor: 'rgba(255, 90, 31, 0.1)',
+                      backgroundColor: 'rgba(146, 67, 46, 0.08)',
                       padding: '6px 12px',
                       borderRadius: '9999px',
                     }}
@@ -287,7 +288,7 @@ export default function Dashboard() {
                       Activité globale sur SOLID'EAT
                     </p>
                     <p style={{ fontSize: '15px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
-                      🔥 {dashboardStats?.history.mealsServed || 0} Servis <span style={{ color: 'rgba(15,23,42,0.15)', margin: '0 6px' }}>|</span> 😋 {dashboardStats?.history.mealsReceived || 0} Reçus
+                      🔥 {dashboardStats?.history.mealsServed || 0} Servis <span style={{ color: 'rgba(30,27,24,0.15)', margin: '0 6px' }}>|</span> 😋 {dashboardStats?.history.mealsReceived || 0} Reçus
                     </p>
                   </div>
                   <Link
@@ -297,10 +298,10 @@ export default function Dashboard() {
                       backgroundColor: colors.primary,
                       color: colors.backgroundWhite,
                       textDecoration: 'none',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       fontSize: '13px',
                       fontWeight: 'bold',
-                      boxShadow: '0 4px 10px rgba(255, 90, 31, 0.15)',
+                      boxShadow: '0 4px 10px rgba(146, 67, 46, 0.15)',
                     }}
                   >
                     Mon profil
@@ -337,7 +338,7 @@ export default function Dashboard() {
                     <div
                       style={{
                         height: '10px',
-                        backgroundColor: 'rgba(15, 23, 42, 0.06)',
+                        backgroundColor: '#e9e1dc', // Oatmeal-light
                         borderRadius: '9999px',
                         overflow: 'hidden',
                       }}
@@ -345,12 +346,12 @@ export default function Dashboard() {
                       <div
                         style={{
                           height: '100%',
-                          background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.premium} 100%)`,
+                          backgroundColor: colors.primary, // Terracotta
                           width: `${Math.min(
                             (dashboardStats.quotas.weekly.reservations.current / dashboardStats.quotas.weekly.reservations.limit) * 100,
                             100
                           )}%`,
-                          transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                          transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                           borderRadius: '9999px',
                         }}
                       />
@@ -366,7 +367,7 @@ export default function Dashboard() {
                     <div
                       style={{
                         height: '10px',
-                        backgroundColor: 'rgba(15, 23, 42, 0.06)',
+                        backgroundColor: '#e9e1dc', // Oatmeal-light
                         borderRadius: '9999px',
                         overflow: 'hidden',
                       }}
@@ -374,12 +375,12 @@ export default function Dashboard() {
                       <div
                         style={{
                           height: '100%',
-                          background: `linear-gradient(90deg, ${colors.sosAccent} 0%, ${colors.success} 100%)`,
+                          backgroundColor: colors.sosAccent, // Sage
                           width: `${Math.min(
                             (dashboardStats.quotas.weekly.proposals.current / dashboardStats.quotas.weekly.proposals.limit) * 100,
                             100
                           )}%`,
-                          transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                          transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                           borderRadius: '9999px',
                         }}
                       />
