@@ -91,24 +91,21 @@ export default function Register() {
   if (success && userId) {
     return (
       <div
+        className="mesh-gradient-bg"
         style={{
           minHeight: '100vh',
-          backgroundColor: colors.backgroundLight,
-          fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '16px',
+          padding: '24px 16px',
         }}
       >
         <div
+          className="glass-card"
           style={{
-            backgroundColor: colors.backgroundWhite,
-            borderRadius: '16px',
-            padding: '32px',
             maxWidth: '500px',
             width: '100%',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            padding: '40px 32px',
             textAlign: 'center',
           }}
         >
@@ -159,21 +156,22 @@ export default function Register() {
 
   return (
     <div
+      className="mesh-gradient-bg"
       style={{
         minHeight: '100vh',
-        backgroundColor: colors.backgroundLight,
-        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        padding: '16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '32px 16px',
       }}
     >
       <div
+        className="glass-card"
         style={{
-          backgroundColor: colors.backgroundWhite,
-          borderRadius: '16px',
-          padding: '32px',
           maxWidth: '600px',
+          width: '100%',
+          padding: '40px 32px',
           margin: '0 auto',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>

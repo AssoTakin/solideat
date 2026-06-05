@@ -237,3 +237,68 @@ code {
     opacity: 1;
   }
 }
+
+/* ----------------------------------------------------
+   UTILITIES POUR REFONTE PREMUM (MESH GRADIENT, GLASS)
+   ---------------------------------------------------- */
+
+/* Mesh Gradient Background */
+.mesh-gradient-bg {
+  position: relative;
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(255, 90, 31, 0.06) 0px, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(5, 199, 183, 0.06) 0px, transparent 50%);
+  overflow: hidden;
+}
+
+/* Glassmorphism Card styling */
+.glass-card {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-premium) 100%);
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* Feature grid item styling */
+.feature-card {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.feature-card:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(255, 90, 31, 0.2) !important;
+}
+
+/* Mockup container hover animations */
+.ui-mockup {
+  position: relative;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.15);
+  overflow: hidden;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
+}
+
+.ui-mockup:hover {
+  transform: scale(1.02) translateY(-4px);
+  box-shadow: 0 40px 80px -20px rgba(15, 23, 42, 0.25);
+}
+

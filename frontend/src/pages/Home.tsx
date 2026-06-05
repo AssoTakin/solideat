@@ -868,93 +868,223 @@ export default function Home() {
             </section>
           </>
         ) : (
-          /* Landing Page pour non-authentifiés */
-          <div
-            style={{
-              backgroundColor: colors.backgroundWhite,
-              borderRadius: '12px',
-              padding: '48px 24px',
-              textAlign: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            }}
-          >
-            <div style={{ marginBottom: '24px' }}>
-              <img
-                src="/logo.png"
-                alt="SOLID'EAT"
-                style={{
-                  height: '100px',
-                  width: 'auto',
-                }}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                  const parent = (e.target as HTMLImageElement).parentElement;
-                  if (parent) {
-                    const span = document.createElement('span');
-                    span.style.cssText = `font-size: 32px; font-weight: bold; color: ${colors.primary}`;
-                    span.textContent = "SOLID'EAT";
-                    parent.appendChild(span);
-                  }
-                }}
-              />
-            </div>
-            <h1
+          /* Landing Page Premium pour non-authentifiés */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '80px', padding: '24px 0' }}>
+            
+            {/* HERO SECTION */}
+            <div 
+              className="mesh-gradient-bg"
               style={{
-                fontSize: '32px',
-                fontWeight: 'bold',
-                color: colors.textPrimary,
-                marginBottom: '16px',
+                borderRadius: '24px',
+                padding: '64px 32px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '48px',
+                alignItems: 'center',
+                boxShadow: 'var(--shadow-lg)',
               }}
             >
-              Cuisinez moins, diversifiez vos saveurs
-            </h1>
-            <p
-              style={{
-                fontSize: '16px',
-                color: colors.textSecondary,
-                maxWidth: '600px',
-                margin: '0 auto 32px',
-                lineHeight: '1.6',
+              {/* Gauche : Textes & CTAs */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '24px' }}>
+                <div 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    backgroundColor: 'rgba(255, 90, 31, 0.1)',
+                    color: 'var(--color-primary)',
+                    padding: '6px 12px',
+                    borderRadius: '9999px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                  }}
+                >
+                  🌱 Partage de repas & Éco-responsabilité
+                </div>
+                <h1
+                  style={{
+                    fontSize: 'clamp(32px, 5vw, 48px)',
+                    fontWeight: 800,
+                    lineHeight: '1.15',
+                    margin: 0,
+                    color: colors.textPrimary,
+                  }}
+                >
+                  Cuisinez moins, <br/>
+                  <span className="gradient-text">diversifiez vos saveurs</span>
+                </h1>
+                <p
+                  style={{
+                    fontSize: '18px',
+                    color: colors.textSecondary,
+                    lineHeight: '1.6',
+                    margin: 0,
+                    maxWidth: '520px',
+                  }}
+                >
+                  Rejoignez SOLID'EAT, la première communauté de partage de repas faits maison entre voisins. Mangez équilibré, économisez du temps et réduisez le gaspillage alimentaire !
+                </p>
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '12px' }}>
+                  <button
+                    onClick={() => {
+                      sessionStorage.setItem('isGuestMode', 'true');
+                      setIsGuestMode(true);
+                    }}
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.backgroundWhite,
+                      padding: '16px 32px',
+                      borderRadius: '12px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 10px 20px -5px rgba(255, 90, 31, 0.3)',
+                    }}
+                  >
+                    🚀 Explorer la carte
+                  </button>
+                  <Link
+                    to="/register"
+                    style={{
+                      textDecoration: 'none',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      backdropFilter: 'blur(8px)',
+                      color: colors.textPrimary,
+                      padding: '16px 32px',
+                      borderRadius: '12px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      border: '1px solid rgba(15, 23, 42, 0.08)',
+                      boxShadow: 'var(--shadow-sm)',
+                    }}
+                  >
+                    Créer un compte
+                  </Link>
+                </div>
+              </div>
+
+              {/* Droite : UI Mockup premium */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div className="ui-mockup" style={{ width: '100%', maxWidth: '380px', padding: '16px' }}>
+                  {/* Header fictif du mockup */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--color-premium)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>S</div>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold' }}>Chef Sophie L.</p>
+                        <p style={{ margin: 0, fontSize: '11px', color: colors.textSecondary }}>⭐ 4.9 (28 avis) • Paris 11e</p>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '11px', backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-premium)', padding: '4px 8px', borderRadius: '8px', fontWeight: 'bold' }}>
+                      Premium Cook
+                    </span>
+                  </div>
+                  {/* Photo fictive du repas */}
+                  <div style={{ height: '200px', borderRadius: '12px', backgroundColor: '#e2e8f0', backgroundImage: 'url("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', marginBottom: '16px' }}>
+                    <span style={{ position: 'absolute', bottom: '8px', left: '8px', backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(4px)', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px' }}>
+                      🥗 Cuisine Saine
+                    </span>
+                  </div>
+                  {/* Titre & Description du repas */}
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 4px 0' }}>Bowl Végétarien & Sauce Sésame</h3>
+                  <p style={{ fontSize: '13px', color: colors.textSecondary, margin: '0 0 16px 0', lineHeight: '1.4' }}>
+                    Quinoa bio, avocado, patates douces rôties, pois chiches croustillants et vinaigrette maison.
+                  </p>
+                  {/* Footer du repas */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid rgba(15, 23, 42, 0.06)' }}>
+                    <div>
+                      <span style={{ fontSize: '12px', color: colors.textSecondary }}>Portions</span>
+                      <p style={{ margin: 0, fontSize: '15px', fontWeight: 'bold' }}>3 parts dispo.</p>
+                    </div>
+                    <button 
+                      style={{ 
+                        backgroundColor: colors.primary, 
+                        color: colors.backgroundWhite, 
+                        border: 'none', 
+                        padding: '8px 16px', 
+                        borderRadius: '8px', 
+                        fontSize: '13px', 
+                        fontWeight: 'bold',
+                        cursor: 'default'
+                      }}
+                    >
+                      Réserver
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* FEATURES GRID */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', alignItems: 'center' }}>
+              <div style={{ textAlign: 'center', maxWidth: '600px' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '12px' }}>Comment ça marche ?</h2>
+                <p style={{ fontSize: '16px', color: colors.textSecondary }}>Une plateforme solidaire et conviviale pensée pour faciliter votre quotidien tout en agissant pour la planète.</p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%' }}>
+                {/* Feature 1 */}
+                <div className="feature-card" style={{ padding: '32px 24px', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(255, 90, 31, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                    🍳
+                  </div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Partagez vos Plats</h3>
+                  <p style={{ fontSize: '14px', color: colors.textSecondary, lineHeight: '1.6', margin: 0 }}>
+                    Vous cuisinez en trop grande quantité ? Proposez vos portions restantes à la communauté plutôt que de les jeter.
+                  </p>
+                </div>
+
+                {/* Feature 2 */}
+                <div className="feature-card" style={{ padding: '32px 24px', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                    🥗
+                  </div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Diversifiez vos Saveurs</h3>
+                  <p style={{ fontSize: '14px', color: colors.textSecondary, lineHeight: '1.6', margin: 0 }}>
+                    Découvrez des spécialités culinaires variées cuisinées avec amour par vos voisins, et gagnez du temps sur la cuisine.
+                  </p>
+                </div>
+
+                {/* Feature 3 */}
+                <div className="feature-card" style={{ padding: '32px 24px', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(5, 199, 183, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                    🌍
+                  </div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Zéro Gaspillage</h3>
+                  <p style={{ fontSize: '14px', color: colors.textSecondary, lineHeight: '1.6', margin: 0 }}>
+                    Réduisez le gaspillage alimentaire localement et contribuez directement à la préservation de l'environnement.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* STATISTICS BAND */}
+            <div 
+              style={{ 
+                backgroundColor: 'rgba(15, 23, 42, 0.03)', 
+                borderRadius: '20px', 
+                padding: '40px 24px', 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                gap: '32px',
+                textAlign: 'center'
               }}
             >
-              Notre communauté SOLID'EAT vous permet de partager vos savoureux repas avec d'autres chefs amateurs. Ainsi vous cuisinez moins, vous diversifiez vos saveurs et vous aidez à réduire le gaspillage alimentaire.
-            </p>
-            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => {
-                  sessionStorage.setItem('isGuestMode', 'true');
-                  setIsGuestMode(true);
-                }}
-                style={{
-                  backgroundColor: colors.primary,
-                  color: colors.backgroundWhite,
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                Commencer maintenant
-              </button>
-              <Link
-                to="/login"
-                style={{
-                  textDecoration: 'none',
-                  backgroundColor: 'transparent',
-                  color: colors.primary,
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  border: `2px solid ${colors.primary}`,
-                }}
-              >
-                Se connecter
-              </Link>
+              <div>
+                <p style={{ fontSize: '36px', fontWeight: 800, color: 'var(--color-primary)', margin: '0 0 4px 0' }}>320+</p>
+                <p style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 500, margin: 0 }}>Repas partagés</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '36px', fontWeight: 800, color: 'var(--color-premium)', margin: '0 0 4px 0' }}>120+</p>
+                <p style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 500, margin: 0 }}>Chefs inscrits</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '36px', fontWeight: 800, color: 'var(--color-sos-accent)', margin: '0 0 4px 0' }}>1.2 T</p>
+                <p style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 500, margin: 0 }}>CO₂ économisés</p>
+              </div>
             </div>
+
           </div>
         )}
       </main>

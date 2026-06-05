@@ -1,4 +1,4 @@
-import { colors, getDesignVersion, setDesignVersion } from '../utils/theme';
+import { colors } from '../utils/theme';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
@@ -19,13 +19,6 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [designVersion, setDesignVersionState] = useState<'classic' | 'modern'>(getDesignVersion());
-
-  const toggleDesign = () => {
-    const nextVersion = designVersion === 'classic' ? 'modern' : 'classic';
-    setDesignVersion(nextVersion);
-    setDesignVersionState(nextVersion);
-  };
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -194,34 +187,6 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
             >
               🆘
             </Link>
-            <button
-              onClick={toggleDesign}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '20px',
-                padding: '8px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                backgroundColor: 'transparent',
-                outline: 'none',
-                transition: 'all 0.2s',
-              }}
-              title={designVersion === 'classic' ? "Passer au design moderne premium" : "Passer au design classique"}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.1) rotate(10deg)';
-                e.currentTarget.style.backgroundColor = `${colors.primary}15`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              {designVersion === 'classic' ? '✨' : '🎨'}
-            </button>
             <Link
               to="/notifications"
               style={{

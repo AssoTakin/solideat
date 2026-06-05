@@ -28,9 +28,8 @@ import { initializePushNotifications } from './utils/pushNotifications';
 
 function App() {
   useEffect(() => {
-    // Initialiser la version du design (modern par défaut)
-    const designVersion = localStorage.getItem('design_version') || 'modern';
-    document.documentElement.className = `design-${designVersion}`;
+    // Appliquer le thème moderne premium par défaut
+    document.documentElement.className = 'design-modern';
   }, []);
 
   useEffect(() => {

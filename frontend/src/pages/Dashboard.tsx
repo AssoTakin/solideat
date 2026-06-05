@@ -247,35 +247,32 @@ export default function Dashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Carte Résumé */}
             <div
+              className="glass-card"
               style={{
-                backgroundColor: colors.backgroundWhite,
-                borderRadius: '16px',
                 overflow: 'hidden',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
               }}
             >
               {/* Image de fond optionnelle */}
               <div
                 style={{
-                  height: '120px',
-                  backgroundColor: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.sosAccent} 100%)`,
-                  background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.sosAccent} 100%)`,
+                  height: '100px',
+                  background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.premium} 50%, ${colors.sosAccent} 100%)`,
                   position: 'relative',
                 }}
               />
-              <div style={{ padding: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+              <div style={{ padding: '24px 20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
-                    Résumé
+                    Votre Activité
                   </h2>
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px',
-                      backgroundColor: `${colors.primary}20`,
-                      padding: '4px 8px',
-                      borderRadius: '8px',
+                      gap: '6px',
+                      backgroundColor: 'rgba(255, 90, 31, 0.1)',
+                      padding: '6px 12px',
+                      borderRadius: '9999px',
                     }}
                   >
                     <span style={{ color: colors.primary, fontSize: '14px' }}>⭐</span>
@@ -284,28 +281,29 @@ export default function Dashboard() {
                     </span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 4px 0' }}>
-                      Votre activité sur la plateforme
+                    <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 6px 0' }}>
+                      Activité globale sur SOLID'EAT
                     </p>
-                    <p style={{ fontSize: '14px', fontWeight: 500, color: colors.textPrimary, margin: 0 }}>
-                      {dashboardStats?.history.mealsServed || 0} Servis • {dashboardStats?.history.mealsReceived || 0} Reçus
+                    <p style={{ fontSize: '15px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
+                      🔥 {dashboardStats?.history.mealsServed || 0} Servis <span style={{ color: 'rgba(15,23,42,0.15)', margin: '0 6px' }}>|</span> 😋 {dashboardStats?.history.mealsReceived || 0} Reçus
                     </p>
                   </div>
                   <Link
                     to={`/users/${user?.id}`}
                     style={{
-                      padding: '8px 16px',
+                      padding: '10px 18px',
                       backgroundColor: colors.primary,
                       color: colors.backgroundWhite,
                       textDecoration: 'none',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      fontWeight: 500,
+                      borderRadius: '10px',
+                      fontSize: '13px',
+                      fontWeight: 'bold',
+                      boxShadow: '0 4px 10px rgba(255, 90, 31, 0.15)',
                     }}
                   >
-                    Badges
+                    Mon profil
                   </Link>
                 </div>
               </div>
@@ -320,28 +318,26 @@ export default function Dashboard() {
             {/* Section Quotas (simplifiée) */}
             {dashboardStats && (
               <div
+                className="glass-card"
                 style={{
-                  backgroundColor: colors.backgroundWhite,
-                  borderRadius: '12px',
-                  padding: '16px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  padding: '24px 20px',
                 }}
               >
-                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
-                  QUOTAS
+                <h3 style={{ fontSize: '15px', fontWeight: 800, color: colors.textPrimary, marginBottom: '20px', letterSpacing: '0.05em' }}>
+                  ⚡ STATUT DE VOS QUOTAS
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '14px', color: colors.textPrimary }}>Repas réservés</span>
-                      <span style={{ fontSize: '12px', fontWeight: 'bold', color: colors.textPrimary }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 500, color: colors.textSecondary }}>Repas réservés (hebdomadaire)</span>
+                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary }}>
                         {dashboardStats.quotas.weekly.reservations.current} / {dashboardStats.quotas.weekly.reservations.limit}
                       </span>
                     </div>
                     <div
                       style={{
-                        height: '8px',
-                        backgroundColor: colors.backgroundLight,
+                        height: '10px',
+                        backgroundColor: 'rgba(15, 23, 42, 0.06)',
                         borderRadius: '9999px',
                         overflow: 'hidden',
                       }}
@@ -349,30 +345,28 @@ export default function Dashboard() {
                       <div
                         style={{
                           height: '100%',
-                          backgroundColor:
-                            dashboardStats.quotas.weekly.reservations.current >= dashboardStats.quotas.weekly.reservations.limit
-                              ? colors.success
-                              : colors.primary,
+                          background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.premium} 100%)`,
                           width: `${Math.min(
                             (dashboardStats.quotas.weekly.reservations.current / dashboardStats.quotas.weekly.reservations.limit) * 100,
                             100
                           )}%`,
-                          transition: 'width 0.3s ease',
+                          transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                          borderRadius: '9999px',
                         }}
                       />
                     </div>
                   </div>
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '14px', color: colors.textPrimary }}>Repas proposés</span>
-                      <span style={{ fontSize: '12px', fontWeight: 'bold', color: colors.textPrimary }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 500, color: colors.textSecondary }}>Repas proposés (hebdomadaire)</span>
+                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary }}>
                         {dashboardStats.quotas.weekly.proposals.current} / {dashboardStats.quotas.weekly.proposals.limit}
                       </span>
                     </div>
                     <div
                       style={{
-                        height: '8px',
-                        backgroundColor: colors.backgroundLight,
+                        height: '10px',
+                        backgroundColor: 'rgba(15, 23, 42, 0.06)',
                         borderRadius: '9999px',
                         overflow: 'hidden',
                       }}
@@ -380,12 +374,13 @@ export default function Dashboard() {
                       <div
                         style={{
                           height: '100%',
-                          backgroundColor: colors.primary,
+                          background: `linear-gradient(90deg, ${colors.sosAccent} 0%, ${colors.success} 100%)`,
                           width: `${Math.min(
                             (dashboardStats.quotas.weekly.proposals.current / dashboardStats.quotas.weekly.proposals.limit) * 100,
                             100
                           )}%`,
-                          transition: 'width 0.3s ease',
+                          transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                          borderRadius: '9999px',
                         }}
                       />
                     </div>

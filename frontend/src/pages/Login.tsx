@@ -113,24 +113,21 @@ export default function Login() {
 
   return (
     <div
+      className="mesh-gradient-bg"
       style={{
         minHeight: '100vh',
-        backgroundColor: colors.backgroundLight,
-        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '16px',
+        padding: '24px 16px',
       }}
     >
       <div
+        className="glass-card"
         style={{
-          backgroundColor: colors.backgroundWhite,
-          borderRadius: '16px',
-          padding: '32px',
-          maxWidth: '400px',
+          maxWidth: '440px',
           width: '100%',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          padding: '40px 32px',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
