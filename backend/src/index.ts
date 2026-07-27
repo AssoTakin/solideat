@@ -84,10 +84,10 @@ app.use(cors({
 import stripeRoutes from './routes/stripe.routes';
 import adminRoutes from './routes/admin.routes';
 app.use('/webhooks', express.raw({ type: 'application/json' }), stripeRoutes);
-app.use('/admin', adminRoutes);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use('/admin', adminRoutes);
 
 // Route de base
 app.get('/', (_req, res) => {
