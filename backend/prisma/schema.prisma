@@ -157,7 +157,10 @@ model Reservation {
   // Dates
   reservedAt        DateTime  @default(now())
   pickedUpAt        DateTime?
-  
+
+   // Rappel notation
+   reviewReminderSent Boolean  @default(false)
+
   // Annulation
   cancelledAt       DateTime?
   cancellationReason String?

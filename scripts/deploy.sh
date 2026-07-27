@@ -72,7 +72,22 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 7. Healthcheck (attendre propagation)
+# 7. Déploiement Railway (backend)
+# ---------------------------------------------------------------------------
+echo "🚂 Deploying backend to Railway..."
+if [ -z "${RAILWAY_TOKEN:-}" ]; then
+  echo "⚠️ RAILWAY_TOKEN not set. Skipping Railway deploy."
+else
+  curl -fsS -X POST https://backboard.railway.app/graphql/v2 \
+    -H "Authorization: Bearer $RAILWAY_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"query\": \"mutation { serviceInstanceDeploy(environmentId: \\\"b1db6cb7-4160-4836-bca8-49252a1aa7e3\\\", serviceId: \\\"57da90ea-9f5d-475d-826c-becf610e8d27\\\", commitSha: \\\"$(git rev-parse HEAD)\\\") } \"}" \
+    > /dev/null
+  echo "✅ Railway deployment triggered"
+fi
+
+# ---------------------------------------------------------------------------
+# 8. Healthcheck (attendre propagation)
 # ---------------------------------------------------------------------------
 echo "⏳ Waiting for healthchecks..."
 for i in {1..12}; do

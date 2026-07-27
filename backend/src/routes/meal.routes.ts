@@ -7,7 +7,12 @@ import { createMealSchema, updateMealSchema } from '../validators/meal.validator
 const router = Router();
 
 // Création d'un repas (nécessite authentification)
-router.post('/', authenticate, validate(createMealSchema), mealController.createMeal.bind(mealController));
+router.post(
+  '/',
+  authenticate,
+  validate(createMealSchema),
+  mealController.createMeal.bind(mealController)
+);
 
 // Liste des repas (accessible sans authentification, mais avec coordonnées si connecté)
 // Le controller gère les deux cas (avec ou sans authentification)
@@ -17,11 +22,19 @@ router.get('/', mealController.getMeals.bind(mealController));
 import { antiGaspiController } from '../controllers/antigaspi.controller';
 router.get('/anti-gaspi', antiGaspiController.getAntiGaspiMeals.bind(antiGaspiController));
 
+// Autocomplétion d'adresses (accessible sans authentification)
+router.get('/address-suggestions', mealController.getAddressSuggestions.bind(mealController));
+
 // Détails d'un repas (accessible sans authentification)
 router.get('/:id', mealController.getMealById.bind(mealController));
 
 // Modification d'un repas (nécessite authentification)
-router.put('/:id', authenticate, validate(updateMealSchema), mealController.updateMeal.bind(mealController));
+router.put(
+  '/:id',
+  authenticate,
+  validate(updateMealSchema),
+  mealController.updateMeal.bind(mealController)
+);
 
 // Suppression d'un repas (nécessite authentification)
 router.delete('/:id', authenticate, mealController.deleteMeal.bind(mealController));

@@ -61,29 +61,33 @@ export function setupMealExpirationJob(): void {
         });
 
         // Envoyer notification au cuisinier
-        await notificationService.sendNotification(
-          meal.cookId,
-          NotificationType.MEAL_EXPIRED,
-          'Repas expiré',
-          `Votre repas "${meal.name}" a expiré sans être récupéré.`,
-          `/meals/${meal.id}`,
-          true
-        ).catch(() => {
-          // Erreur silencieuse
-        });
+        await notificationService
+          .sendNotification(
+            meal.cookId,
+            NotificationType.MEAL_EXPIRED,
+            'Repas expiré',
+            `Votre repas "${meal.name}" a expiré sans être récupéré.`,
+            `/meals/${meal.id}`,
+            true
+          )
+          .catch(() => {
+            // Erreur silencieuse
+          });
 
         // Si le repas était réservé, notifier le membre qui avait réservé
         if (meal.reservation) {
-          await notificationService.sendNotification(
-            meal.reservation.userId,
-            NotificationType.MEAL_CANCELLED,
-            'Réservation annulée - Repas expiré',
-            `Le repas "${meal.name}" que vous aviez réservé a expiré et la réservation a été annulée.`,
-            `/reservations`,
-            true
-          ).catch(() => {
-            // Erreur silencieuse
-          });
+          await notificationService
+            .sendNotification(
+              meal.reservation.userId,
+              NotificationType.MEAL_CANCELLED,
+              'Réservation annulée - Repas expiré',
+              `Le repas "${meal.name}" que vous aviez réservé a expiré et la réservation a été annulée.`,
+              `/reservations`,
+              true
+            )
+            .catch(() => {
+              // Erreur silencieuse
+            });
         }
       }
     } catch (error) {
@@ -108,117 +112,145 @@ export function setupAntiGaspiJob(): void {
 
 /**
  * Job : Rappels de commentaires obligatoires
- * Exécuté toutes les heures
+ * Exécuté toutes les 30 minutes
  */
 export function setupReviewReminderJob(): void {
-  cron.schedule('0 * * * *', async () => {
+  cron.schedule('*/30 * * * *', async () => {
     try {
       const now = new Date();
-      const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
-      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+      const reminderThreshold = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+      const restrictionThreshold = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-      // Repas servis il y a 4h sans commentaire
-      const meals4h = await prisma.meal.findMany({
+      // 1. Envoyer un rappel 2h après récupération
+      const reservationsToRemind = await prisma.reservation.findMany({
         where: {
-          status: MealStatus.SERVED,
-          updatedAt: {
-            gte: fourHoursAgo,
-            lt: new Date(fourHoursAgo.getTime() + 60 * 60 * 1000), // Dans la dernière heure
+          pickedUpAt: {
+            not: null,
+            lte: reminderThreshold,
+          },
+          reviewReminderSent: false,
+          cancelledAt: null,
+          meal: {
+            status: MealStatus.SERVED,
           },
         },
         include: {
-          reservation: {
-            include: {
-              user: true,
+          meal: {
+            select: {
+              id: true,
+              name: true,
             },
           },
-          reviews: true,
         },
       });
 
-      for (const meal of meals4h) {
-        if (meal.reservation && meal.reviews.length === 0) {
-          const userId = meal.reservation.userId;
-          const link = `/meals/${meal.id}/review`;
-
-          // Vérifier si un rappel a déjà été envoyé pour ce repas
-          const existingNotification = await prisma.notification.findFirst({
-            where: {
-              userId,
-              type: NotificationType.REVIEW_REMINDER,
-              link,
+      for (const reservation of reservationsToRemind) {
+        const existingReview = await prisma.review.findUnique({
+          where: {
+            mealId_reviewerId: {
+              mealId: reservation.mealId,
+              reviewerId: reservation.userId,
             },
+          },
+        });
+
+        if (existingReview) {
+          await prisma.reservation.update({
+            where: { id: reservation.id },
+            data: { reviewReminderSent: true },
+          });
+          continue;
+        }
+
+        await notificationService
+          .sendNotification(
+            reservation.userId,
+            NotificationType.REVIEW_REMINDER,
+            'Avis obligatoire',
+            `N'oubliez pas de laisser un avis sur le repas "${reservation.meal.name}" pour maintenir votre compte actif.`,
+            `/meals/${reservation.mealId}/review`,
+            true
+          )
+          .catch(() => {
+            // Erreur silencieuse
           });
 
-          if (!existingNotification) {
-            await notificationService.sendNotification(
-              userId,
-              NotificationType.REVIEW_REMINDER,
-              'Avis obligatoire',
-              `N'oubliez pas de laisser un avis sur le repas "${meal.name}" pour maintenir votre compte actif.`,
-              link,
-              true
-            ).catch(() => {
-              // Erreur silencieuse
-            });
-          }
-        }
+        await prisma.reservation.update({
+          where: { id: reservation.id },
+          data: { reviewReminderSent: true },
+        });
       }
 
-      // Repas servis il y a 24h sans commentaire
-      const meals24h = await prisma.meal.findMany({
+      // 2. Restreindre les utilisateurs avec un avis en retard > 48h
+      const overdueReservations = await prisma.reservation.findMany({
         where: {
-          status: MealStatus.SERVED,
-          updatedAt: {
-            gte: twentyFourHoursAgo,
-            lt: new Date(twentyFourHoursAgo.getTime() + 60 * 60 * 1000),
+          pickedUpAt: {
+            not: null,
+            lte: restrictionThreshold,
+          },
+          cancelledAt: null,
+          meal: {
+            status: MealStatus.SERVED,
           },
         },
         include: {
-          reservation: {
-            include: {
-              user: true,
+          meal: {
+            select: {
+              id: true,
             },
           },
-          reviews: true,
         },
       });
 
-      for (const meal of meals24h) {
-        if (meal.reservation && meal.reviews.length === 0) {
-          // Appliquer restriction : peut proposer mais pas choisir
-          // TODO: Implémenter système de restrictions
-        }
-      }
-
-      // Repas servis il y a 48h sans commentaire
-      const meals48h = await prisma.meal.findMany({
-        where: {
-          status: MealStatus.SERVED,
-          updatedAt: {
-            gte: fortyEightHoursAgo,
-            lt: new Date(fortyEightHoursAgo.getTime() + 60 * 60 * 1000),
-          },
-        },
-        include: {
-          reservation: {
-            include: {
-              user: true,
+      for (const reservation of overdueReservations) {
+        const existingReview = await prisma.review.findUnique({
+          where: {
+            mealId_reviewerId: {
+              mealId: reservation.mealId,
+              reviewerId: reservation.userId,
             },
           },
-          reviews: true,
-        },
-      });
+        });
 
-      for (const meal of meals48h) {
-        if (meal.reservation && meal.reviews.length === 0) {
-          // Appliquer restriction : connexion + commentaire uniquement
-          // TODO: Implémenter système de restrictions
-        }
+        if (existingReview) continue;
+
+        // Vérifier s'il y a déjà une sanction active de type RESERVATION_BLOCK
+        const activeSanction = await prisma.sanction.findFirst({
+          where: {
+            userId: reservation.userId,
+            type: 'RESERVATION_BLOCK',
+            active: true,
+            reason: { contains: 'avis en retard', mode: 'insensitive' },
+          },
+        });
+
+        if (activeSanction) continue;
+
+        await prisma.sanction.create({
+          data: {
+            userId: reservation.userId,
+            type: 'RESERVATION_BLOCK',
+            reason: `Avis en retard : repas "${reservation.meal.id}" non noté depuis plus de 48h`,
+            startDate: now,
+            active: true,
+          },
+        });
+
+        await notificationService
+          .sendNotification(
+            reservation.userId,
+            NotificationType.SANCTION_APPLIED,
+            'Compte temporairement restreint',
+            "Vous avez un avis en retard de plus de 48h. Vous ne pouvez plus réserver de repas tant que vous n'avez pas noté ce repas.",
+            `/meals/${reservation.mealId}/review`,
+            true
+          )
+          .catch(() => {
+            // Erreur silencieuse
+          });
       }
     } catch (error) {
-      // Erreur silencieuse - le job sera réexécuté à la prochaine heure
+      // Erreur silencieuse - le job sera réexécuté à la prochaine fenêtre
     }
   });
 }

@@ -9,7 +9,7 @@ import { mealService, CreateMealDto } from '../services/meal.service';
 import { subscriptionService } from '../services/subscription.service';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import { addressService, AddressSuggestion } from '../services/address.service';
-import { compressImage } from '../utils/image';
+import { compressImage, validateImageFile } from '../utils/image';
 import {
   AlertTriangleIcon,
   PlusIcon,
@@ -21,77 +21,97 @@ import {
 
 // Design System Colors
 
-
 // Schéma de validation pour l'étape 1
-const step1Schema = z.object({
-  name: z.string().min(1, 'Le nom du repas est requis').max(100, 'Le nom ne peut pas dépasser 100 caractères'),
-  photo: z.string().min(1, 'Une photo du plat est obligatoire').refine(
-    (val) => val.startsWith('data:') || val.startsWith('http://') || val.startsWith('https://'),
-    { message: 'Format de photo invalide. Veuillez télécharger une vraie photo de votre plat cuisiné.' }
-  ),
-  description: z.string().max(500, 'La description ne peut pas dépasser 500 caractères').optional().or(z.literal('')),
-  cuisine: z.string().min(1, 'Le type de cuisine est requis'),
-  preparationDate: z.string().min(1, 'La date de préparation est requise'),
-  serviceDate: z.string().min(1, 'Le jour de service est requis'),
-  pickupTimeType: z.enum(['fixed', 'range'], { required_error: 'Sélectionnez un type d\'heure' }),
-  pickupTimeStart: z.string().min(1, 'L\'heure de début est requise'),
-  pickupTimeEnd: z.string().optional(),
-  portions: z.coerce.number().min(1, 'Le nombre de parts doit être au moins 1').max(4, 'Le nombre de parts ne peut pas dépasser 4'),
-}).refine(
-  (data) => {
-    // Si plage horaire, l'heure de fin est requise
-    if (data.pickupTimeType === 'range' && !data.pickupTimeEnd) {
-      return false;
+const step1Schema = z
+  .object({
+    name: z
+      .string()
+      .min(1, 'Le nom du repas est requis')
+      .max(100, 'Le nom ne peut pas dépasser 100 caractères'),
+    photo: z
+      .string()
+      .min(1, 'Une photo du plat est obligatoire')
+      .refine(
+        (val) => val.startsWith('data:') || val.startsWith('http://') || val.startsWith('https://'),
+        {
+          message:
+            'Format de photo invalide. Veuillez télécharger une vraie photo de votre plat cuisiné.',
+        }
+      ),
+    description: z
+      .string()
+      .max(500, 'La description ne peut pas dépasser 500 caractères')
+      .optional()
+      .or(z.literal('')),
+    cuisine: z.string().min(1, 'Le type de cuisine est requis'),
+    preparationDate: z.string().min(1, 'La date de préparation est requise'),
+    serviceDate: z.string().min(1, 'Le jour de service est requis'),
+    pickupTimeType: z.enum(['fixed', 'range'], { required_error: "Sélectionnez un type d'heure" }),
+    pickupTimeStart: z.string().min(1, "L'heure de début est requise"),
+    pickupTimeEnd: z.string().optional(),
+    portions: z.coerce
+      .number()
+      .min(1, 'Le nombre de parts doit être au moins 1')
+      .max(4, 'Le nombre de parts ne peut pas dépasser 4'),
+  })
+  .refine(
+    (data) => {
+      // Si plage horaire, l&apos;heure de fin est requise
+      if (data.pickupTimeType === 'range' && !data.pickupTimeEnd) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "L'heure de fin est requise pour une plage horaire",
+      path: ['pickupTimeEnd'],
     }
-    return true;
-  },
-  {
-    message: 'L\'heure de fin est requise pour une plage horaire',
-    path: ['pickupTimeEnd'],
-  }
-);
+  );
 
 // Schéma de validation pour l'étape 2
 const step2Schema = z.object({
-  pickupAddress: z.string().min(1, 'L\'adresse de récupération est requise'),
+  pickupAddress: z.string().min(1, "L'adresse de récupération est requise"),
   pickupLatitude: z.number(),
   pickupLongitude: z.number(),
 });
 
 // Schéma de validation pour l'étape 3
 const step3Schema = z.object({
-  ingredients: z.array(
-    z.object({
-      name: z.string().min(1, 'Le nom de l\'ingrédient est requis'),
-      allergens: z.array(z.string()).optional(),
-    })
-  )
-  .refine(
-    (ingredients) => {
-      // Filtrer les ingrédients vides et vérifier qu'il en reste au moins 3
-      const validIngredients = ingredients.filter(
-        (ing) => ing.name && ing.name.trim().length > 0
-      );
-      return validIngredients.length >= 3;
-    },
-    {
-      message: 'Au moins 3 ingrédients valides sont requis (remplissez les champs d\'ingrédients)',
-    }
-  ),
-  sellMeal: z.boolean().optional(), // Case à cocher "Vendre ce repas" (premium uniquement)
-  price: z.preprocess(
-    (val) => {
-      // Si la valeur est vide, null, undefined, ou NaN, retourner null
-      if (val === '' || val === null || val === undefined || (typeof val === 'number' && isNaN(val))) {
-        return null;
+  ingredients: z
+    .array(
+      z.object({
+        name: z.string().min(1, "Le nom de l'ingrédient est requis"),
+        allergens: z.array(z.string()).optional(),
+      })
+    )
+    .refine(
+      (ingredients) => {
+        // Filtrer les ingrédients vides et vérifier qu'il en reste au moins 3
+        const validIngredients = ingredients.filter(
+          (ing) => ing.name && ing.name.trim().length > 0
+        );
+        return validIngredients.length >= 3;
+      },
+      {
+        message: "Au moins 3 ingrédients valides sont requis (remplissez les champs d'ingrédients)",
       }
-      // Convertir en nombre
-      const num: number =
-        typeof val === 'string' ? parseFloat(val) : typeof val === 'number' ? val : NaN;
-      return Number.isNaN(num) ? null : num;
-    },
-    z.number().optional().nullable()
-  ),
+    ),
+  sellMeal: z.boolean().optional(), // Case à cocher "Vendre ce repas" (premium uniquement)
+  price: z.preprocess((val) => {
+    // Si la valeur est vide, null, undefined, ou NaN, retourner null
+    if (
+      val === '' ||
+      val === null ||
+      val === undefined ||
+      (typeof val === 'number' && isNaN(val))
+    ) {
+      return null;
+    }
+    // Convertir en nombre
+    const num: number =
+      typeof val === 'string' ? parseFloat(val) : typeof val === 'number' ? val : NaN;
+    return Number.isNaN(num) ? null : num;
+  }, z.number().optional().nullable()),
 });
 
 type Step1FormData = z.infer<typeof step1Schema>;
@@ -159,7 +179,7 @@ export default function CreateMeal() {
         setSuggestions(res);
         setShowSuggestions(res.length > 0);
       } catch (err) {
-        console.error('Erreur lors de la recherche d\'adresse :', err);
+        console.error("Erreur lors de la recherche d'adresse :", err);
       } finally {
         setAddressLoading(false);
       }
@@ -202,7 +222,9 @@ export default function CreateMeal() {
       if (response.success && response.data) {
         setUserSubscription(response.data);
         // Si premium, permettre jusqu'à 4 parts
-        const isPremiumSub = response.data.active && (response.data.type === 'PREMIUM' || response.data.type.startsWith('PREMIUM'));
+        const isPremiumSub =
+          response.data.active &&
+          (response.data.type === 'PREMIUM' || response.data.type.startsWith('PREMIUM'));
         if (isPremiumSub) {
           step1Form.setValue('portions', 1);
         }
@@ -212,17 +234,27 @@ export default function CreateMeal() {
     }
   };
 
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPhotoFile(file);
-      try {
-        const compressedBase64 = await compressImage(file, 800, 800, 0.7);
-        setPhotoPreview(compressedBase64);
-        step1Form.setValue('photo', compressedBase64);
-      } catch (err) {
-        console.error('Erreur lors de la compression de la photo :', err);
-      }
+    if (!file) return;
+
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      setPhotoUploadError(validation.error || 'Image invalide');
+      return;
+    }
+
+    setPhotoUploadError(null);
+    setPhotoFile(file);
+    try {
+      const compressedBase64 = await compressImage(file, 800, 800, 0.7);
+      setPhotoPreview(compressedBase64);
+      step1Form.setValue('photo', compressedBase64, { shouldValidate: true });
+    } catch (err: any) {
+      setPhotoUploadError(err.message || "Erreur lors du traitement de l&apos;image");
+      console.error('Erreur lors de la compression de la photo :', err);
     }
   };
 
@@ -240,10 +272,12 @@ export default function CreateMeal() {
       const isValid = await step1Form.trigger();
 
       if (isValid) {
-        // Si heure fixe, copier l'heure de début dans l'heure de fin avant de passer à l'étape suivante
+        // Si heure fixe, copier l&apos;heure de début dans l&apos;heure de fin avant de passer à l'étape suivante
         const formValues = step1Form.getValues();
         if (formValues.pickupTimeType === 'fixed' && !formValues.pickupTimeEnd) {
-          step1Form.setValue('pickupTimeEnd', formValues.pickupTimeStart, { shouldValidate: false });
+          step1Form.setValue('pickupTimeEnd', formValues.pickupTimeStart, {
+            shouldValidate: false,
+          });
         }
         setCurrentStep(2);
         // Scroll vers le haut pour voir le nouveau contenu
@@ -259,7 +293,7 @@ export default function CreateMeal() {
                 photo: 'Photo',
                 preparationDate: 'Date de préparation',
                 serviceDate: 'Jour de service',
-                pickupTimeType: 'Type d\'heure',
+                pickupTimeType: "Type d'heure",
                 pickupTimeStart: 'Heure de début',
                 portions: 'Nombre de parts',
               };
@@ -268,7 +302,7 @@ export default function CreateMeal() {
             return null;
           })
           .filter(Boolean);
-        
+
         if (errorMessages.length > 0) {
           const errorText = `Veuillez corriger les erreurs suivantes :\n${errorMessages.join('\n')}`;
           setError(errorText);
@@ -300,7 +334,7 @@ export default function CreateMeal() {
             return null;
           })
           .filter(Boolean);
-        
+
         if (errorMessages.length > 0) {
           setError(`Veuillez corriger les erreurs suivantes :\n${errorMessages.join('\n')}`);
         } else {
@@ -319,12 +353,15 @@ export default function CreateMeal() {
 
   const handleRemoveIngredient = (index: number) => {
     const currentIngredients = step3Form.getValues('ingredients') || [];
-    step3Form.setValue('ingredients', currentIngredients.filter((_, i) => i !== index));
+    step3Form.setValue(
+      'ingredients',
+      currentIngredients.filter((_, i) => i !== index)
+    );
   };
 
   const handleSubmit = async () => {
     const isValid = await step3Form.trigger();
-    
+
     if (!isValid) {
       const errors = step3Form.formState.errors;
       const errorMessages = Object.entries(errors)
@@ -340,7 +377,7 @@ export default function CreateMeal() {
           return null;
         })
         .filter(Boolean);
-      
+
       if (errorMessages.length > 0) {
         setError(`Veuillez corriger les erreurs suivantes :\n${errorMessages.join('\n')}`);
       } else {
@@ -389,9 +426,11 @@ export default function CreateMeal() {
       const validIngredients = step3Data.ingredients.filter(
         (ing) => ing.name && ing.name.trim().length > 0
       );
-      
+
       if (validIngredients.length < 3) {
-        setError('Au moins 3 ingrédients valides sont requis. Veuillez remplir les champs d\'ingrédients.');
+        setError(
+          "Au moins 3 ingrédients valides sont requis. Veuillez remplir les champs d'ingrédients."
+        );
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setLoading(false);
         return;
@@ -439,7 +478,9 @@ export default function CreateMeal() {
     }
   };
 
-  const isPremium = userSubscription?.active && (userSubscription?.type === 'PREMIUM' || userSubscription?.type?.startsWith('PREMIUM'));
+  const isPremium =
+    userSubscription?.active &&
+    (userSubscription?.type === 'PREMIUM' || userSubscription?.type?.startsWith('PREMIUM'));
 
   return (
     <div
@@ -477,7 +518,15 @@ export default function CreateMeal() {
         >
           ←
         </button>
-        <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, flex: 1, textAlign: 'center' }}>
+        <h2
+          style={{
+            fontSize: '18px',
+            fontWeight: 'bold',
+            color: colors.textPrimary,
+            flex: 1,
+            textAlign: 'center',
+          }}
+        >
           Proposer un repas
         </h2>
         <div style={{ width: '40px' }} /> {/* Spacer */}
@@ -485,7 +534,14 @@ export default function CreateMeal() {
 
       {/* Progress Bar */}
       <div style={{ padding: '16px', backgroundColor: colors.backgroundWhite }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '8px',
+          }}
+        >
           <p style={{ fontSize: '16px', fontWeight: 500, color: colors.textPrimary }}>
             {currentStep === 1 && 'Informations principales'}
             {currentStep === 2 && 'Adresse de récupération'}
@@ -515,7 +571,14 @@ export default function CreateMeal() {
       </div>
 
       {/* Main Content */}
-      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', ...getMainContentStyle(true) }}>
+      <main
+        style={{
+          padding: '16px',
+          maxWidth: '600px',
+          margin: '0 auto',
+          ...getMainContentStyle(true),
+        }}
+      >
         {error && (
           <div
             style={{
@@ -531,15 +594,21 @@ export default function CreateMeal() {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
               <AlertTriangleIcon size={20} color={colors.error} style={{ flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Erreur de validation</strong>
-                <pre style={{ 
-                  margin: 0, 
-                  whiteSpace: 'pre-wrap', 
-                  wordBreak: 'break-word',
-                  fontSize: '13px',
-                  lineHeight: '1.5',
-                  fontFamily: 'inherit'
-                }}>{error}</pre>
+                <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>
+                  Erreur de validation
+                </strong>
+                <pre
+                  style={{
+                    margin: 0,
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    fontSize: '13px',
+                    lineHeight: '1.5',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {error}
+                </pre>
               </div>
             </div>
           </div>
@@ -601,14 +670,31 @@ export default function CreateMeal() {
                     <PlusIcon size={48} color={colors.primary} />
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '4px' }}>
+                    <p
+                      style={{
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        color: colors.textPrimary,
+                        marginBottom: '4px',
+                      }}
+                    >
                       Ajouter une photo <span style={{ color: colors.error }}>*</span>
                     </p>
-                    <p style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '8px' }}>
+                    <p
+                      style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '8px' }}
+                    >
                       Prenez une photo ou importez de la galerie
                     </p>
-                    <p style={{ fontSize: '12px', color: colors.warning, fontStyle: 'italic', marginTop: '4px' }}>
-                      Veuillez ajouter une <strong>vraie photo de votre plat cuisiné</strong>. Les photos de stock ou d'illustration ne sont pas acceptées.
+                    <p
+                      style={{
+                        fontSize: '12px',
+                        color: colors.warning,
+                        fontStyle: 'italic',
+                        marginTop: '4px',
+                      }}
+                    >
+                      Veuillez ajouter une <strong>vraie photo de votre plat cuisiné</strong>. Les
+                      photos de stock ou d'illustration ne sont pas acceptées.
                     </p>
                   </div>
                   <label
@@ -632,8 +718,27 @@ export default function CreateMeal() {
                   </label>
                 </>
               )}
+              {photoUploadError && (
+                <p
+                  style={{
+                    color: colors.error,
+                    fontSize: '13px',
+                    marginTop: '8px',
+                    textAlign: 'center',
+                  }}
+                >
+                  {photoUploadError}
+                </p>
+              )}
               {step1Form.formState.errors.photo && (
-                <p style={{ color: colors.error, fontSize: '12px', marginTop: '8px', textAlign: 'center' }}>
+                <p
+                  style={{
+                    color: colors.error,
+                    fontSize: '12px',
+                    marginTop: '8px',
+                    textAlign: 'center',
+                  }}
+                >
                   {step1Form.formState.errors.photo.message}
                 </p>
               )}
@@ -641,7 +746,15 @@ export default function CreateMeal() {
 
             {/* Nom du repas */}
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: colors.textPrimary,
+                }}
+              >
                 Nom du repas *
               </label>
               <input
@@ -665,7 +778,15 @@ export default function CreateMeal() {
 
             {/* Style de cuisine */}
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: colors.textPrimary,
+                }}
+              >
                 Style culinaire *
               </label>
               <select
@@ -698,7 +819,15 @@ export default function CreateMeal() {
 
             {/* Description */}
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: colors.textPrimary,
+                }}
+              >
                 Description (optionnel)
               </label>
               <textarea
@@ -726,7 +855,15 @@ export default function CreateMeal() {
             {/* Dates */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                <label
+                  style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: colors.textPrimary,
+                  }}
+                >
                   Date de préparation *
                 </label>
                 <input
@@ -751,7 +888,15 @@ export default function CreateMeal() {
                 )}
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+                <label
+                  style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: colors.textPrimary,
+                  }}
+                >
                   Jour de service *
                 </label>
                 <input
@@ -776,12 +921,22 @@ export default function CreateMeal() {
 
             {/* Heure de récupération */}
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: colors.textPrimary,
+                }}
+              >
                 Heure de récupération *
               </label>
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', gap: '16px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <label
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                  >
                     <input
                       type="radio"
                       value="fixed"
@@ -790,7 +945,9 @@ export default function CreateMeal() {
                     />
                     <span style={{ fontSize: '14px' }}>Heure fixe</span>
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <label
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                  >
                     <input
                       type="radio"
                       value="range"
@@ -847,21 +1004,31 @@ export default function CreateMeal() {
 
             {/* Nombre de parts */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}
+              >
                 <label style={{ fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
                   Nombre de parts *
                 </label>
-                <span style={{ display: 'inline-flex', alignItems: 'center', color: colors.textSecondary, cursor: 'pointer' }} title="Les membres gratuits sont limités à 1 part">
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    color: colors.textSecondary,
+                    cursor: 'pointer',
+                  }}
+                  title="Les membres gratuits sont limités à 1 part"
+                >
                   <InfoIcon size={14} color={colors.textSecondary} />
                 </span>
               </div>
               <select
-                {...step1Form.register('portions', { 
+                {...step1Form.register('portions', {
                   valueAsNumber: true,
                   onChange: (e) => {
                     const value = parseInt(e.target.value, 10);
                     step1Form.setValue('portions', value, { shouldValidate: true });
-                  }
+                  },
                 })}
                 disabled={!isPremium}
                 style={{
@@ -907,9 +1074,22 @@ export default function CreateMeal() {
                     e.currentTarget.style.backgroundColor = `${colors.primary}10`;
                   }}
                 >
-                  <p style={{ fontSize: '12px', color: colors.primary, fontWeight: 500, margin: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <p
+                    style={{
+                      fontSize: '12px',
+                      color: colors.primary,
+                      fontWeight: 500,
+                      margin: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
                     <InfoIcon size={14} color={colors.primary} />
-                    <span><strong>Passez au Premium</strong> pour partager jusqu'à 4 parts par repas et accéder à plus de fonctionnalités !</span>
+                    <span>
+                      <strong>Passez au Premium</strong> pour partager jusqu'à 4 parts par repas et
+                      accéder à plus de fonctionnalités !
+                    </span>
                   </p>
                 </Link>
               )}
@@ -925,12 +1105,25 @@ export default function CreateMeal() {
                   border: '1px solid #90CAF9',
                 }}
               >
-                <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#1976D2', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <p
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    color: '#1976D2',
+                    marginBottom: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
                   <ClockIcon size={16} color="#1976D2" /> Expiration automatique calculée
                 </p>
                 <p style={{ fontSize: '12px', color: '#1565C0' }}>
                   Ce repas expirera automatiquement le{' '}
-                  <strong>{new Date(calculateExpirationDate(preparationDate)).toLocaleString('fr-FR')}</strong> (72h après la date de préparation) pour garantir la sécurité alimentaire.
+                  <strong>
+                    {new Date(calculateExpirationDate(preparationDate)).toLocaleString('fr-FR')}
+                  </strong>{' '}
+                  (72h après la date de préparation) pour garantir la sécurité alimentaire.
                 </p>
               </div>
             )}
@@ -944,11 +1137,22 @@ export default function CreateMeal() {
                 border: '1px solid #FFB74D',
               }}
             >
-              <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#E65100', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <p
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: '#E65100',
+                  marginBottom: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
                 <AlertTriangleIcon size={16} color="#E65100" /> Règle importante
               </p>
               <p style={{ fontSize: '12px', color: '#E65100' }}>
-                Si le repas n'est pas réservé avant l'expiration, il sera automatiquement retiré et ajouté dans la rubrique "Anti-Gaspi" 24h avant expiration.
+                Si le repas n&apos;est pas réservé avant l'expiration, il sera automatiquement retiré et
+                ajouté dans la rubrique "Anti-Gaspi" 24h avant expiration.
               </p>
             </div>
           </div>
@@ -958,7 +1162,15 @@ export default function CreateMeal() {
         {currentStep === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ position: 'relative' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: colors.textPrimary,
+                }}
+              >
                 Adresse de récupération *
               </label>
               <div style={{ position: 'relative' }}>
@@ -993,7 +1205,8 @@ export default function CreateMeal() {
                 )}
               </div>
               <p style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '4px' }}>
-                Tapez votre adresse et sélectionnez-la dans la liste pour obtenir les coordonnées GPS exactes.
+                Tapez votre adresse et sélectionnez-la dans la liste pour obtenir les coordonnées
+                GPS exactes.
               </p>
 
               {/* Dropdown de suggestions d'adresses */}
@@ -1023,7 +1236,10 @@ export default function CreateMeal() {
                         cursor: 'pointer',
                         fontSize: '14px',
                         color: colors.textPrimary,
-                        borderBottom: idx < suggestions.length - 1 ? `1px solid ${colors.backgroundLight}` : 'none',
+                        borderBottom:
+                          idx < suggestions.length - 1
+                            ? `1px solid ${colors.backgroundLight}`
+                            : 'none',
                         transition: 'background-color 0.2s',
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF2EC')}
@@ -1047,11 +1263,26 @@ export default function CreateMeal() {
 
             {/* Carte interactive dynamique (Google Maps Embed) */}
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: colors.textPrimary,
+                }}
+              >
                 Aperçu de l'emplacement de récupération
               </label>
               {mapCoords ? (
-                <div style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: `1px solid ${colors.backgroundLight}` }}>
+                <div
+                  style={{
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    border: `1px solid ${colors.backgroundLight}`,
+                  }}
+                >
                   <iframe
                     title="Carte de récupération"
                     width="100%"
@@ -1060,8 +1291,22 @@ export default function CreateMeal() {
                     src={`https://maps.google.com/maps?q=${mapCoords.lat},${mapCoords.lng}&z=16&output=embed`}
                     allowFullScreen
                   />
-                  <div style={{ padding: '8px 12px', backgroundColor: '#F8F9FA', fontSize: '12px', color: colors.textSecondary, borderTop: `1px solid ${colors.backgroundLight}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPinIcon size={12} color={colors.textSecondary} /> Coordonnées : {mapCoords.lat.toFixed(5)}, {mapCoords.lng.toFixed(5)}</span>
+                  <div
+                    style={{
+                      padding: '8px 12px',
+                      backgroundColor: '#F8F9FA',
+                      fontSize: '12px',
+                      color: colors.textSecondary,
+                      borderTop: `1px solid ${colors.backgroundLight}`,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <MapPinIcon size={12} color={colors.textSecondary} /> Coordonnées :{' '}
+                      {mapCoords.lat.toFixed(5)}, {mapCoords.lng.toFixed(5)}
+                    </span>
                     <span style={{ color: colors.success }}>✓ Géolocalisation active</span>
                   </div>
                 </div>
@@ -1099,7 +1344,14 @@ export default function CreateMeal() {
         {currentStep === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px',
+                }}
+              >
                 <label style={{ fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
                   Ingrédients * (minimum 3)
                 </label>
@@ -1203,24 +1455,42 @@ export default function CreateMeal() {
                     }}
                   />
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '4px',
+                      }}
+                    >
                       <CrownIcon size={16} color={colors.premium} />
                       <span style={{ fontWeight: 'bold' }}>Vendre ce repas</span>
-                      <span style={{ 
-                        fontSize: '12px', 
-                        padding: '2px 8px', 
-                        backgroundColor: colors.premium, 
-                        color: colors.backgroundWhite, 
-                        borderRadius: '12px',
-                        fontWeight: 'bold'
-                      }}>
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          padding: '2px 8px',
+                          backgroundColor: colors.premium,
+                          color: colors.backgroundWhite,
+                          borderRadius: '12px',
+                          fontWeight: 'bold',
+                        }}
+                      >
                         PREMIUM
                       </span>
                     </div>
-                    <p style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '4px', lineHeight: '1.5' }}>
-                      Si cette option est cochée, votre repas sera vendu <strong>5€</strong> (frais de service inclus).
+                    <p
+                      style={{
+                        fontSize: '12px',
+                        color: colors.textSecondary,
+                        marginTop: '4px',
+                        lineHeight: '1.5',
+                      }}
+                    >
+                      Si cette option est cochée, votre repas sera vendu <strong>5€</strong> (frais
+                      de service inclus).
                       <br />
-                      <strong>Vous recevrez 4€</strong> après la livraison du repas. La plateforme perçoit 1€ de frais de service.
+                      <strong>Vous recevrez 4€</strong> après la livraison du repas. La plateforme
+                      perçoit 1€ de frais de service.
                     </p>
                   </div>
                 </label>

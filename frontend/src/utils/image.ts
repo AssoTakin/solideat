@@ -12,6 +12,15 @@ export function compressImage(
   quality: number = 0.7
 ): Promise<string> {
   return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('Le fichier doit être une image'));
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      reject(new Error("L'image ne doit pas dépasser 10 Mo"));
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
@@ -48,10 +57,20 @@ export function compressImage(
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
         resolve(dataUrl);
       };
-      img.onerror = (err) => reject(err);
+      img.onerror = () => reject(new Error("Impossible de lire l'image"));
       img.src = event.target?.result as string;
     };
-    reader.onerror = (err) => reject(err);
+    reader.onerror = () => reject(new Error('Impossible de lire le fichier'));
     reader.readAsDataURL(file);
   });
+}
+
+export function validateImageFile(file: File): { valid: boolean; error?: string } {
+  if (!file.type.startsWith('image/')) {
+    return { valid: false, error: 'Le fichier doit être une image (JPEG, PNG, WebP...)' };
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return { valid: false, error: "L'image ne doit pas dépasser 10 Mo" };
+  }
+  return { valid: true };
 }

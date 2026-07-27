@@ -24,7 +24,6 @@ import {
 
 // Design System Colors
 
-
 export default function MealDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -135,7 +134,11 @@ export default function MealDetails() {
 
   const handleDeleteMeal = async () => {
     if (!meal) return;
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer/annuler ce repas ? Cette action est irréversible.')) {
+    if (
+      !window.confirm(
+        'Êtes-vous sûr de vouloir supprimer/annuler ce repas ? Cette action est irréversible.'
+      )
+    ) {
       return;
     }
     try {
@@ -187,7 +190,6 @@ export default function MealDetails() {
     }
   };
 
-
   const calculateHoursRemaining = (expirationDate: string): number => {
     const now = new Date();
     const expiration = new Date(expirationDate);
@@ -197,10 +199,10 @@ export default function MealDetails() {
 
   const getServiceDateLabel = (serviceDate: string): string => {
     if (!serviceDate) return 'N/A';
-    
+
     try {
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Réinitialiser l'heure pour la comparaison
+      today.setHours(0, 0, 0, 0); // Réinitialiser l&apos;heure pour la comparaison
       const service = new Date(serviceDate);
       service.setHours(0, 0, 0, 0);
       const diffTime = service.getTime() - today.getTime();
@@ -209,7 +211,11 @@ export default function MealDetails() {
       if (diffDays === 0) return "Aujourd'hui";
       if (diffDays === 1) return 'Demain';
       if (diffDays === -1) return 'Hier';
-      return service.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+      return service.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      });
     } catch (error) {
       return 'N/A';
     }
@@ -217,19 +223,22 @@ export default function MealDetails() {
 
   const getTimeOfDay = (start: string, end?: string): string => {
     if (!start) return 'N/A';
-    
+
     try {
       const startDate = new Date(start);
       const hour = startDate.getHours();
-      
+
       // Si c'est une plage horaire, afficher la plage
       if (end && end !== start) {
         const endDate = new Date(end);
-        const startHour = startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const startHour = startDate.toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
         const endHour = endDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         return `${startHour} - ${endHour}`;
       }
-      
+
       // Sinon, afficher la période de la journée
       if (hour < 12) return 'Matin';
       if (hour < 18) return 'Midi';
@@ -250,13 +259,21 @@ export default function MealDetails() {
     return [...new Set(allergens)];
   };
 
-  const isQuotaReached = quotaStatus?.weeklyReservations?.used >= quotaStatus?.weeklyReservations?.limit;
+  const isQuotaReached =
+    quotaStatus?.weeklyReservations?.used >= quotaStatus?.weeklyReservations?.limit;
   const hoursRemaining = meal ? calculateHoursRemaining(meal.expirationDate) : 0;
   const isSaveThem = hoursRemaining > 0 && hoursRemaining <= 24;
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: colors.textPrimary, fontFamily: 'Inter, sans-serif' }}>
+      <div
+        style={{
+          padding: '2rem',
+          textAlign: 'center',
+          color: colors.textPrimary,
+          fontFamily: 'Inter, sans-serif',
+        }}
+      >
         Chargement...
       </div>
     );
@@ -267,7 +284,7 @@ export default function MealDetails() {
       <div style={{ padding: '2rem' }}>
         <p style={{ color: colors.error }}>{error || 'Repas non trouvé'}</p>
         <Link to="/" style={{ color: colors.primary, textDecoration: 'none' }}>
-          ← Retour à l'accueil
+          ← Retour à l&apos;accueil
         </Link>
       </div>
     );
@@ -394,7 +411,14 @@ export default function MealDetails() {
       </div>
 
       {/* Contenu principal */}
-      <main style={{ padding: '16px', ...getMainContentStyle(isAuthenticated || isGuestMode), maxWidth: '600px', margin: '0 auto' }}>
+      <main
+        style={{
+          padding: '16px',
+          ...getMainContentStyle(isAuthenticated || isGuestMode),
+          maxWidth: '600px',
+          margin: '0 auto',
+        }}
+      >
         {/* Titre et badges */}
         <div style={{ marginBottom: '16px' }}>
           <h1
@@ -457,13 +481,30 @@ export default function MealDetails() {
           />
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <p style={{ fontSize: '16px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
+              <p
+                style={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: colors.textPrimary,
+                  margin: 0,
+                }}
+              >
                 {meal.cook.username}
               </p>
               <span style={{ color: '#3B82F6', fontSize: '14px' }}>✓</span>
             </div>
-            <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '2px 0 0 0', textTransform: 'uppercase' }}>
-              Chef Cordon Bleu • <span style={{ color: colors.primary }}>{meal.cook.globalRating?.toFixed(1) || 'N/A'} ÉTOILES</span>
+            <p
+              style={{
+                fontSize: '12px',
+                color: colors.textSecondary,
+                margin: '2px 0 0 0',
+                textTransform: 'uppercase',
+              }}
+            >
+              Chef Cordon Bleu •{' '}
+              <span style={{ color: colors.primary }}>
+                {meal.cook.globalRating?.toFixed(1) || 'N/A'} ÉTOILES
+              </span>
             </p>
           </div>
           <button
@@ -494,7 +535,14 @@ export default function MealDetails() {
         </div>
 
         {/* Grille d'informations */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px',
+            marginBottom: '16px',
+          }}
+        >
           <div
             style={{
               backgroundColor: colors.backgroundWhite,
@@ -507,10 +555,25 @@ export default function MealDetails() {
             }}
           >
             <CalendarIcon size={24} color={colors.primary} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>
+            <span
+              style={{
+                fontSize: '10px',
+                color: colors.textSecondary,
+                textTransform: 'uppercase',
+                fontWeight: 'bold',
+                marginBottom: '4px',
+              }}
+            >
               DATE
             </span>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: colors.textPrimary, textAlign: 'center' }}>
+            <span
+              style={{
+                fontSize: '14px',
+                fontWeight: 600,
+                color: colors.textPrimary,
+                textAlign: 'center',
+              }}
+            >
               {getServiceDateLabel(meal.serviceDate)}
             </span>
           </div>
@@ -526,16 +589,38 @@ export default function MealDetails() {
             }}
           >
             <ClockIcon size={24} color={colors.primary} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>
+            <span
+              style={{
+                fontSize: '10px',
+                color: colors.textSecondary,
+                textTransform: 'uppercase',
+                fontWeight: 'bold',
+                marginBottom: '4px',
+              }}
+            >
               PLAGE HORAIRE
             </span>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: colors.textPrimary, textAlign: 'center' }}>
+            <span
+              style={{
+                fontSize: '14px',
+                fontWeight: 600,
+                color: colors.textPrimary,
+                textAlign: 'center',
+              }}
+            >
               {getTimeOfDay(meal.pickupTimeStart, meal.pickupTimeEnd)}
             </span>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '32px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px',
+            marginBottom: '32px',
+          }}
+        >
           <div
             style={{
               backgroundColor: colors.backgroundWhite,
@@ -548,7 +633,15 @@ export default function MealDetails() {
             }}
           >
             <MapPinIcon size={24} color={colors.primary} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>
+            <span
+              style={{
+                fontSize: '10px',
+                color: colors.textSecondary,
+                textTransform: 'uppercase',
+                fontWeight: 'bold',
+                marginBottom: '4px',
+              }}
+            >
               DISTANCE
             </span>
             <span style={{ fontSize: '14px', fontWeight: 600, color: colors.textPrimary }}>
@@ -567,11 +660,22 @@ export default function MealDetails() {
             }}
           >
             <ChefHatIcon size={24} color={colors.primary} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px', textAlign: 'center' }}>
+            <span
+              style={{
+                fontSize: '10px',
+                color: colors.textSecondary,
+                textTransform: 'uppercase',
+                fontWeight: 'bold',
+                marginBottom: '4px',
+                textAlign: 'center',
+              }}
+            >
               PARTS RESTANTES
             </span>
             <span style={{ fontSize: '14px', fontWeight: 600, color: colors.textPrimary }}>
-              {meal.status === 'RESERVED' ? '0 restante' : `${meal.portions} restant${meal.portions > 1 ? 'es' : 'e'}`}
+              {meal.status === 'RESERVED'
+                ? '0 restante'
+                : `${meal.portions} restant${meal.portions > 1 ? 'es' : 'e'}`}
             </span>
           </div>
         </div>
@@ -579,7 +683,14 @@ export default function MealDetails() {
         {/* Description */}
         {meal.description && (
           <div style={{ marginBottom: '32px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
+            <h3
+              style={{
+                fontSize: '18px',
+                fontWeight: 'bold',
+                color: colors.textPrimary,
+                marginBottom: '8px',
+              }}
+            >
               Description
             </h3>
             <p style={{ fontSize: '14px', color: colors.textSecondary, lineHeight: '1.6' }}>
@@ -590,12 +701,27 @@ export default function MealDetails() {
 
         {/* Ingrédients */}
         <div style={{ marginBottom: '32px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+          <h3
+            style={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              color: colors.textPrimary,
+              marginBottom: '12px',
+            }}
+          >
             Ingrédients
           </h3>
           <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
             {meal.ingredients.slice(0, 8).map((ingredient, index) => (
-              <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '70px' }}>
+              <div
+                key={index}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  minWidth: '70px',
+                }}
+              >
                 <div
                   style={{
                     width: '48px',
@@ -634,7 +760,15 @@ export default function MealDetails() {
             >
               <AlertTriangleIcon size={20} color={colors.error} />
               <div>
-                <p style={{ fontSize: '12px', fontWeight: 'bold', color: colors.error, textTransform: 'uppercase', marginBottom: '4px' }}>
+                <p
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: colors.error,
+                    textTransform: 'uppercase',
+                    marginBottom: '4px',
+                  }}
+                >
                   ALERTE ALLERGÈNES
                 </p>
                 <p style={{ fontSize: '12px', color: colors.error }}>
@@ -648,7 +782,14 @@ export default function MealDetails() {
         {/* Avis récents */}
         {reviews.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
               <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary }}>
                 Avis récents
               </h3>
@@ -673,15 +814,26 @@ export default function MealDetails() {
                       height: '32px',
                       borderRadius: '50%',
                       backgroundColor: colors.backgroundLight,
-                      backgroundImage: review.reviewer.profilePhoto ? `url(${review.reviewer.profilePhoto})` : 'none',
+                      backgroundImage: review.reviewer.profilePhoto
+                        ? `url(${review.reviewer.profilePhoto})`
+                        : 'none',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       flexShrink: 0,
                     }}
                   />
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary }}
+                      >
                         {review.reviewer.username}
                       </span>
                       <div style={{ display: 'flex', gap: '2px' }}>
@@ -698,7 +850,14 @@ export default function MealDetails() {
                         ))}
                       </div>
                     </div>
-                    <p style={{ fontSize: '12px', color: colors.textSecondary, fontStyle: 'italic', margin: 0 }}>
+                    <p
+                      style={{
+                        fontSize: '12px',
+                        color: colors.textSecondary,
+                        fontStyle: 'italic',
+                        margin: 0,
+                      }}
+                    >
                       "{review.comment}"
                     </p>
                   </div>
@@ -719,13 +878,28 @@ export default function MealDetails() {
               border: '1px solid #FFB74D',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '8px',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#E65100' }}>
                 <BarChartIcon size={16} color="#E65100" />
                 <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0 }}>
                   Votre quota de réservation
                 </p>
-                <span style={{ display: 'inline-flex', alignItems: 'center', color: '#E65100', cursor: 'pointer' }} title="Les quotas sont réinitialisés chaque lundi">
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    color: '#E65100',
+                    cursor: 'pointer',
+                  }}
+                  title="Les quotas sont réinitialisés chaque lundi"
+                >
                   <InfoIcon size={14} color="#E65100" />
                 </span>
               </div>
@@ -739,7 +913,8 @@ export default function MealDetails() {
                   borderRadius: '9999px',
                 }}
               >
-                {quotaStatus.weeklyReservations?.used || 0}/{quotaStatus.weeklyReservations?.limit || 1}
+                {quotaStatus.weeklyReservations?.used || 0}/
+                {quotaStatus.weeklyReservations?.limit || 1}
               </span>
             </div>
             <div
@@ -761,12 +936,33 @@ export default function MealDetails() {
               />
             </div>
             {isQuotaReached ? (
-              <p style={{ fontSize: '12px', color: '#E65100', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <AlertTriangleIcon size={12} color="#E65100" /> <strong>Quota atteint.</strong> Vous pourrez réserver à nouveau <strong>lundi prochain</strong> (réinitialisation hebdomadaire).
+              <p
+                style={{
+                  fontSize: '12px',
+                  color: '#E65100',
+                  margin: '4px 0 0 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <AlertTriangleIcon size={12} color="#E65100" /> <strong>Quota atteint.</strong> Vous
+                pourrez réserver à nouveau <strong>lundi prochain</strong> (réinitialisation
+                hebdomadaire).
               </p>
             ) : (
-              <p style={{ fontSize: '12px', color: '#E65100', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <InfoIcon size={12} color="#E65100" /> Vous pouvez toujours proposer des repas même si votre quota de réservation est atteint.
+              <p
+                style={{
+                  fontSize: '12px',
+                  color: '#E65100',
+                  margin: '4px 0 0 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <InfoIcon size={12} color="#E65100" /> Vous pouvez toujours proposer des repas même
+                si votre quota de réservation est atteint.
               </p>
             )}
           </div>
@@ -839,7 +1035,9 @@ export default function MealDetails() {
                       gap: '8px',
                       transition: 'background-color 0.2s',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primaryHover)}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = colors.primaryHover)
+                    }
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.primary)}
                   >
                     <EditIcon size={20} color={colors.backgroundWhite} /> MODIFIER
@@ -926,56 +1124,64 @@ export default function MealDetails() {
                     justifyContent: 'center',
                   }}
                 >
-                  {meal.status === 'SERVED' ? 'REPAS SERVI' : meal.status === 'NOT_PICKED_UP' ? 'NON RÉCUPÉRÉ SIGNALÉ' : 'EXPIRÉ'}
+                  {meal.status === 'SERVED'
+                    ? 'REPAS SERVI'
+                    : meal.status === 'NOT_PICKED_UP'
+                      ? 'NON RÉCUPÉRÉ SIGNALÉ'
+                      : 'EXPIRÉ'}
                 </div>
               )
-            ) : (
-              // Actions pour l'utilisateur normal
-              meal.status === 'AVAILABLE' ? (
-                <button
-                  onClick={(e) => {
-                    if (isGuestMode) {
-                      e.preventDefault();
-                      setShowAuthModal(true);
-                    } else {
-                      if (!isQuotaReached) {
-                        navigate(`/meals/${meal.id}/reserve`);
-                      }
+            ) : // Actions pour l'utilisateur normal
+            meal.status === 'AVAILABLE' ? (
+              <button
+                onClick={(e) => {
+                  if (isGuestMode) {
+                    e.preventDefault();
+                    setShowAuthModal(true);
+                  } else {
+                    if (!isQuotaReached) {
+                      navigate(`/meals/${meal.id}/reserve`);
                     }
-                  }}
-                  disabled={!isGuestMode && isQuotaReached}
-                  style={{
-                    flex: 1,
-                    height: '56px',
-                    borderRadius: '12px',
-                    backgroundColor: (!isGuestMode && isQuotaReached) ? colors.backgroundLight : colors.primary,
-                    color: (!isGuestMode && isQuotaReached) ? colors.textSecondary : colors.backgroundWhite,
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    border: 'none',
-                    cursor: (!isGuestMode && isQuotaReached) ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {(!isGuestMode && isQuotaReached) ? 'QUOTA ATTEINT' : '✅ RÉSERVER CE REPAS'}
-                </button>
-              ) : (
-                <div
-                  style={{
-                    flex: 1,
-                    height: '56px',
-                    borderRadius: '12px',
-                    backgroundColor: colors.backgroundLight,
-                    color: colors.textSecondary,
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {meal.status === 'RESERVED' ? 'DÉJÀ RÉSERVÉ' : meal.status === 'SERVED' ? 'SERVI' : 'EXPIRÉ'}
-                </div>
-              )
+                  }
+                }}
+                disabled={!isGuestMode && isQuotaReached}
+                style={{
+                  flex: 1,
+                  height: '56px',
+                  borderRadius: '12px',
+                  backgroundColor:
+                    !isGuestMode && isQuotaReached ? colors.backgroundLight : colors.primary,
+                  color:
+                    !isGuestMode && isQuotaReached ? colors.textSecondary : colors.backgroundWhite,
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  border: 'none',
+                  cursor: !isGuestMode && isQuotaReached ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {!isGuestMode && isQuotaReached ? 'QUOTA ATTEINT' : '✅ RÉSERVER CE REPAS'}
+              </button>
+            ) : (
+              <div
+                style={{
+                  flex: 1,
+                  height: '56px',
+                  borderRadius: '12px',
+                  backgroundColor: colors.backgroundLight,
+                  color: colors.textSecondary,
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {meal.status === 'RESERVED'
+                  ? 'DÉJÀ RÉSERVÉ'
+                  : meal.status === 'SERVED'
+                    ? 'SERVI'
+                    : 'EXPIRÉ'}
+              </div>
             )}
           </div>
         </footer>
@@ -1010,11 +1216,26 @@ export default function MealDetails() {
             onClick={(e) => e.stopPropagation()}
           >
             <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>👋</span>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+            <h3
+              style={{
+                fontSize: '20px',
+                fontWeight: 'bold',
+                color: colors.textPrimary,
+                marginBottom: '12px',
+              }}
+            >
               Rejoignez SOLID'EAT !
             </h3>
-            <p style={{ fontSize: '14px', color: colors.textSecondary, lineHeight: '1.6', marginBottom: '24px' }}>
-              Pour proposer vos repas, échanger avec les autres membres ou réserver un plat, créez un compte gratuit en quelques secondes.
+            <p
+              style={{
+                fontSize: '14px',
+                color: colors.textSecondary,
+                lineHeight: '1.6',
+                marginBottom: '24px',
+              }}
+            >
+              Pour proposer vos repas, échanger avec les autres membres ou réserver un plat, créez
+              un compte gratuit en quelques secondes.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <Link

@@ -30,7 +30,7 @@ export class ReservationService {
     }
 
     if (meal.status !== MealStatus.AVAILABLE) {
-      throw new Error('Ce repas n\'est plus disponible');
+      throw new Error("Ce repas n'est plus disponible");
     }
 
     if (meal.reservation) {
@@ -50,7 +50,9 @@ export class ReservationService {
     // Vérifier si les réservations sont bloquées (sanction)
     const isReservationBlocked = await sanctionService.isReservationBlocked(userId);
     if (isReservationBlocked) {
-      throw new Error('Vos réservations sont temporairement bloquées suite à une sanction. Consultez vos messages système pour plus d\'informations.');
+      throw new Error(
+        "Vos réservations sont temporairement bloquées suite à une sanction. Consultez vos messages système pour plus d'informations."
+      );
     }
 
     // Vérifier les quotas hebdomadaires
@@ -113,16 +115,18 @@ export class ReservationService {
     });
 
     // Envoyer les notifications (en arrière-plan)
-    notificationService.sendNotification(
-      meal.cookId,
-      NotificationType.MEAL_RESERVED,
-      'Nouvelle réservation',
-      `Un utilisateur a réservé votre repas "${meal.name}"`,
-      `/reservations`,
-      true
-    ).catch(() => {
-      // Erreur silencieuse
-    });
+    notificationService
+      .sendNotification(
+        meal.cookId,
+        NotificationType.MEAL_RESERVED,
+        'Nouvelle réservation',
+        `Un utilisateur a réservé votre repas "${meal.name}"`,
+        `/reservations`,
+        true
+      )
+      .catch(() => {
+        // Erreur silencieuse
+      });
 
     // Incrémenter le compteur de repas reçus
     const user = await prisma.user.findUnique({
@@ -178,7 +182,7 @@ export class ReservationService {
     }
 
     if (reservation.userId !== userId) {
-      throw new Error('Vous n\'êtes pas autorisé à annuler cette réservation');
+      throw new Error("Vous n'êtes pas autorisé à annuler cette réservation");
     }
 
     if (reservation.cancelledAt) {
@@ -188,7 +192,9 @@ export class ReservationService {
     // Vérifier si les annulations sont bloquées (sanction)
     const isCancellationBlocked = await sanctionService.isCancellationBlocked(userId);
     if (isCancellationBlocked) {
-      throw new Error('Vos annulations sont temporairement bloquées suite à une sanction. Consultez vos messages système pour plus d\'informations.');
+      throw new Error(
+        "Vos annulations sont temporairement bloquées suite à une sanction. Consultez vos messages système pour plus d'informations."
+      );
     }
 
     // Vérifier le délai (7h avant l'heure de récupération)
@@ -197,18 +203,18 @@ export class ReservationService {
     const hoursUntilPickup = (pickupTimeStart.getTime() - now.getTime()) / (1000 * 60 * 60);
 
     if (hoursUntilPickup < 7) {
-      throw new Error('L\'annulation n\'est plus possible (moins de 7h avant la récupération)');
+      throw new Error("L'annulation n'est plus possible (moins de 7h avant la récupération)");
     }
 
     // Vérifier les quotas d'annulation
     const weeklyQuota = await quotaService.checkWeeklyCancellationQuota(userId);
     if (!weeklyQuota.allowed) {
-      throw new Error(weeklyQuota.message || 'Quota d\'annulation hebdomadaire atteint');
+      throw new Error(weeklyQuota.message || "Quota d'annulation hebdomadaire atteint");
     }
 
     const monthlyQuota = await quotaService.checkMonthlyCancellationQuota(userId);
     if (!monthlyQuota.allowed) {
-      throw new Error(monthlyQuota.message || 'Plafond mensuel d\'annulations atteint');
+      throw new Error(monthlyQuota.message || "Plafond mensuel d'annulations atteint");
     }
 
     // Annuler la réservation
@@ -243,16 +249,18 @@ export class ReservationService {
     }
 
     // Envoyer notification au cuisinier
-    notificationService.sendNotification(
-      reservation.meal.cookId,
-      NotificationType.MEAL_CANCELLED,
-      'Réservation annulée',
-      `La réservation pour votre repas "${reservation.meal.name}" a été annulée.`,
-      `/meals/${reservation.mealId}`,
-      true
-    ).catch(() => {
-      // Erreur silencieuse
-    });
+    notificationService
+      .sendNotification(
+        reservation.meal.cookId,
+        NotificationType.MEAL_CANCELLED,
+        'Réservation annulée',
+        `La réservation pour votre repas "${reservation.meal.name}" a été annulée.`,
+        `/meals/${reservation.mealId}`,
+        true
+      )
+      .catch(() => {
+        // Erreur silencieuse
+      });
   }
 
   /**
@@ -310,7 +318,15 @@ export class ReservationService {
     }
 
     if (reservation.meal.cookId !== cookId) {
-      throw new Error('Vous n\'êtes pas autorisé à marquer ce repas comme récupéré');
+      throw new Error("Vous n'êtes pas autorisé à marquer ce repas comme récupéré");
+    }
+
+    if (reservation.pickedUpAt) {
+      throw new Error('Ce repas a déjà été marqué comme récupéré');
+    }
+
+    if (reservation.cancelledAt) {
+      throw new Error('Cette réservation est annulée');
     }
 
     await prisma.reservation.update({
@@ -326,6 +342,20 @@ export class ReservationService {
         status: MealStatus.SERVED,
       },
     });
+
+    // Notifier le mangeur qu'il peut maintenant noter
+    notificationService
+      .sendNotification(
+        reservation.userId,
+        NotificationType.SYSTEM_MESSAGE,
+        'Repas récupéré',
+        `Vous avez récupéré le repas "${reservation.meal.name}". N'oubliez pas de laisser un avis !`,
+        `/meals/${reservation.mealId}/review`,
+        true
+      )
+      .catch(() => {
+        // Erreur silencieuse
+      });
   }
 
   /**
@@ -351,7 +381,15 @@ export class ReservationService {
     }
 
     if (reservation.meal.cookId !== cookId) {
-      throw new Error('Vous n\'êtes pas autorisé à signaler ce repas');
+      throw new Error("Vous n'êtes pas autorisé à signaler ce repas");
+    }
+
+    if (reservation.pickedUpAt) {
+      throw new Error('Ce repas a déjà été récupéré');
+    }
+
+    if (reservation.cancelledAt) {
+      throw new Error('Cette réservation est annulée');
     }
 
     // Vérifier le délai (24h après fin de plage horaire)
@@ -360,24 +398,13 @@ export class ReservationService {
     const hoursSincePickupEnd = (now.getTime() - pickupTimeEnd.getTime()) / (1000 * 60 * 60);
 
     if (hoursSincePickupEnd < 0) {
-      throw new Error('Le repas n\'a pas encore atteint l\'heure de fin de récupération');
+      throw new Error("Le repas n'a pas encore atteint l'heure de fin de récupération");
     }
 
     if (hoursSincePickupEnd > 24) {
-      throw new Error('Le signalement n\'est plus possible (plus de 24h après la fin de récupération)');
-    }
-
-    // Vérifier si les annulations sont bloquées (sanction)
-    const isCancellationBlocked = await sanctionService.isCancellationBlocked(reservation.userId);
-    if (isCancellationBlocked) {
-      throw new Error('Vos annulations sont temporairement bloquées suite à une sanction. Consultez vos messages système pour plus d\'informations.');
-    }
-
-    // Vérifier le quota mensuel
-    const monthlyQuota = await quotaService.checkMonthlyCancellationQuota(reservation.userId);
-    if (!monthlyQuota.allowed) {
-      // Les sanctions seront appliquées par le job quotidien
-      // On peut quand même signaler le repas non récupéré
+      throw new Error(
+        "Le signalement n'est plus possible (plus de 24h après la fin de récupération)"
+      );
     }
 
     // Vérifier le temps restant avant expiration
@@ -389,7 +416,7 @@ export class ReservationService {
       await prisma.meal.update({
         where: { id: reservation.mealId },
         data: {
-          status: MealStatus.NOT_PICKED_UP,
+          status: MealStatus.AVAILABLE,
           inSaveThem: true,
         },
       });
@@ -402,17 +429,28 @@ export class ReservationService {
       });
     }
 
-    // Envoyer notification
-    notificationService.sendNotification(
-      reservation.userId,
-      NotificationType.SANCTION_APPLIED,
-      'Repas non récupéré',
-      `Le cuisinier a signalé que vous n'avez pas récupéré le repas "${reservation.meal.name}".`,
-      `/reservations`,
-      true
-    ).catch(() => {
-      // Erreur silencieuse
+    // Marquer la réservation comme annulée / non récupérée
+    await prisma.reservation.update({
+      where: { id: reservationId },
+      data: {
+        cancelledAt: new Date(),
+        cancellationReason: 'Repas non récupéré par le mangeur',
+      },
     });
+
+    // Envoyer notification
+    notificationService
+      .sendNotification(
+        reservation.userId,
+        NotificationType.SANCTION_APPLIED,
+        'Repas non récupéré',
+        `Le cuisinier a signalé que vous n'avez pas récupéré le repas "${reservation.meal.name}".`,
+        `/reservations`,
+        true
+      )
+      .catch(() => {
+        // Erreur silencieuse
+      });
   }
 }
 

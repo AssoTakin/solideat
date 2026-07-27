@@ -3,6 +3,7 @@ import prisma from '../config/database';
 import { CreateMealDto, UpdateMealDto } from '../validators/meal.validator';
 import { geolocationService } from './geolocation.service';
 import { bonusDonorService } from './bonus-donor.service';
+import { uploadService } from './upload.service';
 
 export class MealService {
   /**
@@ -24,12 +25,16 @@ export class MealService {
 
       // Seuls les membres premium peuvent vendre des repas
       if (!user || user.subscriptionType === 'FREE') {
-        throw new Error('Seuls les membres premium peuvent vendre des repas. Passez au Premium pour accéder à cette fonctionnalité.');
+        throw new Error(
+          'Seuls les membres premium peuvent vendre des repas. Passez au Premium pour accéder à cette fonctionnalité.'
+        );
       }
 
       // Le prix doit être exactement 5€ selon les spécifications
       if (data.price !== 5) {
-        throw new Error('Le prix de vente est fixé à 5€ par repas (frais de service inclus). Vous recevrez 4€ après la livraison.');
+        throw new Error(
+          'Le prix de vente est fixé à 5€ par repas (frais de service inclus). Vous recevrez 4€ après la livraison.'
+        );
       }
     }
 
@@ -55,14 +60,22 @@ export class MealService {
     const pickupTimeStart = new Date(data.pickupTimeStart);
     const pickupTimeEnd = new Date(data.pickupTimeEnd);
     if (pickupTimeEnd < pickupTimeStart) {
-      throw new Error('L\'heure de fin doit être supérieure ou égale à l\'heure de début');
+      throw new Error("L'heure de fin doit être supérieure ou égale à l'heure de début");
     }
+
+    // Valider et uploader la photo
+    const photoValidation = uploadService.validateImage(data.photo);
+    if (!photoValidation.valid) {
+      throw new Error(photoValidation.error || 'Photo invalide');
+    }
+    const uploadResult = await uploadService.uploadImage(data.photo, 'solideat/meals');
+    const photoUrl = uploadResult.url;
 
     // Créer le repas
     const meal = await prisma.meal.create({
       data: {
         name: data.name,
-        photo: data.photo,
+        photo: photoUrl,
         description: data.description,
         cuisine: data.cuisine,
         preparationDate,
@@ -435,7 +448,7 @@ export class MealService {
     }
 
     if (meal.cookId !== userId) {
-      throw new Error('Vous n\'êtes pas autorisé à modifier ce repas');
+      throw new Error("Vous n'êtes pas autorisé à modifier ce repas");
     }
 
     if (meal.status !== MealStatus.AVAILABLE) {
@@ -469,7 +482,7 @@ export class MealService {
       const pickupTimeStart = new Date(data.pickupTimeStart);
       const pickupTimeEnd = new Date(data.pickupTimeEnd);
       if (pickupTimeEnd < pickupTimeStart) {
-        throw new Error('L\'heure de fin doit être supérieure ou égale à l\'heure de début');
+        throw new Error("L'heure de fin doit être supérieure ou égale à l'heure de début");
       }
       updateData.pickupTimeStart = pickupTimeStart;
       updateData.pickupTimeEnd = pickupTimeEnd;
@@ -523,7 +536,7 @@ export class MealService {
     }
 
     if (meal.cookId !== userId) {
-      throw new Error('Vous n\'êtes pas autorisé à supprimer ce repas');
+      throw new Error("Vous n'êtes pas autorisé à supprimer ce repas");
     }
 
     if (meal.status !== MealStatus.AVAILABLE) {
@@ -534,7 +547,6 @@ export class MealService {
       where: { id: mealId },
     });
   }
-
 
   /**
    * Formate l'heure de récupération pour l'affichage

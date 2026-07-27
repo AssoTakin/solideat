@@ -7,23 +7,27 @@ export class ReviewService {
    * Crée un avis/notation
    */
   async createReview(userId: string, data: CreateReviewDto): Promise<any> {
-    // Vérifier que le repas existe et a été servi
-    const meal = await prisma.meal.findUnique({
-      where: { id: data.mealId },
+    // Vérifier que le repas existe et a été servi/récupéré
+    const reservation = await prisma.reservation.findFirst({
+      where: {
+        mealId: data.mealId,
+        userId,
+        pickedUpAt: { not: null },
+      },
       include: {
-        reservation: true,
-        cook: true,
+        meal: {
+          include: {
+            cook: true,
+          },
+        },
       },
     });
 
-    if (!meal) {
-      throw new Error('Repas non trouvé');
+    if (!reservation || !reservation.meal) {
+      throw new Error("Vous n'avez pas réservé ce repas ou il n'a pas été récupéré");
     }
 
-    // Vérifier que l'utilisateur a réservé et récupéré ce repas
-    if (!meal.reservation || meal.reservation.userId !== userId || !meal.reservation.pickedUpAt) {
-      throw new Error('Vous n\'avez pas réservé ce repas ou il n\'a pas été récupéré');
-    }
+    const meal = reservation.meal;
 
     // Vérifier qu'un avis n'existe pas déjà
     const existingReview = await prisma.review.findUnique({
@@ -101,11 +105,12 @@ export class ReviewService {
     const sumRatings = reviews.reduce((sum, review) => sum + review.rating, 0);
     const averageRating = sumRatings / reviews.length;
 
-    // Compter les repas non récupérés
-    const notPickedUpCount = await prisma.meal.count({
+    // Compter les repas non récupérés (réservations annulées avec raison non-récupérée + repas expirés)
+    const notPickedUpCount = await prisma.reservation.count({
       where: {
-        cookId,
-        status: 'NOT_PICKED_UP',
+        meal: { cookId },
+        cancelledAt: { not: null },
+        cancellationReason: { contains: 'non récupéré', mode: 'insensitive' },
       },
     });
 
@@ -128,7 +133,11 @@ export class ReviewService {
   /**
    * Récupère les avis d'un cuisinier
    */
-  async getCookReviews(cookId: string, page: number = 1, limit: number = 20): Promise<{ reviews: any[]; total: number }> {
+  async getCookReviews(
+    cookId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ reviews: any[]; total: number }> {
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await Promise.all([
