@@ -12,7 +12,9 @@ export interface AuthRequest extends Request {
 
 /**
  * Middleware d'authentification
- * Vérifie le JWT token et attache l'utilisateur à la requête
+ * Vérifie le JWT token et attache l'utilisateur à la requête.
+ * Bloque l'accès aux fonctionnalités protégées si email ou téléphone
+ * n'est pas vérifié (exclusion : routes liées à l'authentification).
  */
 export const authenticate = async (
   req: AuthRequest,
@@ -48,16 +50,22 @@ export const authenticate = async (
       return;
     }
 
-    // Pour le MVP, permettre l'accès avec seulement l'email vérifié
-    // La vérification du téléphone peut être faite plus tard
     if (!user.emailVerified) {
-      res.status(403).json({ error: 'Email non vérifié. Veuillez vérifier votre email pour accéder à votre compte.' });
+      res.status(403).json({
+        error: 'EMAIL_NOT_VERIFIED',
+        message: 'Votre email n\'est pas encore vérifié. Veuillez cliquer sur le lien reçu par email pour activer votre compte.',
+        data: { user: { id: user.id, email: user.email } },
+      });
       return;
     }
 
-    // Avertir si le téléphone n'est pas vérifié, mais permettre l'accès
     if (!user.phoneVerified) {
-      // On permet l'accès mais on pourrait ajouter un flag pour demander la vérification plus tard
+      res.status(403).json({
+        error: 'PHONE_NOT_VERIFIED',
+        message: 'Votre numéro de téléphone n\'est pas encore vérifié. Veuillez saisir le code reçu par SMS pour activer votre compte.',
+        data: { user: { id: user.id, email: user.email } },
+      });
+      return;
     }
 
     req.user = {

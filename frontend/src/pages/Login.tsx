@@ -85,6 +85,15 @@ export default function Login() {
       const response = await authService.login(data as LoginDto);
 
       if (response.success) {
+        // Si le téléphone n'est pas vérifié, rediriger vers la page de vérification
+        const user = response.data?.user;
+        if (user && user.emailVerified && !user.phoneVerified) {
+          setTimeout(() => {
+            navigate('/verify', { state: { userId: user.id, userEmail: user.email } });
+          }, 500);
+          return;
+        }
+
         // Effacer les messages avant la redirection
         setError(null);
         setSuccessMessage(null);
@@ -95,11 +104,44 @@ export default function Login() {
         setError(errorMessage);
         // Effacer le message de succès si on a une erreur
         setSuccessMessage(null);
+        // Gestion centralisée de l'erreur PHONE_NOT_VERIFIED en réponse 200/403
+        if (errorMessage === 'PHONE_NOT_VERIFIED') {
+          setTimeout(() => {
+            navigate('/verify', {
+              state: {
+                userId: response.data?.user?.id || localStorage.getItem('userId'),
+                userEmail: response.data?.user?.email || data.email,
+              },
+            });
+          }, 500);
+          return;
+        }
         // L'erreur reste visible - pas de timeout automatique
         // Scroll vers le haut pour voir l'erreur
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (err: any) {
+      const status = err.response?.status;
+      const data = err.response?.data || {};
+      const serverError = data.error;
+
+      // Gestion centralisée de l'erreur PHONE_NOT_VERIFIED
+      if (status === 403 && serverError === 'PHONE_NOT_VERIFIED') {
+        const user = data.data?.user || {};
+        // On nettoie le token si le backend en a émis un mais que le téléphone n'est pas vérifié
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        setTimeout(() => {
+          navigate('/verify', {
+            state: {
+              userId: user.id || localStorage.getItem('userId'),
+              userEmail: data.email || user.email,
+            },
+          });
+        }, 500);
+        return;
+      }
+
       const errorMessage = err.response?.data?.error || 'Erreur lors de la connexion';
       setError(errorMessage);
       // Effacer le message de succès si on a une erreur

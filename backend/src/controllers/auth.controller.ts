@@ -3,6 +3,7 @@ import { authService } from '../services/auth.service';
 import { emailService } from '../services/email.service';
 import { smsService } from '../services/sms.service';
 import prisma from '../config/database';
+import { phoneVerificationCache } from '../services/cache.service';
 
 export class AuthController {
   /**
@@ -117,12 +118,26 @@ export class AuthController {
 
       const result = await authService.login(email, password);
 
+      // Connexion réussie : réinitialiser le compteur de tentatives
+      const { resetLoginAttempts } = require('../middleware/loginRateLimit.middleware');
+      await resetLoginAttempts(email);
+
       res.json({
         success: true,
         message: 'Connexion réussie',
         data: result,
       });
     } catch (error: any) {
+      // Mot de passe incorrect ou email non trouvé : incrémenter le compteur
+      if (error.message === 'Email ou mot de passe incorrect') {
+        try {
+          const { recordFailedLogin } = require('../middleware/loginRateLimit.middleware');
+          await recordFailedLogin(req.body?.email || '');
+        } catch {
+          // Ignorer l'erreur Redis
+        }
+      }
+
       res.status(401).json({
         success: false,
         error: error.message || 'Erreur lors de la connexion',
@@ -238,6 +253,8 @@ export class AuthController {
       }
 
       const code = smsService.generateVerificationCode();
+      // Stocker le nouveau code dans Redis avec expiration 10 minutes
+      await phoneVerificationCache.set(user.id, code, 600);
       await smsService.resendVerificationSMS(user.phone, code);
 
       res.json({

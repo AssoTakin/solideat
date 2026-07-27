@@ -1,10 +1,11 @@
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 import { RegisterDto } from '../validators/auth.validator';
 import { geolocationService } from './geolocation.service';
 import { emailService } from './email.service';
 import { smsService } from './sms.service';
 import prisma from '../config/database';
+import { phoneVerificationCache } from './cache.service';
 
 export interface AuthResult {
   user: {
@@ -103,13 +104,12 @@ export class AuthService {
       // Erreur silencieuse
     });
     if (data.phone) {
+      // Stocker le code téléphone dans Redis avec expiration 10 minutes
+      await phoneVerificationCache.set(user.id, phoneCode, 600);
       smsService.sendVerificationSMS(data.phone, phoneCode).catch(() => {
         // Erreur silencieuse
       });
     }
-
-    // Stocker le code téléphone dans Redis (pour l'instant, on le retourne)
-    // TODO: Implémenter Redis pour stocker le code avec expiration
 
     return {
       user,
@@ -155,11 +155,7 @@ export class AuthService {
   /**
    * Vérification du téléphone
    */
-  async verifyPhone(userId: string, _code: string): Promise<boolean> {
-    // TODO: Récupérer le code depuis Redis et vérifier
-    // Pour l'instant, on accepte n'importe quel code en développement
-    // En production, il faudra stocker le code dans Redis avec expiration
-
+  async verifyPhone(userId: string, code: string): Promise<boolean> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -172,12 +168,19 @@ export class AuthService {
       return true; // Déjà vérifié
     }
 
-    // TODO: Vérifier le code avec Redis
-    // Pour l'instant, on accepte le code
+    const storedCode = await phoneVerificationCache.get(userId);
+
+    if (!storedCode || storedCode !== code) {
+      throw new Error('Code de vérification invalide ou expiré');
+    }
+
+    // Code valide : on valide le téléphone et on supprime le code
     await prisma.user.update({
       where: { id: userId },
       data: { phoneVerified: true },
     });
+
+    await phoneVerificationCache.delete(userId);
 
     return true;
   }
@@ -199,11 +202,17 @@ export class AuthService {
       throw new Error('Email ou mot de passe incorrect');
     }
 
-    // Pour le MVP, permettre la connexion avec seulement l'email vérifié
-    // La vérification du téléphone peut être faite plus tard
+    // Vérifications conditionnelles :
+    // - Email non vérifié : on refuse la connexion pour forcer la vérification.
+    // - Téléphone non vérifié : on autorise le login mais le frontend gère
+    //   l'erreur PHONE_NOT_VERIFIED via le middleware authentifié.
     if (!user.emailVerified) {
       throw new Error('Votre email n\'est pas encore vérifié. Veuillez cliquer sur le lien reçu par email pour vérifier votre compte.');
     }
+
+    // Email vérifié : autoriser la connexion pour permettre au frontend
+    // de diriger l'utilisateur vers la vérification téléphone si besoin.
+    // Les fonctionnalités protégées restent bloquées par auth.middleware.
 
     // Générer le JWT
     const token = this.generateJWT(user);

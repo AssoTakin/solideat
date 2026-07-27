@@ -63,13 +63,16 @@ export const authService = {
    */
   async login(data: LoginDto): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/login', data);
-    if (response.data.success && response.data.data?.token) {
-      localStorage.setItem('token', response.data.data.token);
-      if (response.data.data.user?.id) {
-        localStorage.setItem('userId', response.data.data.user.id);
+    const payload = response.data;
+    if (payload.success) {
+      if (payload.data?.token) {
+        localStorage.setItem('token', payload.data.token);
+      }
+      if (payload.data?.user?.id) {
+        localStorage.setItem('userId', payload.data.user.id);
       }
     }
-    return response.data;
+    return payload;
   },
 
   /**

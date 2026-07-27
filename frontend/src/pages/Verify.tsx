@@ -70,11 +70,11 @@ export default function Verify() {
 
     try {
       if (USE_MOCK_DATA) {
-        // En mode mock, accepter n'importe quel code
+        // En mode mock, on accepte n'importe quel code
         setPhoneVerified(true);
         if (emailVerified) {
           setTimeout(() => {
-            navigate('/login');
+            navigate('/dashboard');
           }, 2000);
         }
         setLoading(false);
@@ -87,14 +87,20 @@ export default function Verify() {
         // Si les deux sont vérifiés, rediriger vers le dashboard
         if (emailVerified) {
           setTimeout(() => {
-            navigate('/login');
+            navigate('/dashboard');
           }, 2000);
         }
       } else {
         setError(response.error || 'Code invalide ou expiré');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de la vérification téléphone');
+      const serverError = err.response?.data?.error;
+      if (serverError === 'PHONE_NOT_VERIFIED') {
+        // Le serveur indique que le téléphone n'est pas vérifié ; on reste sur la page
+        setError(err.response?.data?.message || 'Votre numéro de téléphone n\'est pas vérifié.');
+      } else {
+        setError(err.response?.data?.error || err.response?.data?.message || 'Erreur lors de la vérification téléphone');
+      }
     } finally {
       setLoading(false);
     }

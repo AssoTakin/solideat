@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authController } from '../controllers/auth.controller';
+import { loginRateLimit } from '../middleware/loginRateLimit.middleware';
 import { validate } from '../middleware/validation.middleware';
 import {
   registerSchema,
@@ -20,8 +21,8 @@ router.post('/verify-email', validate(verifyEmailSchema), authController.verifyE
 // Vérification téléphone
 router.post('/verify-phone', authController.verifyPhone.bind(authController));
 
-// Connexion
-router.post('/login', validate(loginSchema), authController.login.bind(authController));
+// Connexion (rate limiting : 5 tentatives / 30 min)
+router.post('/login', loginRateLimit, validate(loginSchema), authController.login.bind(authController));
 
 // Déconnexion
 router.post('/logout', authController.logout.bind(authController));

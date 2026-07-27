@@ -1,7 +1,9 @@
-import twilio from 'twilio';
+const twilio = require('twilio');
+
+type TwilioClient = ReturnType<typeof twilio>;
 
 export class SmsService {
-  private client: twilio.Twilio | null = null;
+  private client: TwilioClient | null = null;
   private phoneNumber: string;
 
   constructor() {
