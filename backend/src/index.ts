@@ -82,7 +82,9 @@ app.use(cors({
 // IMPORTANT: Les webhooks Stripe doivent être configurés AVANT express.json()
 // car ils nécessitent le body brut pour la vérification de signature
 import stripeRoutes from './routes/stripe.routes';
+import adminRoutes from './routes/admin.routes';
 app.use('/webhooks', express.raw({ type: 'application/json' }), stripeRoutes);
+app.use('/admin', adminRoutes);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
