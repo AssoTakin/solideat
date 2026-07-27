@@ -45,7 +45,9 @@ export const authService = {
   /**
    * Vérification email
    */
-  async verifyEmail(token: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  async verifyEmail(
+    token: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
     const response = await api.post('/auth/verify-email', { token });
     return response.data;
   },
@@ -53,7 +55,10 @@ export const authService = {
   /**
    * Vérification téléphone
    */
-  async verifyPhone(userId: string, code: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  async verifyPhone(
+    userId: string,
+    code: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
     const response = await api.post('/auth/verify-phone', { userId, code });
     return response.data;
   },
@@ -92,7 +97,9 @@ export const authService = {
   /**
    * Renvoyer email de vérification
    */
-  async resendVerificationEmail(email: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  async resendVerificationEmail(
+    email: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
     const response = await api.post('/auth/resend-verification-email', { email });
     return response.data;
   },
@@ -100,7 +107,9 @@ export const authService = {
   /**
    * Renvoyer SMS de vérification
    */
-  async resendVerificationSMS(userId: string): Promise<{ success: boolean; message?: string; code?: string; error?: string }> {
+  async resendVerificationSMS(
+    userId: string
+  ): Promise<{ success: boolean; message?: string; code?: string; error?: string }> {
     const response = await api.post('/auth/resend-verification-sms', { userId });
     return response.data;
   },
@@ -108,7 +117,9 @@ export const authService = {
   /**
    * Mot de passe oublié
    */
-  async forgotPassword(email: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  async forgotPassword(
+    email: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
     const response = await api.post('/auth/forgot-password', { email });
     return response.data;
   },
@@ -116,7 +127,10 @@ export const authService = {
   /**
    * Réinitialisation du mot de passe
    */
-  async resetPassword(token: string, password: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  async resetPassword(
+    token: string,
+    password: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
     const response = await api.post('/auth/reset-password', { token, password });
     return response.data;
   },

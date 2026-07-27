@@ -7,7 +7,6 @@ import { InfoIcon, CheckIcon } from '../components/Icons';
 
 // Design System Colors
 
-
 export default function Verify() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,14 +35,17 @@ export default function Verify() {
           const response = await authService.verifyEmail(emailToken);
           if (response.success) {
             setEmailVerified(true);
-            setSuccessMessage('Email vérifié avec succès ! Redirection vers la page de connexion...');
+            setSuccessMessage(
+              'Email vérifié avec succès ! Redirection vers la page de connexion...'
+            );
             // Rediriger vers la page de connexion après 2 secondes (plus rapide)
             setTimeout(() => {
-              navigate('/login', { 
-                state: { 
-                  message: 'Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.',
-                  emailVerified: true
-                } 
+              navigate('/login', {
+                state: {
+                  message:
+                    'Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.',
+                  emailVerified: true,
+                },
               });
             }, 2000);
           } else {
@@ -97,9 +99,13 @@ export default function Verify() {
       const serverError = err.response?.data?.error;
       if (serverError === 'PHONE_NOT_VERIFIED') {
         // Le serveur indique que le téléphone n'est pas vérifié ; on reste sur la page
-        setError(err.response?.data?.message || 'Votre numéro de téléphone n\'est pas vérifié.');
+        setError(err.response?.data?.message || "Votre numéro de téléphone n'est pas vérifié.");
       } else {
-        setError(err.response?.data?.error || err.response?.data?.message || 'Erreur lors de la vérification téléphone');
+        setError(
+          err.response?.data?.error ||
+            err.response?.data?.message ||
+            'Erreur lors de la vérification téléphone'
+        );
       }
     } finally {
       setLoading(false);
@@ -122,10 +128,10 @@ export default function Verify() {
       if (response.success) {
         setSuccessMessage('Email de vérification renvoyé ! Vérifiez votre boîte de réception.');
       } else {
-        setError(response.error || 'Erreur lors de l\'envoi de l\'email');
+        setError(response.error || "Erreur lors de l'envoi de l'email");
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de l\'envoi de l\'email');
+      setError(err.response?.data?.error || "Erreur lors de l'envoi de l'email");
     } finally {
       setEmailLoading(false);
     }
@@ -145,10 +151,10 @@ export default function Verify() {
       if (response.success) {
         alert(`SMS renvoyé${response.code ? ` (Code: ${response.code})` : ''}`);
       } else {
-        setError(response.error || 'Erreur lors de l\'envoi du SMS');
+        setError(response.error || "Erreur lors de l'envoi du SMS");
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de l\'envoi du SMS');
+      setError(err.response?.data?.error || "Erreur lors de l'envoi du SMS");
     } finally {
       setLoading(false);
     }
@@ -176,7 +182,14 @@ export default function Verify() {
           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         }}
       >
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '24px' }}>
+        <h1
+          style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: colors.textPrimary,
+            marginBottom: '24px',
+          }}
+        >
           Vérification du compte
         </h1>
 
@@ -225,12 +238,22 @@ export default function Verify() {
             }}
           >
             <InfoIcon size={14} color="#1976D2" style={{ flexShrink: 0 }} />
-            <span>Mode développement : La vérification est automatique, utilisez n'importe quel code</span>
+            <span>
+              Mode développement : La vérification est automatique, utilisez n&apos;importe quel
+              code
+            </span>
           </div>
         )}
 
         <div style={{ marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+          <h2
+            style={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              color: colors.textPrimary,
+              marginBottom: '12px',
+            }}
+          >
             Vérification email
           </h2>
           {emailVerified ? (
@@ -257,8 +280,12 @@ export default function Verify() {
             </div>
           ) : emailToken ? (
             <div>
-              <p style={{ fontSize: '14px', color: colors.textSecondary }}>Vérification en cours...</p>
-              {loading && <p style={{ fontSize: '14px', color: colors.textSecondary }}>Chargement...</p>}
+              <p style={{ fontSize: '14px', color: colors.textSecondary }}>
+                Vérification en cours...
+              </p>
+              {loading && (
+                <p style={{ fontSize: '14px', color: colors.textSecondary }}>Chargement...</p>
+              )}
             </div>
           ) : (
             <div>
@@ -267,7 +294,14 @@ export default function Verify() {
               </p>
               {!userEmail && (
                 <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: colors.textSecondary }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      marginBottom: '6px',
+                      fontSize: '12px',
+                      color: colors.textSecondary,
+                    }}
+                  >
                     Email (si vous avez rechargé la page)
                   </label>
                   <input
@@ -293,7 +327,8 @@ export default function Verify() {
                   disabled={emailLoading || loading}
                   style={{
                     padding: '10px 20px',
-                    backgroundColor: emailLoading || loading ? colors.textSecondary : colors.primary,
+                    backgroundColor:
+                      emailLoading || loading ? colors.textSecondary : colors.primary,
                     color: colors.backgroundWhite,
                     border: 'none',
                     borderRadius: '8px',
@@ -303,7 +338,7 @@ export default function Verify() {
                     opacity: emailLoading || loading ? 0.6 : 1,
                   }}
                 >
-                  {emailLoading ? 'Envoi...' : 'Renvoyer l\'email'}
+                  {emailLoading ? 'Envoi...' : "Renvoyer l'email"}
                 </button>
               </div>
             </div>
@@ -311,7 +346,14 @@ export default function Verify() {
         </div>
 
         <div style={{ marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '12px' }}>
+          <h2
+            style={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              color: colors.textPrimary,
+              marginBottom: '12px',
+            }}
+          >
             Vérification téléphone
           </h2>
           {phoneVerified ? (
@@ -366,7 +408,8 @@ export default function Verify() {
                     borderRadius: '8px',
                     fontSize: '14px',
                     fontWeight: 'bold',
-                    cursor: loading || !phoneCode || phoneCode.length !== 6 ? 'not-allowed' : 'pointer',
+                    cursor:
+                      loading || !phoneCode || phoneCode.length !== 6 ? 'not-allowed' : 'pointer',
                   }}
                 >
                   Vérifier

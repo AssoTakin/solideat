@@ -12,7 +12,6 @@ import { XIcon, InfoIcon } from '../components/Icons';
 
 // Design System Colors
 
-
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
   password: z.string().min(1, 'Le mot de passe est requis'),
@@ -209,10 +208,19 @@ export default function Login() {
               }}
             />
           </Link>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: colors.textPrimary, margin: '16px 0 8px 0' }}>
+          <h1
+            style={{
+              fontSize: '24px',
+              fontWeight: 'bold',
+              color: colors.textPrimary,
+              margin: '16px 0 8px 0',
+            }}
+          >
             Connexion
           </h1>
-          <p style={{ fontSize: '14px', color: colors.textSecondary }}>Connectez-vous à votre compte</p>
+          <p style={{ fontSize: '14px', color: colors.textSecondary }}>
+            Connectez-vous à votre compte
+          </p>
         </div>
 
         {successMessage && (
@@ -251,15 +259,30 @@ export default function Login() {
           >
             <XIcon size={20} color={colors.error} style={{ flexShrink: 0, marginTop: '2px' }} />
             <div style={{ flex: 1 }}>
-              <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Erreur de connexion</strong>
+              <strong style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>
+                Erreur de connexion
+              </strong>
               <p style={{ margin: 0, lineHeight: '1.5' }}>{error}</p>
               {error.includes('pas encore vérifié') && (
-                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: `1px solid ${colors.error}40` }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: 500 }}>Que faire ?</p>
-                  <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', lineHeight: '1.6' }}>
+                <div
+                  style={{
+                    marginTop: '12px',
+                    paddingTop: '12px',
+                    borderTop: `1px solid ${colors.error}40`,
+                  }}
+                >
+                  <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: 500 }}>
+                    Que faire ?
+                  </p>
+                  <ul
+                    style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', lineHeight: '1.6' }}
+                  >
                     <li>Vérifiez votre boîte email et cliquez sur le lien de vérification</li>
                     <li>Vérifiez votre téléphone et entrez le code SMS reçu</li>
-                    <li>Si vous n'avez pas reçu les codes, utilisez les boutons "Renvoyer" sur la page de vérification</li>
+                    <li>
+                      Si vous n&apos;avez pas reçu les codes, utilisez les boutons
+                      &quot;Renvoyer&quot; sur la page de vérification
+                    </li>
                   </ul>
                   <Link
                     to="/verify"
@@ -296,15 +319,32 @@ export default function Login() {
               border: '1px solid #FFC107',
             }}
           >
-            <strong style={{ display: 'block', marginBottom: '8px' }}>🔍 Logs de diagnostic :</strong>
+            <strong style={{ display: 'block', marginBottom: '8px' }}>
+              🔍 Logs de diagnostic :
+            </strong>
             <div style={{ maxHeight: '200px', overflowY: 'auto', fontFamily: 'monospace' }}>
               {diagnosticLogs.map((log, index) => (
-                <div key={index} style={{ marginBottom: '8px', padding: '8px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
+                <div
+                  key={index}
+                  style={{
+                    marginBottom: '8px',
+                    padding: '8px',
+                    backgroundColor: 'rgba(0,0,0,0.05)',
+                    borderRadius: '4px',
+                  }}
+                >
                   <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
                     {new Date(log.timestamp).toLocaleTimeString()} - {log.message}
                   </div>
                   {log.data && (
-                    <pre style={{ margin: 0, fontSize: '10px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                    <pre
+                      style={{
+                        margin: 0,
+                        fontSize: '10px',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-all',
+                      }}
+                    >
                       {JSON.stringify(log.data, null, 2)}
                     </pre>
                   )}
@@ -329,13 +369,24 @@ export default function Login() {
             }}
           >
             <InfoIcon size={14} color="#1976D2" style={{ flexShrink: 0 }} />
-            <span>Mode développement : Utilisez n'importe quel email/mot de passe pour vous connecter</span>
+            <span>
+              Mode développement : Utilisez n&apos;importe quel email/mot de passe pour vous
+              connecter
+            </span>
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: 500,
+                color: colors.textPrimary,
+              }}
+            >
               Email *
             </label>
             <input
@@ -353,12 +404,21 @@ export default function Login() {
               }}
             />
             {errors.email && (
-              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.email.message}</p>
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>
+                {errors.email.message}
+              </p>
             )}
           </div>
 
           <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '8px',
+              }}
+            >
               <label style={{ fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
                 Mot de passe *
               </label>
@@ -409,19 +469,47 @@ export default function Login() {
                 title={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
               >
                 {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    style={{ width: '20px', height: '20px' }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"
+                    />
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    style={{ width: '20px', height: '20px' }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                    />
                   </svg>
                 )}
               </button>
             </div>
             {errors.password && (
-              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>{errors.password.message}</p>
+              <p style={{ color: colors.error, fontSize: '12px', marginTop: '4px' }}>
+                {errors.password.message}
+              </p>
             )}
           </div>
 
@@ -456,7 +544,7 @@ export default function Login() {
                 fontWeight: 'bold',
               }}
             >
-              S'inscrire
+              S&apos;inscrire
             </Link>
           </p>
         </div>

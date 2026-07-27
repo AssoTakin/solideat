@@ -25,7 +25,8 @@ export const loginRateLimit = async (
       const ttl = await loginRateLimitCache.remainingTtl(key);
       const minutes = Math.max(1, Math.ceil(ttl / 60));
       res.status(429).json({
-        error: 'Trop de tentatives de connexion. Veuillez réessayer dans ' + minutes + ' minute(s).',
+        error:
+          'Trop de tentatives de connexion. Veuillez réessayer dans ' + minutes + ' minute(s).',
         retryAfterSeconds: ttl,
       });
       return;

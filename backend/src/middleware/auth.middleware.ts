@@ -25,7 +25,7 @@ export const authenticate = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'Token d\'authentification manquant' });
+      res.status(401).json({ error: "Token d'authentification manquant" });
       return;
     }
 
@@ -53,7 +53,8 @@ export const authenticate = async (
     if (!user.emailVerified) {
       res.status(403).json({
         error: 'EMAIL_NOT_VERIFIED',
-        message: 'Votre email n\'est pas encore vérifié. Veuillez cliquer sur le lien reçu par email pour activer votre compte.',
+        message:
+          "Votre email n'est pas encore vérifié. Veuillez cliquer sur le lien reçu par email pour activer votre compte.",
         data: { user: { id: user.id, email: user.email } },
       });
       return;
@@ -62,7 +63,8 @@ export const authenticate = async (
     if (!user.phoneVerified) {
       res.status(403).json({
         error: 'PHONE_NOT_VERIFIED',
-        message: 'Votre numéro de téléphone n\'est pas encore vérifié. Veuillez saisir le code reçu par SMS pour activer votre compte.',
+        message:
+          "Votre numéro de téléphone n'est pas encore vérifié. Veuillez saisir le code reçu par SMS pour activer votre compte.",
         data: { user: { id: user.id, email: user.email } },
       });
       return;

@@ -207,7 +207,9 @@ export class AuthService {
     // - Téléphone non vérifié : on autorise le login mais le frontend gère
     //   l'erreur PHONE_NOT_VERIFIED via le middleware authentifié.
     if (!user.emailVerified) {
-      throw new Error('Votre email n\'est pas encore vérifié. Veuillez cliquer sur le lien reçu par email pour vérifier votre compte.');
+      throw new Error(
+        "Votre email n'est pas encore vérifié. Veuillez cliquer sur le lien reçu par email pour vérifier votre compte."
+      );
     }
 
     // Email vérifié : autoriser la connexion pour permettre au frontend
