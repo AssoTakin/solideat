@@ -5,10 +5,10 @@ import { SubscriptionType } from '@prisma/client';
 
 const router = Router();
 
-/**
- * Endpoint temporaire E2E : crée ou met à jour un compte test entièrement vérifié.
- * Protégé par ADMIN_SECRET en header.
- */
+router.get('/health', (_req: Request, res: Response) => {
+  return res.json({ ok: true, route: 'admin' });
+});
+
 router.post('/e2e-create-verified-test-account', async (req: Request, res: Response) => {
   const adminSecret = req.headers['x-admin-secret'];
   const expected = process.env.ADMIN_SECRET;
@@ -25,43 +25,48 @@ router.post('/e2e-create-verified-test-account', async (req: Request, res: Respo
     return res.status(400).json({ error: 'Email and password required' });
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
 
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: {
-      passwordHash,
-      emailVerified: true,
-      phoneVerified: true,
-      phone,
-      subscriptionType: SubscriptionType.PREMIUM_MONTHLY,
-    },
-    create: {
-      email,
-      passwordHash,
-      firstName: 'Test',
-      lastName: 'E2E',
-      username: email.split('@')[0] + Math.floor(Math.random() * 10000),
-      phone,
-      emailVerified: true,
-      phoneVerified: true,
-      subscriptionType: SubscriptionType.PREMIUM_MONTHLY,
-      addressStreet: '1 rue de la Test',
-      addressZipCode: '75000',
-      addressCity: 'Paris',
-      latitude: 48.8566,
-      longitude: 2.3522,
-    },
-  });
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {
+        passwordHash,
+        emailVerified: true,
+        phoneVerified: true,
+        phone,
+        subscriptionType: SubscriptionType.PREMIUM_MONTHLY,
+      },
+      create: {
+        email,
+        passwordHash,
+        firstName: 'Test',
+        lastName: 'E2E',
+        username: `${email.split('@')[0]}_${Date.now()}`,
+        phone,
+        emailVerified: true,
+        phoneVerified: true,
+        subscriptionType: SubscriptionType.PREMIUM_MONTHLY,
+        addressStreet: '1 rue de la Test',
+        addressZipCode: '75000',
+        addressCity: 'Paris',
+        latitude: 48.8566,
+        longitude: 2.3522,
+      },
+    });
 
-  return res.json({
-    success: true,
-    userId: user.id,
-    email: user.email,
-    phoneVerified: user.phoneVerified,
-    emailVerified: user.emailVerified,
-    subscriptionType: user.subscriptionType,
-  });
+    return res.json({
+      success: true,
+      userId: user.id,
+      email: user.email,
+      phoneVerified: user.phoneVerified,
+      emailVerified: user.emailVerified,
+      subscriptionType: user.subscriptionType,
+    });
+  } catch (err: any) {
+    console.error('E2E admin error:', err);
+    return res.status(500).json({ error: err.message || 'Internal error' });
+  }
 });
 
 export default router;
