@@ -247,11 +247,25 @@ export class StripeService {
   ): Promise<Stripe.Transfer> {
     const netAmountCents = 400; // 4€
 
+    // Récupère la charge associée au PaymentIntent pour source_transaction
+    const piResponse = await stripe.paymentIntents.retrieve(paymentIntentId, {
+      expand: ['charges.data'],
+    });
+    const paymentIntent = piResponse as any;
+    const chargeId =
+      paymentIntent.latest_charge ||
+      paymentIntent.charges?.data?.[0]?.id ||
+      null;
+
+    if (!chargeId) {
+      throw new Error(`Aucune charge trouvée pour le PaymentIntent ${paymentIntentId}`);
+    }
+
     return await stripe.transfers.create({
       amount: netAmountCents,
       currency: 'eur',
       destination: cookConnectedAccountId,
-      source_transaction: paymentIntentId,
+      source_transaction: chargeId,
       metadata: {
         reservationId,
         type: 'meal_payout',
