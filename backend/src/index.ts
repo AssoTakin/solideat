@@ -6,17 +6,22 @@ import fs from 'fs';
 import path from 'path';
 import webpush from 'web-push';
 import { PrismaClient } from '@prisma/client';
-import { setupMealExpirationJob, setupAntiGaspiJob, setupReviewReminderJob } from './jobs/meal.jobs';
+import {
+  setupMealExpirationJob,
+  setupAntiGaspiJob,
+  setupReviewReminderJob,
+} from './jobs/meal.jobs';
 import { setupBonusExpirationJob } from './jobs/bonus.jobs';
 import { setupSubscriptionRenewalJob } from './jobs/subscription.jobs';
 import { setupSanctionCheckJob } from './jobs/sanction.jobs';
+import { setupSecurityAuditJob } from './jobs/security.jobs';
 
 // Charger les variables d'environnement
 dotenv.config();
 
 // Générer les clés VAPID locales si elles n'existent pas
 if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-  console.log("🔑 Génération des clés VAPID locales pour le développement...");
+  console.log('🔑 Génération des clés VAPID locales pour le développement...');
   const keys = webpush.generateVAPIDKeys();
   process.env.VAPID_PUBLIC_KEY = keys.publicKey;
   process.env.VAPID_PRIVATE_KEY = keys.privateKey;
@@ -27,11 +32,13 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
       let envContent = fs.readFileSync(envPath, 'utf-8');
       envContent = envContent
         .split('\n')
-        .filter((line) => !line.startsWith('VAPID_PUBLIC_KEY=') && !line.startsWith('VAPID_PRIVATE_KEY='))
+        .filter(
+          (line) => !line.startsWith('VAPID_PUBLIC_KEY=') && !line.startsWith('VAPID_PRIVATE_KEY=')
+        )
         .join('\n');
       envContent += `\nVAPID_PUBLIC_KEY=${keys.publicKey}\nVAPID_PRIVATE_KEY=${keys.privateKey}\n`;
       fs.writeFileSync(envPath, envContent, 'utf-8');
-      console.log("✅ Clés VAPID enregistrées dans .env");
+      console.log('✅ Clés VAPID enregistrées dans .env');
     }
   } catch (error: any) {
     console.warn("⚠️ Échec de l'écriture des clés VAPID dans .env :", error.message);
@@ -65,20 +72,46 @@ originsWithVariants.push('capacitor://localhost');
 originsWithVariants.push('http://localhost'); // Android local webview origin
 
 // Middleware
-app.use(helmet());
-app.use(cors({
-  origin: (origin, callback) => {
-    // Permettre les requêtes sans origine (ex: outils de test API, requêtes serveurs)
-    if (!origin) return callback(null, true);
-    
-    if (originsWithVariants.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Non autorisé par CORS: ${origin}`));
-    }
-  },
-  credentials: true,
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https://api.solid-eat.com', 'https://*.solid-eat.com'],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  })
+);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Permettre les requêtes sans origine (ex: outils de test API, requêtes serveurs)
+      if (!origin) return callback(null, true);
+
+      if (originsWithVariants.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Non autorisé par CORS: ${origin}`));
+      }
+    },
+    credentials: true,
+  })
+);
+// Ajouter les headers de sécurité manquants
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
 // IMPORTANT: Les webhooks Stripe doivent être configurés AVANT express.json()
 // car ils nécessitent le body brut pour la vérification de signature
 import stripeRoutes from './routes/stripe.routes';
@@ -90,7 +123,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Route de base
 app.get('/', (_req, res) => {
   res.status(200).json({
-    message: 'Solid\'Eat API',
+    message: "Solid'Eat API",
     version: '1.0.0',
     status: 'running',
     endpoints: {
@@ -171,6 +204,7 @@ if (process.env.NODE_ENV !== 'test' && require.main === module) {
     setupBonusExpirationJob();
     setupSubscriptionRenewalJob();
     setupSanctionCheckJob();
+    setupSecurityAuditJob();
   });
 
   // Graceful shutdown
@@ -191,6 +225,5 @@ if (process.env.NODE_ENV !== 'test' && require.main === module) {
   // En mode test, ne pas démarrer les jobs cron
   // Les mocks s'en chargeront
 }
-
 
 export default app;
