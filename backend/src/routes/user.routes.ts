@@ -22,6 +22,11 @@ router.put('/me/privacy', authenticate, userController.updatePrivacy.bind(userCo
 // Création compte Stripe Connect (nécessite authentification)
 router.post('/me/connect-account', authenticate, userController.createConnectAccount.bind(userController));
 
+// Configuration Stripe publique (publishable key)
+router.get('/stripe-config', (_req, res) => {
+  res.json({ success: true, data: { publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null } });
+});
+
 // Tableau de bord (nécessite authentification)
 router.get('/me/dashboard', authenticate, userController.getDashboardStats.bind(userController));
 
