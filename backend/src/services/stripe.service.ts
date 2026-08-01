@@ -274,6 +274,19 @@ export class StripeService {
   }
 
   /**
+   * Vérifie si le compte Connect a la capability transfers active.
+   */
+  async isConnectedAccountReady(accountId: string): Promise<boolean> {
+    try {
+      const account = await stripe.accounts.retrieve(accountId);
+      const transfers = account.capabilities?.transfers;
+      return transfers === 'active' || transfers === 'pending';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Crée un lien d'onboarding Stripe Connect.
    */
   async createAccountLink(accountId: string, refreshUrl: string, returnUrl: string): Promise<Stripe.AccountLink> {
