@@ -59,7 +59,9 @@ router.post('/delete-test-meals', async (req: Request, res: Response): Promise<v
     const mealIds = meals.map(m => m.id);
     let deletedReservations = 0;
     let deletedTransactions = 0;
+    let deletedReviews = 0;
     if (mealIds.length > 0) {
+      deletedReviews = (await prisma.review.deleteMany({ where: { mealId: { in: mealIds } } })).count;
       const reservations = await prisma.reservation.findMany({
         where: { mealId: { in: mealIds } },
         select: { id: true },
@@ -73,7 +75,7 @@ router.post('/delete-test-meals', async (req: Request, res: Response): Promise<v
     const deletedMeals = (await prisma.meal.deleteMany({
       where: { cookId: user.id, name: { contains: 'E2E' } },
     })).count;
-    res.json({ success: true, deletedMeals, deletedReservations, deletedTransactions });
+    res.json({ success: true, deletedMeals, deletedReservations, deletedTransactions, deletedReviews });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
   }
