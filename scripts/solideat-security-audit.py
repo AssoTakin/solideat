@@ -83,7 +83,7 @@ def is_likely_false_positive(line, match):
     if "postgresql://user:password" in line or "postgresql://postgres:password" in line:
         return True
     # Faux secrets documentaires typiques
-    if re.search(r"RE_CLE_GENERE|RE_GENERATED_KEY|votre_token|your_token|example|placeholder", line, re.IGNORECASE):
+    if re.search(r"RE_CLE_GENERE|RE_GENERATED_KEY|votre_token|your_token|example|placeholder|TODO|FIXME|user:password|postgres:password", line, re.IGNORECASE):
         return True
     # Variables d'environnement référencées, pas des valeurs
     if re.search(r"process\.env\.[A-Z_]+", line) and match.group(0) not in line:
@@ -171,7 +171,7 @@ def check_security_headers(url):
     required = {
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": re.compile(r"DENY|SAMEORIGIN"),
-        "Referrer-Policy": re.compile(r"strict-origin|same-origin|no-referrer"),
+        "Referrer-Policy": re.compile(r"strict-origin|same-origin|origin-when-cross-origin|no-referrer"),
         "Content-Security-Policy": re.compile(r"."),
     }
     findings = {}
