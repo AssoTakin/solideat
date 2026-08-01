@@ -104,7 +104,7 @@ export class MealController {
         }
       }
 
-      const meal = await mealService.getMealById(id, userLat, userLng);
+      const meal = await mealService.getMealById(id, userLat, userLng, req.user?.id);
 
       res.json({
         success: true,
