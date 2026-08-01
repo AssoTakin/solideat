@@ -76,6 +76,9 @@ export class ReservationService {
       bonusDonorId = bonusToUse.id;
     }
 
+    // Pour un repas payant, la réservation est créée mais reste en attente de paiement
+    const paymentStatus = meal.price && meal.price > 0 ? 'PENDING' : 'PAID';
+
     // Créer la réservation
     const reservation = await prisma.reservation.create({
       data: {
@@ -83,6 +86,7 @@ export class ReservationService {
         userId,
         usedBonusDonor: useBonusDonor || false,
         bonusDonorId,
+        paymentStatus,
       },
       include: {
         meal: {
@@ -178,7 +182,7 @@ export class ReservationService {
     });
 
     if (!reservation) {
-      throw new Error('Réservation non trouvée');
+      throw new Error("Réservation non trouvée");
     }
 
     if (reservation.userId !== userId) {
@@ -314,7 +318,7 @@ export class ReservationService {
     });
 
     if (!reservation) {
-      throw new Error('Réservation non trouvée');
+      throw new Error("Réservation non trouvée");
     }
 
     if (reservation.meal.cookId !== cookId) {
@@ -342,6 +346,13 @@ export class ReservationService {
         status: MealStatus.SERVED,
       },
     });
+
+    // Si le repas était payant, déclencher le reversement automatique
+    if (reservation.paymentStatus === 'PAID' && reservation.meal.price && reservation.meal.price > 0) {
+      this.payoutAfterPickup(reservationId, cookId).catch((err) => {
+        console.error('Erreur reversement automatique:', err);
+      });
+    }
 
     // Notifier le mangeur qu'il peut maintenant noter
     notificationService
@@ -377,7 +388,7 @@ export class ReservationService {
     });
 
     if (!reservation) {
-      throw new Error('Réservation non trouvée');
+      throw new Error("Réservation non trouvée");
     }
 
     if (reservation.meal.cookId !== cookId) {
@@ -452,6 +463,168 @@ export class ReservationService {
         // Erreur silencieuse
       });
   }
-}
 
+  /**
+   * Initie le paiement Stripe pour une réservation de repas premium.
+   * Retourne le clientSecret du PaymentIntent.
+   */
+  async initiatePayment(reservationId: string, userId: string): Promise<{ clientSecret: string; paymentIntentId: string }> {
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+      include: {
+        meal: {
+          include: {
+            cook: {
+              select: {
+                id: true,
+                email: true,
+                stripeCustomerId: true,
+                stripeConnectedAccountId: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            stripeCustomerId: true,
+          },
+        },
+      },
+    });
+
+    if (!reservation) {
+      throw new Error("Réservation non trouvée");
+    }
+
+    if (reservation.userId !== userId) {
+      throw new Error("Vous n'êtes pas autorisé à payer cette réservation");
+    }
+
+    if (!reservation.meal.price || reservation.meal.price <= 0) {
+      throw new Error("Cette réservation ne nécessite pas de paiement");
+    }
+
+    if (reservation.paymentStatus !== 'PENDING') {
+      throw new Error(`Cette réservation a déjà été payée ou a échoué (${reservation.paymentStatus})`);
+    }
+
+    if (!reservation.meal.cook.stripeConnectedAccountId) {
+      throw new Error("Le cuisinier n'a pas configuré son compte de reversement");
+    }
+
+    // Créer/récupérer le customer Stripe de l'acheteur
+    const { stripeService } = await import('./stripe.service');
+    const buyerCustomerId = await stripeService.getOrCreateCustomer(
+      reservation.userId,
+      reservation.user.email || ''
+    );
+
+    const paymentIntent = await stripeService.createMealPaymentIntent(
+      buyerCustomerId,
+      reservation.meal.cook.stripeConnectedAccountId,
+      reservation.id
+    );
+
+    await prisma.reservation.update({
+      where: { id: reservationId },
+      data: {
+        stripePaymentIntentId: paymentIntent.id,
+      },
+    });
+
+    if (!paymentIntent.client_secret) {
+      throw new Error("Impossible de créer le paiement Stripe");
+    }
+
+    return {
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    };
+  }
+
+  /**
+   * Déclenche le reversement du revenu net (4€) au cuisinier après récupération.
+   */
+  async payoutAfterPickup(reservationId: string, cookId: string): Promise<void> {
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+      include: {
+        meal: {
+          include: {
+            cook: {
+              select: {
+                id: true,
+                stripeConnectedAccountId: true,
+              },
+            },
+          },
+        },
+        transaction: true,
+      },
+    });
+
+    if (!reservation) {
+      throw new Error("Réservation non trouvée");
+    }
+
+    if (reservation.meal.cookId !== cookId) {
+      throw new Error("Vous n'êtes pas autorisé à déclencher ce reversement");
+    }
+
+    if (!reservation.pickedUpAt) {
+      throw new Error('Le repas doit être marqué comme récupéré avant le reversement');
+    }
+
+    if (reservation.paymentStatus !== 'PAID') {
+      throw new Error("Le paiement de la réservation n'est pas confirmé");
+    }
+
+    if (reservation.payoutTransferId) {
+      throw new Error("Le reversement a déjà été effectué");
+    }
+
+    if (!reservation.meal.cook.stripeConnectedAccountId || !reservation.stripePaymentIntentId) {
+      throw new Error("Configuration Stripe manquante pour le reversement");
+    }
+
+    const { stripeService } = await import('./stripe.service');
+    const transfer = await stripeService.transferNetAmountToCook(
+      reservation.meal.cook.stripeConnectedAccountId,
+      reservation.stripePaymentIntentId,
+      reservation.id
+    );
+
+    await prisma.$transaction([
+      prisma.reservation.update({
+        where: { id: reservationId },
+        data: {
+          paymentStatus: 'PAYOUT_DONE',
+          payoutTransferId: transfer.id,
+        },
+      }),
+      prisma.transaction.updateMany({
+        where: { reservationId },
+        data: { status: 'PAYOUT_DONE' },
+      }),
+    ]);
+
+    // Notifier le cuisinier
+    notificationService
+      .sendNotification(
+        cookId,
+        'SYSTEM_MESSAGE',
+        'Reversement effectué',
+        `Vous avez reçu 4€ pour le repas "${reservation.meal.name}".`,
+        `/dashboard`,
+        true
+      )
+      .catch(() => {
+        // Erreur silencieuse
+      });
+  }
+
+
+}
 export const reservationService = new ReservationService();

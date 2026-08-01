@@ -40,6 +40,7 @@ model User {
   subscriptionEnd   DateTime?
   stripeCustomerId  String?   @unique
   stripeSubscriptionId String? @unique
+  stripeConnectedAccountId String? @unique
   
   // Confidentialité
   hidePhoneNumber   Boolean   @default(true) // Premium uniquement
@@ -112,6 +113,8 @@ model Meal {
   // Parts et prix
   portions          Int       @default(1)
   price             Float?    // null = gratuit, > 0 = vendu (premium)
+  platformFeeAmount Float?    // Frais plateforme (1€)
+  netAmount         Float?    // Revenu net cuisinier (4€)
   
   // Statut
   status            MealStatus @default(AVAILABLE)
@@ -165,11 +168,38 @@ model Reservation {
   cancelledAt       DateTime?
   cancellationReason String?
   
+  // Paiement repas premium
+  paymentStatus     String    @default("PENDING") // PENDING, PAID, FAILED, REFUNDED, PAYOUT_DONE
+  stripePaymentIntentId String? @unique
+  payoutAmount      Float?
+  payoutTransferId  String?
+  
+  // Relations inverse
+  transaction       Transaction?
+  
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   
   @@index([userId])
   @@index([mealId])
+}
+
+// Modèle transaction (paiement / payout)
+model Transaction {
+  id                String    @id @default(uuid())
+  reservationId     String    @unique
+  reservation       Reservation @relation(fields: [reservationId], references: [id])
+  mealId            String
+  buyerId           String
+  cookId            String
+  amount            Float     // 5.00
+  platformFee       Float     // 1.00
+  netAmount         Float     // 4.00
+  currency          String    @default("eur")
+  stripePaymentIntentId String? @unique
+  status            String    @default("PENDING") // PENDING, PAID, PAYOUT_DONE, FAILED, REFUNDED
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 // Modèle avis/notation

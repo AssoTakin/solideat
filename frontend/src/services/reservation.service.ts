@@ -91,4 +91,14 @@ export const reservationService = {
     const response = await api.post(`/reservations/${id}/report-not-picked-up`);
     return response.data;
   },
+
+  /**
+   * Initier le paiement d'une réservation premium
+   */
+  async initiatePayment(
+    id: string
+  ): Promise<{ success: boolean; data?: { clientSecret: string; paymentIntentId: string }; error?: string }> {
+    const response = await api.post(`/reservations/${id}/pay`);
+    return response.data;
+  },
 };

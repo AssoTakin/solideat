@@ -37,6 +37,18 @@ export class MealService {
           'Le prix de vente est fixé à 5€ par repas (frais de service inclus). Vous recevrez 4€ après la livraison.'
         );
       }
+
+      // Le cuisinier doit avoir un compte Stripe Connect configuré pour vendre
+      const userWithStripe = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { stripeConnectedAccountId: true },
+      });
+
+      if (!userWithStripe?.stripeConnectedAccountId) {
+        throw new Error(
+          'Vous devez configurer votre compte Stripe Connect avant de vendre des repas.'
+        );
+      }
     }
 
     // Calculer la date d'expiration (preparationDate + 72h)

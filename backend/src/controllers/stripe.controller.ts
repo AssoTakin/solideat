@@ -57,6 +57,18 @@ export class StripeController {
           await this.handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
           break;
 
+        case 'payment_intent.succeeded':
+          await this.handleMealPaymentSucceeded(event.data.object as Stripe.PaymentIntent);
+          break;
+
+        case 'payment_intent.payment_failed':
+          await this.handleMealPaymentFailed(event.data.object as Stripe.PaymentIntent);
+          break;
+
+        case 'account.updated':
+          await this.handleConnectAccountUpdated(event.data.object as Stripe.Account);
+          break;
+
         default:
           // Événement non géré, ignoré
           break;
@@ -248,6 +260,88 @@ export class StripeController {
     // Envoyer un email
     emailService.sendSubscriptionPaymentFailedEmail(user.email).catch(() => {
       // Erreur silencieuse
+    });
+  }
+
+  /**
+   * Gère le paiement réussi d'un repas premium (payment_intent.succeeded).
+   */
+  private async handleMealPaymentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    const reservationId = paymentIntent.metadata?.reservationId;
+    if (!reservationId || paymentIntent.metadata?.type !== 'meal_payment') {
+      return;
+    }
+
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+      include: { meal: true },
+    });
+
+    if (!reservation || reservation.paymentStatus !== 'PENDING') {
+      return;
+    }
+
+    await prisma.$transaction([
+      prisma.reservation.update({
+        where: { id: reservationId },
+        data: {
+          paymentStatus: 'PAID',
+          stripePaymentIntentId: paymentIntent.id,
+          payoutAmount: 4.0,
+        },
+      }),
+      prisma.transaction.create({
+        data: {
+          reservationId,
+          mealId: reservation.mealId,
+          buyerId: reservation.userId,
+          cookId: reservation.meal.cookId,
+          amount: 5.0,
+          platformFee: 1.0,
+          netAmount: 4.0,
+          currency: 'eur',
+          stripePaymentIntentId: paymentIntent.id,
+          status: 'PAID',
+        },
+      }),
+    ]);
+
+    // Notifier le cuisinier que le repas est payé
+    await notificationService.createNotification(
+      reservation.meal.cookId,
+      'SYSTEM_MESSAGE',
+      'Paiement reçu',
+      `Le paiement pour votre repas "${reservation.meal.name}" a été confirmé (5€).`,
+      `/reservations`
+    );
+  }
+
+  /**
+   * Gère l'échec de paiement d'un repas premium.
+   */
+  private async handleMealPaymentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    const reservationId = paymentIntent.metadata?.reservationId;
+    if (!reservationId || paymentIntent.metadata?.type !== 'meal_payment') {
+      return;
+    }
+
+    await prisma.reservation.updateMany({
+      where: { id: reservationId, paymentStatus: 'PENDING' },
+      data: { paymentStatus: 'FAILED', stripePaymentIntentId: paymentIntent.id },
+    });
+  }
+
+  /**
+   * Met à jour le statut du compte Stripe Connect du cuisinier.
+   */
+  private async handleConnectAccountUpdated(account: Stripe.Account): Promise<void> {
+    if (!account.email) {
+      return;
+    }
+
+    await prisma.user.updateMany({
+      where: { stripeConnectedAccountId: account.id },
+      data: {},
     });
   }
 }

@@ -350,6 +350,54 @@ export class UserController {
       });
     }
   }
+
+  /**
+   * POST /users/me/connect-account
+   * Crée un compte Stripe Connect et renvoie l'URL d'onboarding.
+   */
+  async createConnectAccount(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const { stripeService } = await import('../services/stripe.service');
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, stripeConnectedAccountId: true },
+      });
+
+      if (!user) {
+        res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
+        return;
+      }
+
+      let accountId = user.stripeConnectedAccountId;
+      if (!accountId) {
+        const account = await stripeService.createConnectedAccount(user.email || '', userId);
+        accountId = account.id;
+        await prisma.user.update({
+          where: { id: userId },
+          data: { stripeConnectedAccountId: accountId },
+        });
+      }
+
+      const refreshUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/dashboard?connect=refresh`;
+      const returnUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/dashboard?connect=success`;
+      const accountLink = await stripeService.createAccountLink(accountId, refreshUrl, returnUrl);
+
+      res.json({
+        success: true,
+        data: {
+          url: accountLink.url,
+          accountId,
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur lors de la création du compte Stripe Connect',
+      });
+    }
+  }
 }
 
 export const userController = new UserController();

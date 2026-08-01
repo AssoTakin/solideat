@@ -10,6 +10,7 @@ import { subscriptionService } from '../services/subscription.service';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import { addressService, AddressSuggestion } from '../services/address.service';
 import { compressImage, validateImageFile } from '../utils/image';
+import api from '../services/api';
 import {
   AlertTriangleIcon,
   PlusIcon,
@@ -124,6 +125,7 @@ export default function CreateMeal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userSubscription, setUserSubscription] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -231,6 +233,16 @@ export default function CreateMeal() {
       }
     } catch (error) {
       // Utilisateur gratuit par défaut
+    }
+
+    // Charger le profil utilisateur pour vérifier le compte Stripe Connect
+    try {
+      const userRes = await api.get('/users/me');
+      if (userRes.data?.success) {
+        setUserProfile(userRes.data.data);
+      }
+    } catch (error) {
+      // Profil non disponible
     }
   };
 
@@ -439,6 +451,15 @@ export default function CreateMeal() {
       // Gérer le prix : si premium et case "Vendre ce repas" cochée, prix fixe à 5€
       let priceValue: number | null = null;
       if (isPremium && step3Data.sellMeal) {
+        // Vérifier que le compte Stripe Connect est configuré
+        if (!userProfile?.stripeConnectedAccountId) {
+          setError(
+            'Vous devez configurer votre compte de reversement Stripe avant de vendre des repas. Rendez-vous dans votre profil.'
+          );
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setLoading(false);
+          return;
+        }
         priceValue = 5; // Prix fixe selon spécifications : 5€ par repas
       }
 
