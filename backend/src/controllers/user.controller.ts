@@ -127,9 +127,11 @@ export class UserController {
         phone: user.hidePhoneNumber && isPremium ? null : user.phone,
         mealsServed: shouldHideActivity ? undefined : user.mealsServed,
         mealsReceived: shouldHideActivity ? undefined : user.mealsReceived,
+        // blurAddress est pertinent côté client pour afficher le badge/état,
+        // mais uniquement si le profil est premium et l'option activée.
+        blurAddress: isPremium && user.blurAddress ? true : undefined,
         hidePhoneNumber: undefined, // Ne pas exposer ce champ
         incognitoMode: undefined, // Ne pas exposer ce champ
-        blurAddress: undefined, // Ne pas exposer ce champ
         hideActivityHistory: undefined, // Ne pas exposer ce champ
       };
 
@@ -253,7 +255,7 @@ export class UserController {
       if (!addressStreet || !addressZipCode || !addressCity) {
         res.status(400).json({
           success: false,
-          error: 'Tous les champs d\'adresse sont requis',
+          error: "Tous les champs d'adresse sont requis",
         });
         return;
       }
@@ -272,7 +274,7 @@ export class UserController {
     } catch (error: any) {
       res.status(400).json({
         success: false,
-        error: error.message || 'Erreur lors du changement d\'adresse',
+        error: error.message || "Erreur lors du changement d'adresse",
       });
     }
   }
@@ -295,7 +297,8 @@ export class UserController {
       if (!hasAtLeastOne) {
         res.status(400).json({
           success: false,
-          error: 'Au moins un paramètre de confidentialité doit être fourni (hidePhoneNumber, incognitoMode, blurAddress, hideActivityHistory)',
+          error:
+            'Au moins un paramètre de confidentialité doit être fourni (hidePhoneNumber, incognitoMode, blurAddress, hideActivityHistory)',
         });
         return;
       }
@@ -310,7 +313,8 @@ export class UserController {
       if (typeof hidePhoneNumber === 'boolean') privacySettings.hidePhoneNumber = hidePhoneNumber;
       if (typeof incognitoMode === 'boolean') privacySettings.incognitoMode = incognitoMode;
       if (typeof blurAddress === 'boolean') privacySettings.blurAddress = blurAddress;
-      if (typeof hideActivityHistory === 'boolean') privacySettings.hideActivityHistory = hideActivityHistory;
+      if (typeof hideActivityHistory === 'boolean')
+        privacySettings.hideActivityHistory = hideActivityHistory;
 
       const updatedUser = await userService.updatePrivacy(req.user!.id, privacySettings);
 
@@ -343,6 +347,54 @@ export class UserController {
       res.status(400).json({
         success: false,
         error: error.message || 'Erreur lors de la récupération des statistiques environnementales',
+      });
+    }
+  }
+
+  /**
+   * POST /users/me/connect-account
+   * Crée un compte Stripe Connect et renvoie l'URL d'onboarding.
+   */
+  async createConnectAccount(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const { stripeService } = await import('../services/stripe.service');
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, stripeConnectedAccountId: true },
+      });
+
+      if (!user) {
+        res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
+        return;
+      }
+
+      let accountId = user.stripeConnectedAccountId;
+      if (!accountId) {
+        const account = await stripeService.createConnectedAccount(user.email || '', userId);
+        accountId = account.id;
+        await prisma.user.update({
+          where: { id: userId },
+          data: { stripeConnectedAccountId: accountId },
+        });
+      }
+
+      const refreshUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/dashboard?connect=refresh`;
+      const returnUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/dashboard?connect=success`;
+      const accountLink = await stripeService.createAccountLink(accountId, refreshUrl, returnUrl);
+
+      res.json({
+        success: true,
+        data: {
+          url: accountLink.url,
+          accountId,
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur lors de la création du compte Stripe Connect',
       });
     }
   }

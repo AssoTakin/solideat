@@ -21,6 +21,9 @@ router.delete('/:id', validate(cancelReservationSchema), reservationController.c
 // Marquer comme récupéré
 router.put('/:id/pickup', reservationController.markAsPickedUp.bind(reservationController));
 
+// Payer une réservation premium
+router.post('/:id/pay', reservationController.payReservation.bind(reservationController));
+
 // Signaler non récupéré
 router.post('/:id/report-not-picked-up', reservationController.reportNotPickedUp.bind(reservationController));
 

@@ -10,7 +10,13 @@ import QuotaStatusComponent from '../components/QuotaStatus';
 import Navigation from '../components/Navigation';
 import EnvironmentalStats from '../components/EnvironmentalStats';
 import BonusDonorList from '../components/BonusDonorList';
-import { USE_MOCK_DATA, mockMeals, mockReservations, mockUsers, mockDashboardStats } from '../data/mockData';
+import {
+  USE_MOCK_DATA,
+  mockMeals,
+  mockReservations,
+  mockUsers,
+  mockDashboardStats,
+} from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import {
   SettingsIcon,
@@ -27,7 +33,6 @@ import {
 
 // Design System Colors EXACTES depuis UX_DESIGN.md
 
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -36,10 +41,11 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'messages' | 'quotas'>('overview');
   const [proposedMeals, setProposedMeals] = useState<any[]>([]);
   const [reservedMeals, setReservedMeals] = useState<any[]>([]);
+  const [pendingReviews, setPendingReviews] = useState<any[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       navigate('/login');
       return;
@@ -61,12 +67,13 @@ export default function Dashboard() {
         setReservedMeals(mockReservations.slice(0, 5));
       } else {
         // Charger les données en parallèle
-        const [userResponse, statsResponse, proposedResponse, reservationsResponse] = await Promise.all([
-          api.get('/users/me'),
-          dashboardService.getDashboardStats(),
-          mealService.getMeals({ status: 'AVAILABLE', limit: 5 }),
-          reservationService.getMyReservations(),
-        ]);
+        const [userResponse, statsResponse, proposedResponse, reservationsResponse] =
+          await Promise.all([
+            api.get('/users/me'),
+            dashboardService.getDashboardStats(),
+            mealService.getMeals({ status: 'AVAILABLE', limit: 5 }),
+            reservationService.getMyReservations(),
+          ]);
 
         if (userResponse.data.success) {
           currentUser = userResponse.data.data;
@@ -81,12 +88,19 @@ export default function Dashboard() {
         }
 
         if (proposedResponse.success && proposedResponse.data && currentUser) {
-          const userMeals = proposedResponse.data.meals.filter((m: any) => m.cook?.id === currentUser.id);
+          const userMeals = proposedResponse.data.meals.filter(
+            (m: any) => m.cook?.id === currentUser.id
+          );
           setProposedMeals(userMeals);
         }
-
         if (reservationsResponse.success && reservationsResponse.data) {
           setReservedMeals(reservationsResponse.data.slice(0, 5));
+          // Repas servis à noter
+          const toReview = reservationsResponse.data.filter(
+            (r: any) =>
+              r.meal?.status === 'SERVED' && r.pickedUpAt && !r.meal?.reviewedByCurrentUser
+          );
+          setPendingReviews(toReview.slice(0, 3));
         }
       }
     } catch (error: any) {
@@ -193,11 +207,14 @@ export default function Dashboard() {
             </div>
           )}
           <div>
-            <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
+            <h1
+              style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}
+            >
               Hello @{user?.username || 'Utilisateur'}
             </h1>
             <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '2px 0 0 0' }}>
-              Membre vérifié depuis {user?.createdAt ? new Date(user.createdAt).getFullYear() : '2024'}
+              Membre vérifié depuis{' '}
+              {user?.createdAt ? new Date(user.createdAt).getFullYear() : '2024'}
             </p>
           </div>
         </div>
@@ -230,7 +247,7 @@ export default function Dashboard() {
         }}
       >
         {[
-          { id: 'overview', label: 'Vue d\'ensemble' },
+          { id: 'overview', label: "Vue d'ensemble" },
           { id: 'messages', label: 'Messages système' },
           { id: 'quotas', label: 'Quotas' },
         ].map((tab) => (
@@ -244,7 +261,8 @@ export default function Dashboard() {
               backgroundColor: 'transparent',
               color: activeTab === tab.id ? colors.primary : colors.textSecondary,
               cursor: 'pointer',
-              borderBottom: activeTab === tab.id ? `3px solid ${colors.primary}` : '3px solid transparent',
+              borderBottom:
+                activeTab === tab.id ? `3px solid ${colors.primary}` : '3px solid transparent',
               fontWeight: activeTab === tab.id ? 'bold' : 'normal',
               fontSize: '14px',
               transition: 'all 0.2s',
@@ -256,7 +274,14 @@ export default function Dashboard() {
       </div>
 
       {/* Contenu des onglets */}
-      <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', ...getMainContentStyle(false) }}>
+      <main
+        style={{
+          padding: '16px',
+          maxWidth: '600px',
+          margin: '0 auto',
+          ...getMainContentStyle(false),
+        }}
+      >
         {activeTab === 'overview' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Carte Résumé */}
@@ -276,8 +301,22 @@ export default function Dashboard() {
                 }}
               />
               <div style={{ padding: '24px 20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '16px',
+                  }}
+                >
+                  <h2
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: colors.textPrimary,
+                      margin: 0,
+                    }}
+                  >
                     Votre Activité
                   </h2>
                   <div
@@ -296,12 +335,35 @@ export default function Dashboard() {
                     </span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
                   <div>
-                    <p style={{ fontSize: '15px', fontWeight: 'bold', color: colors.textPrimary, margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <ChefHatIcon size={16} color={colors.primary} style={{ marginRight: '4px' }} /> {dashboardStats?.history.mealsServed || 0} Servis
+                    <p
+                      style={{
+                        fontSize: '15px',
+                        fontWeight: 'bold',
+                        color: colors.textPrimary,
+                        margin: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <ChefHatIcon
+                        size={16}
+                        color={colors.primary}
+                        style={{ marginRight: '4px' }}
+                      />{' '}
+                      {dashboardStats?.history.mealsServed || 0} Servis
                       <span style={{ color: 'rgba(30,27,24,0.15)', margin: '0 8px' }}>|</span>
-                      <HeartIcon size={16} color={colors.primary} fill={colors.primary} style={{ marginRight: '4px' }} /> {dashboardStats?.history.mealsReceived || 0} Reçus
+                      <HeartIcon
+                        size={16}
+                        color={colors.primary}
+                        fill={colors.primary}
+                        style={{ marginRight: '4px' }}
+                      />{' '}
+                      {dashboardStats?.history.mealsReceived || 0} Reçus
                     </p>
                   </div>
                   <Link
@@ -314,7 +376,6 @@ export default function Dashboard() {
                       borderRadius: '8px',
                       fontSize: '13px',
                       fontWeight: 'bold',
-                      
                     }}
                   >
                     Mon profil
@@ -337,15 +398,37 @@ export default function Dashboard() {
                   padding: '24px 20px',
                 }}
               >
-                <h3 style={{ fontSize: '15px', fontWeight: 800, color: colors.textPrimary, marginBottom: '20px', letterSpacing: '0.05em' }}>
+                <h3
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 800,
+                    color: colors.textPrimary,
+                    marginBottom: '20px',
+                    letterSpacing: '0.05em',
+                  }}
+                >
                   ⚡ STATUT DE VOS QUOTAS
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 500, color: colors.textSecondary }}>Repas réservés (hebdomadaire)</span>
-                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary }}>
-                        {dashboardStats.quotas.weekly.reservations.current} / {dashboardStats.quotas.weekly.reservations.limit}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: '8px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: '14px', fontWeight: 500, color: colors.textSecondary }}
+                      >
+                        Repas réservés (hebdomadaire)
+                      </span>
+                      <span
+                        style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary }}
+                      >
+                        {dashboardStats.quotas.weekly.reservations.current} /{' '}
+                        {dashboardStats.quotas.weekly.reservations.limit}
                       </span>
                     </div>
                     <div
@@ -361,7 +444,9 @@ export default function Dashboard() {
                           height: '100%',
                           backgroundColor: colors.primary, // Terracotta
                           width: `${Math.min(
-                            (dashboardStats.quotas.weekly.reservations.current / dashboardStats.quotas.weekly.reservations.limit) * 100,
+                            (dashboardStats.quotas.weekly.reservations.current /
+                              dashboardStats.quotas.weekly.reservations.limit) *
+                              100,
                             100
                           )}%`,
                           transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -371,10 +456,24 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 500, color: colors.textSecondary }}>Repas proposés (hebdomadaire)</span>
-                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary }}>
-                        {dashboardStats.quotas.weekly.proposals.current} / {dashboardStats.quotas.weekly.proposals.limit}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: '8px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: '14px', fontWeight: 500, color: colors.textSecondary }}
+                      >
+                        Repas proposés (hebdomadaire)
+                      </span>
+                      <span
+                        style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary }}
+                      >
+                        {dashboardStats.quotas.weekly.proposals.current} /{' '}
+                        {dashboardStats.quotas.weekly.proposals.limit}
                       </span>
                     </div>
                     <div
@@ -390,7 +489,9 @@ export default function Dashboard() {
                           height: '100%',
                           backgroundColor: colors.sosAccent, // Sage
                           width: `${Math.min(
-                            (dashboardStats.quotas.weekly.proposals.current / dashboardStats.quotas.weekly.proposals.limit) * 100,
+                            (dashboardStats.quotas.weekly.proposals.current /
+                              dashboardStats.quotas.weekly.proposals.limit) *
+                              100,
                             100
                           )}%`,
                           transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -405,9 +506,91 @@ export default function Dashboard() {
 
             {/* Repas en cours */}
             <div>
-              <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '16px' }}>
+              <h3
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  color: colors.textPrimary,
+                  marginBottom: '16px',
+                }}
+              >
                 REPAS EN COURS
               </h3>
+
+              {/* Notations en attente */}
+              {pendingReviews.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <p
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      color: colors.warning,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    À NOTER
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {pendingReviews.map((reservation: any) => (
+                      <div
+                        key={reservation.id}
+                        style={{
+                          backgroundColor: colors.backgroundWhite,
+                          borderRadius: '12px',
+                          padding: '12px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                          display: 'flex',
+                          gap: '12px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <img
+                          src={reservation.meal?.photo || '/placeholder-meal.jpg'}
+                          alt={reservation.meal?.name}
+                          style={{
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '8px',
+                            objectFit: 'cover',
+                          }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <p
+                            style={{
+                              fontSize: '15px',
+                              fontWeight: 'bold',
+                              color: colors.textPrimary,
+                              margin: 0,
+                            }}
+                          >
+                            {reservation.meal?.name}
+                          </p>
+                          <p style={{ fontSize: '12px', color: colors.textSecondary, margin: 0 }}>
+                            Notation obligatoire pour valider l&apos;échange
+                          </p>
+                        </div>
+                        <Link
+                          to={`/meals/${reservation.mealId}/review`}
+                          style={{
+                            padding: '8px 16px',
+                            backgroundColor: colors.warning,
+                            color: colors.textPrimary,
+                            textDecoration: 'none',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: 'bold',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Noter
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Repas proposés */}
               <div style={{ marginBottom: '16px' }}>
@@ -433,7 +616,13 @@ export default function Dashboard() {
                       backgroundColor: `${colors.backgroundWhite}80`,
                     }}
                   >
-                    <p style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '12px' }}>
+                    <p
+                      style={{
+                        fontSize: '14px',
+                        color: colors.textSecondary,
+                        marginBottom: '12px',
+                      }}
+                    >
                       Vous n'avez rien partagé aujourd'hui
                     </p>
                     <Link
@@ -487,7 +676,14 @@ export default function Dashboard() {
                             }}
                           />
                           <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: '16px', fontWeight: 'bold', color: colors.textPrimary, margin: '0 0 4px 0' }}>
+                            <p
+                              style={{
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                color: colors.textPrimary,
+                                margin: '0 0 4px 0',
+                              }}
+                            >
                               {meal.name}
                             </p>
                             <p style={{ fontSize: '12px', color: colors.textSecondary, margin: 0 }}>
@@ -525,7 +721,9 @@ export default function Dashboard() {
                       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                     }}
                   >
-                    <p style={{ fontSize: '14px', color: colors.textSecondary }}>Aucune réservation en cours</p>
+                    <p style={{ fontSize: '14px', color: colors.textSecondary }}>
+                      Aucune réservation en cours
+                    </p>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -551,13 +749,34 @@ export default function Dashboard() {
                             }}
                           />
                           <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: '16px', fontWeight: 'bold', color: colors.textPrimary, margin: '0 0 4px 0' }}>
+                            <p
+                              style={{
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                color: colors.textPrimary,
+                                margin: '0 0 4px 0',
+                              }}
+                            >
                               {reservation.meal?.name}
                             </p>
-                            <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 8px 0' }}>
-                              Chef : {reservation.meal?.cook?.username} • {reservation.meal?.distance?.toFixed(1) || 'N/A'} km
+                            <p
+                              style={{
+                                fontSize: '12px',
+                                color: colors.textSecondary,
+                                margin: '0 0 8px 0',
+                              }}
+                            >
+                              Chef : {reservation.meal?.cook?.username} •{' '}
+                              {reservation.meal?.distance?.toFixed(1) || 'N/A'} km
                             </p>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: colors.primary }}>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                color: colors.primary,
+                              }}
+                            >
                               <ClockIcon size={14} color={colors.primary} />
                               <span style={{ fontSize: '12px', fontWeight: 'bold' }}>
                                 Récupération : {formatTime(reservation.meal?.pickupTimeStart)}

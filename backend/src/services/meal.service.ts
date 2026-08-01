@@ -3,6 +3,8 @@ import prisma from '../config/database';
 import { CreateMealDto, UpdateMealDto } from '../validators/meal.validator';
 import { geolocationService } from './geolocation.service';
 import { bonusDonorService } from './bonus-donor.service';
+import { uploadService } from './upload.service';
+import { blurCoordinates } from '../utils/location-blur';
 
 export class MealService {
   /**
@@ -24,12 +26,28 @@ export class MealService {
 
       // Seuls les membres premium peuvent vendre des repas
       if (!user || user.subscriptionType === 'FREE') {
-        throw new Error('Seuls les membres premium peuvent vendre des repas. Passez au Premium pour accéder à cette fonctionnalité.');
+        throw new Error(
+          'Seuls les membres premium peuvent vendre des repas. Passez au Premium pour accéder à cette fonctionnalité.'
+        );
       }
 
       // Le prix doit être exactement 5€ selon les spécifications
       if (data.price !== 5) {
-        throw new Error('Le prix de vente est fixé à 5€ par repas (frais de service inclus). Vous recevrez 4€ après la livraison.');
+        throw new Error(
+          'Le prix de vente est fixé à 5€ par repas (frais de service inclus). Vous recevrez 4€ après la livraison.'
+        );
+      }
+
+      // Le cuisinier doit avoir un compte Stripe Connect configuré pour vendre
+      const userWithStripe = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { stripeConnectedAccountId: true },
+      });
+
+      if (!userWithStripe?.stripeConnectedAccountId) {
+        throw new Error(
+          'Vous devez configurer votre compte Stripe Connect avant de vendre des repas.'
+        );
       }
     }
 
@@ -55,14 +73,22 @@ export class MealService {
     const pickupTimeStart = new Date(data.pickupTimeStart);
     const pickupTimeEnd = new Date(data.pickupTimeEnd);
     if (pickupTimeEnd < pickupTimeStart) {
-      throw new Error('L\'heure de fin doit être supérieure ou égale à l\'heure de début');
+      throw new Error("L'heure de fin doit être supérieure ou égale à l'heure de début");
     }
+
+    // Valider et uploader la photo
+    const photoValidation = uploadService.validateImage(data.photo);
+    if (!photoValidation.valid) {
+      throw new Error(photoValidation.error || 'Photo invalide');
+    }
+    const uploadResult = await uploadService.uploadImage(data.photo, 'solideat/meals');
+    const photoUrl = uploadResult.url;
 
     // Créer le repas
     const meal = await prisma.meal.create({
       data: {
         name: data.name,
-        photo: data.photo,
+        photo: photoUrl,
         description: data.description,
         cuisine: data.cuisine,
         preparationDate,
@@ -323,6 +349,38 @@ export class MealService {
       );
     }
 
+    // Appliquer le floutage d'adresse pour les repas publics si le cuisinier
+    // premium a activé blurAddress. Le cuisinier et le réservant connecté
+    // verront l'adresse exacte.
+    if (filters.userId) {
+      const requestingUserId = filters.userId;
+      const cookIdsNeedingBlur = new Set<string>();
+      const mealsWithCookIds = mealsFiltered as Array<any & { cookId: string }>;
+      const uniqueCookIds = [...new Set(mealsWithCookIds.map((meal) => meal.cookId))];
+      if (uniqueCookIds.length > 0) {
+        const cooks = await prisma.user.findMany({
+          where: { id: { in: uniqueCookIds } },
+          select: { id: true, subscriptionType: true, blurAddress: true },
+        });
+        for (const cook of cooks) {
+          if (cook.subscriptionType !== 'FREE' && cook.blurAddress) {
+            cookIdsNeedingBlur.add(cook.id);
+          }
+        }
+      }
+      mealsFiltered = mealsFiltered.map((meal: any) => {
+        const isOwnMeal = requestingUserId === meal.cookId;
+        const isReservedByMeal = meal.reservation?.userId === requestingUserId;
+        if (!isOwnMeal && !isReservedByMeal && cookIdsNeedingBlur.has(meal.cookId)) {
+          return this.applyPublicLocationBlur(meal, {
+            subscriptionType: 'PREMIUM_MONTHLY',
+            blurAddress: true,
+          });
+        }
+        return meal;
+      });
+    }
+
     // Filtre par créneau horaire / heure de récupération (en mémoire)
     if (filters.timeSlot && filters.timeSlot !== 'all') {
       const slot = filters.timeSlot.toLowerCase();
@@ -370,9 +428,37 @@ export class MealService {
   }
 
   /**
+   * Applique le floutage d'adresse/coordonnées sur un repas public si le
+   * cuisinier premium a activé blurAddress.
+   */
+  private applyPublicLocationBlur(
+    meal: any,
+    cook: { subscriptionType: string; blurAddress: boolean }
+  ): any {
+    const isPremium = cook.subscriptionType !== 'FREE';
+    if (!isPremium || !cook.blurAddress) {
+      return meal;
+    }
+
+    const blurred = blurCoordinates(meal.pickupLatitude, meal.pickupLongitude, meal.id);
+    return {
+      ...meal,
+      pickupAddress: undefined, // L'adresse exacte n'est pas exposée publiquement
+      pickupLatitude: blurred.latitude,
+      pickupLongitude: blurred.longitude,
+      locationBlurred: true,
+    };
+  }
+
+  /**
    * Récupère les détails d'un repas
    */
-  async getMealById(mealId: string, userLat?: number, userLng?: number): Promise<any> {
+  async getMealById(
+    mealId: string,
+    userLat?: number,
+    userLng?: number,
+    requestingUserId?: string
+  ): Promise<any> {
     const meal = await prisma.meal.findUnique({
       where: { id: mealId },
       include: {
@@ -385,6 +471,8 @@ export class MealService {
             mealsServed: true,
             mealsReceived: true,
             addressCity: true,
+            subscriptionType: true,
+            blurAddress: true,
           },
         },
         reservation: {
@@ -404,21 +492,35 @@ export class MealService {
       throw new Error('Repas non trouvé');
     }
 
+    let resultMeal: any = meal;
+
+    // Déterminer si les coordonnées doivent être floutées pour le visiteur.
+    // Le cuisinier et le réservant voient toujours l'adresse exacte.
+    const isCook = requestingUserId === resultMeal.cookId;
+    const isReservant = requestingUserId === resultMeal.reservation?.userId;
+    const isPublic = !isCook && !isReservant;
+    if (isPublic && resultMeal.cook.subscriptionType !== 'FREE' && resultMeal.cook.blurAddress) {
+      resultMeal = this.applyPublicLocationBlur(resultMeal, {
+        subscriptionType: resultMeal.cook.subscriptionType,
+        blurAddress: resultMeal.cook.blurAddress,
+      });
+    }
+
     // Calculer la distance si coordonnées utilisateur fournies
     if (userLat && userLng) {
       const distance = geolocationService.calculateDistance(
         userLat,
         userLng,
-        meal.pickupLatitude,
-        meal.pickupLongitude
+        resultMeal.pickupLatitude,
+        resultMeal.pickupLongitude
       );
       return {
-        ...meal,
+        ...resultMeal,
         distance,
       };
     }
 
-    return meal;
+    return resultMeal;
   }
 
   /**
@@ -435,7 +537,7 @@ export class MealService {
     }
 
     if (meal.cookId !== userId) {
-      throw new Error('Vous n\'êtes pas autorisé à modifier ce repas');
+      throw new Error("Vous n'êtes pas autorisé à modifier ce repas");
     }
 
     if (meal.status !== MealStatus.AVAILABLE) {
@@ -469,7 +571,7 @@ export class MealService {
       const pickupTimeStart = new Date(data.pickupTimeStart);
       const pickupTimeEnd = new Date(data.pickupTimeEnd);
       if (pickupTimeEnd < pickupTimeStart) {
-        throw new Error('L\'heure de fin doit être supérieure ou égale à l\'heure de début');
+        throw new Error("L'heure de fin doit être supérieure ou égale à l'heure de début");
       }
       updateData.pickupTimeStart = pickupTimeStart;
       updateData.pickupTimeEnd = pickupTimeEnd;
@@ -523,7 +625,7 @@ export class MealService {
     }
 
     if (meal.cookId !== userId) {
-      throw new Error('Vous n\'êtes pas autorisé à supprimer ce repas');
+      throw new Error("Vous n'êtes pas autorisé à supprimer ce repas");
     }
 
     if (meal.status !== MealStatus.AVAILABLE) {
@@ -534,7 +636,6 @@ export class MealService {
       where: { id: mealId },
     });
   }
-
 
   /**
    * Formate l'heure de récupération pour l'affichage

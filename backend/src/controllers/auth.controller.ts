@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { authService } from '../services/auth.service';
 import { emailService } from '../services/email.service';
 import { smsService } from '../services/sms.service';
 import prisma from '../config/database';
+import { phoneVerificationCache } from '../services/cache.service';
+import { recordFailedLogin, resetLoginAttempts } from '../middleware/loginRateLimit.middleware';
 
 export class AuthController {
   /**
@@ -28,7 +31,7 @@ export class AuthController {
     } catch (error: any) {
       res.status(400).json({
         success: false,
-        error: error.message || 'Erreur lors de l\'inscription',
+        error: error.message || "Erreur lors de l'inscription",
       });
     }
   }
@@ -117,12 +120,24 @@ export class AuthController {
 
       const result = await authService.login(email, password);
 
+      // Connexion réussie : réinitialiser le compteur de tentatives
+      await resetLoginAttempts(email);
+
       res.json({
         success: true,
         message: 'Connexion réussie',
         data: result,
       });
     } catch (error: any) {
+      // Mot de passe incorrect ou email non trouvé : incrémenter le compteur
+      if (error.message === 'Email ou mot de passe incorrect') {
+        try {
+          await recordFailedLogin(req.body?.email || '');
+        } catch {
+          // Ignorer l'erreur Redis
+        }
+      }
+
       res.status(401).json({
         success: false,
         error: error.message || 'Erreur lors de la connexion',
@@ -180,7 +195,6 @@ export class AuthController {
       }
 
       // Générer un nouveau token de vérification email
-      const jwt = require('jsonwebtoken');
       const emailToken = jwt.sign(
         { email: user.email, type: 'email-verification' },
         process.env.JWT_SECRET || 'dev-secret',
@@ -196,7 +210,7 @@ export class AuthController {
     } catch (error: any) {
       res.status(400).json({
         success: false,
-        error: error.message || 'Erreur lors de l\'envoi',
+        error: error.message || "Erreur lors de l'envoi",
       });
     }
   }
@@ -238,6 +252,8 @@ export class AuthController {
       }
 
       const code = smsService.generateVerificationCode();
+      // Stocker le nouveau code dans Redis avec expiration 10 minutes
+      await phoneVerificationCache.set(user.id, code, 600);
       await smsService.resendVerificationSMS(user.phone, code);
 
       res.json({
@@ -251,7 +267,7 @@ export class AuthController {
     } catch (error: any) {
       res.status(400).json({
         success: false,
-        error: error.message || 'Erreur lors de l\'envoi',
+        error: error.message || "Erreur lors de l'envoi",
       });
     }
   }

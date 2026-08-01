@@ -5,18 +5,14 @@ import prisma from '../../config/database';
 jest.mock('../../config/database', () => ({
   __esModule: true,
   default: {
-    meal: {
-      findUnique: jest.fn(),
-      count: jest.fn(),
-    },
     reservation: {
-      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      count: jest.fn(),
     },
     review: {
       findUnique: jest.fn(),
       create: jest.fn(),
       findMany: jest.fn().mockResolvedValue([]),
-      count: jest.fn(),
     },
     user: {
       update: jest.fn(),
@@ -33,16 +29,18 @@ describe('ReviewService', () => {
   });
 
   describe('createReview', () => {
-    const mockMeal = {
-      id: 'meal-123',
-      cookId: 'cook-123',
-      status: 'SERVED',
-      reservation: {
-        userId: 'user-123',
-        pickedUpAt: new Date(),
-      },
-      cook: {
-        id: 'cook-123',
+    const mockReservation = {
+      id: 'res-123',
+      mealId: 'meal-123',
+      userId: 'user-123',
+      pickedUpAt: new Date(),
+      meal: {
+        id: 'meal-123',
+        cookId: 'cook-123',
+        status: 'SERVED',
+        cook: {
+          id: 'cook-123',
+        },
       },
     };
 
@@ -53,7 +51,7 @@ describe('ReviewService', () => {
     };
 
     it('devrait créer un avis avec succès', async () => {
-      (prisma.meal.findUnique as jest.Mock).mockResolvedValue(mockMeal);
+      (prisma.reservation.findFirst as jest.Mock).mockResolvedValue(mockReservation);
       (prisma.review.findUnique as jest.Mock).mockResolvedValue(null);
       (prisma.review.create as jest.Mock).mockResolvedValue({
         id: 'review-123',
@@ -67,19 +65,8 @@ describe('ReviewService', () => {
       expect(prisma.review.create).toHaveBeenCalled();
     });
 
-    it('devrait échouer si le repas n\'existe pas', async () => {
-      (prisma.meal.findUnique as jest.Mock).mockResolvedValue(null);
-
-      await expect(reviewService.createReview('user-123', mockReviewData)).rejects.toThrow(
-        'Repas non trouvé'
-      );
-    });
-
-    it('devrait échouer si l\'utilisateur n\'a pas réservé le repas', async () => {
-      (prisma.meal.findUnique as jest.Mock).mockResolvedValue({
-        ...mockMeal,
-        reservation: null,
-      });
+    it('devrait échouer si l\'utilisateur n\'a pas réservé ou récupéré le repas', async () => {
+      (prisma.reservation.findFirst as jest.Mock).mockResolvedValue(null);
 
       await expect(reviewService.createReview('user-123', mockReviewData)).rejects.toThrow(
         'n\'avez pas réservé'
@@ -87,7 +74,7 @@ describe('ReviewService', () => {
     });
 
     it('devrait échouer si un avis existe déjà', async () => {
-      (prisma.meal.findUnique as jest.Mock).mockResolvedValue(mockMeal);
+      (prisma.reservation.findFirst as jest.Mock).mockResolvedValue(mockReservation);
       (prisma.review.findUnique as jest.Mock).mockResolvedValue({
         id: 'existing-review',
       });
@@ -105,7 +92,7 @@ describe('ReviewService', () => {
         { rating: 4 },
         { rating: 5 },
       ]);
-      (prisma.meal.count as jest.Mock).mockResolvedValue(1); // 1 repas non récupéré
+      (prisma.reservation.count as jest.Mock).mockResolvedValue(1); // 1 repas non récupéré
       (prisma.user.update as jest.Mock).mockResolvedValue({});
 
       const rating = await reviewService.calculateGlobalRating('cook-123');

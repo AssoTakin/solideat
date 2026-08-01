@@ -41,7 +41,9 @@ export const reservationService = {
   /**
    * Créer une réservation
    */
-  async createReservation(data: CreateReservationDto): Promise<{ success: boolean; data?: Reservation; error?: string }> {
+  async createReservation(
+    data: CreateReservationDto
+  ): Promise<{ success: boolean; data?: Reservation; error?: string }> {
     const response = await api.post('/reservations', data);
     return response.data;
   },
@@ -49,7 +51,9 @@ export const reservationService = {
   /**
    * Récupérer mes réservations
    */
-  async getMyReservations(filters?: { status?: string }): Promise<{ success: boolean; data?: Reservation[]; error?: string }> {
+  async getMyReservations(filters?: {
+    status?: string;
+  }): Promise<{ success: boolean; data?: Reservation[]; error?: string }> {
     const params = new URLSearchParams();
     if (filters?.status) params.append('status', filters.status);
 
@@ -60,7 +64,10 @@ export const reservationService = {
   /**
    * Annuler une réservation
    */
-  async cancelReservation(id: string, reason: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  async cancelReservation(
+    id: string,
+    reason: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
     const response = await api.delete(`/reservations/${id}`, { data: { reason } });
     return response.data;
   },
@@ -68,7 +75,9 @@ export const reservationService = {
   /**
    * Marquer comme récupéré
    */
-  async markAsPickedUp(id: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  async markAsPickedUp(
+    id: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
     const response = await api.put(`/reservations/${id}/pickup`);
     return response.data;
   },
@@ -76,8 +85,20 @@ export const reservationService = {
   /**
    * Signaler non récupéré
    */
-  async reportNotPickedUp(id: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  async reportNotPickedUp(
+    id: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
     const response = await api.post(`/reservations/${id}/report-not-picked-up`);
+    return response.data;
+  },
+
+  /**
+   * Initier le paiement d'une réservation premium
+   */
+  async initiatePayment(
+    id: string
+  ): Promise<{ success: boolean; data?: { clientSecret: string; paymentIntentId: string }; error?: string }> {
+    const response = await api.post(`/reservations/${id}/pay`);
     return response.data;
   },
 };

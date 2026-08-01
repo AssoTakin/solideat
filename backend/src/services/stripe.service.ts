@@ -207,6 +207,83 @@ export class StripeService {
     }
     return new Date(periodEnd * 1000);
   }
+
+  /**
+   * Crée un PaymentIntent pour l'achat d'un repas premium (5€ = 500 centimes).
+   * Frais plateforme : 1€, reversement cuisinier : 4€.
+   */
+  async createMealPaymentIntent(
+    buyerCustomerId: string,
+    cookConnectedAccountId: string,
+    reservationId: string
+  ): Promise<Stripe.PaymentIntent> {
+    const amountCents = 500; // 5€
+    const platformFeeCents = 100; // 1€
+
+    return await stripe.paymentIntents.create({
+      amount: amountCents,
+      currency: 'eur',
+      customer: buyerCustomerId,
+      application_fee_amount: platformFeeCents,
+      transfer_data: {
+        destination: cookConnectedAccountId,
+      },
+      metadata: {
+        reservationId,
+        type: 'meal_payment',
+      },
+      automatic_payment_methods: { enabled: true },
+    });
+  }
+
+  /**
+   * Transfère le revenu net (4€) au compte Stripe Connect du cuisinier.
+   * Utilisé après récupération effective du repas.
+   */
+  async transferNetAmountToCook(
+    cookConnectedAccountId: string,
+    paymentIntentId: string,
+    reservationId: string
+  ): Promise<Stripe.Transfer> {
+    const netAmountCents = 400; // 4€
+
+    return await stripe.transfers.create({
+      amount: netAmountCents,
+      currency: 'eur',
+      destination: cookConnectedAccountId,
+      source_transaction: paymentIntentId,
+      metadata: {
+        reservationId,
+        type: 'meal_payout',
+      },
+    });
+  }
+
+  /**
+   * Crée un compte Stripe Connect Express pour un cuisinier.
+   */
+  async createConnectedAccount(email: string, userId: string): Promise<Stripe.Account> {
+    return await stripe.accounts.create({
+      type: 'express',
+      email,
+      metadata: { userId },
+      capabilities: {
+        transfers: { requested: true },
+      },
+    });
+  }
+
+  /**
+   * Crée un lien d'onboarding Stripe Connect.
+   */
+  async createAccountLink(accountId: string, refreshUrl: string, returnUrl: string): Promise<Stripe.AccountLink> {
+    return await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
+      type: 'account_onboarding',
+    });
+  }
 }
 
 export const stripeService = new StripeService();

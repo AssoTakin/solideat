@@ -19,6 +19,9 @@ router.put('/me/address', authenticate, userController.changeAddress.bind(userCo
 // Paramètres de confidentialité (nécessite authentification)
 router.put('/me/privacy', authenticate, userController.updatePrivacy.bind(userController));
 
+// Création compte Stripe Connect (nécessite authentification)
+router.post('/me/connect-account', authenticate, userController.createConnectAccount.bind(userController));
+
 // Tableau de bord (nécessite authentification)
 router.get('/me/dashboard', authenticate, userController.getDashboardStats.bind(userController));
 

@@ -9,9 +9,70 @@ import Navigation from '../components/Navigation';
 import { USE_MOCK_DATA, mockUsers } from '../data/mockData';
 import { getPagePaddingBottom, getMainContentStyle } from '../utils/layout';
 import { ClockIcon, CheckIcon } from '../components/Icons';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 // Design System Colors
 
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+
+
+function PaymentForm({
+  onSuccess,
+  onError,
+}: {
+  onSuccess: () => void;
+  onError: (msg: string) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setIsProcessing(true);
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/reservations`,
+      },
+    });
+
+    if (error) {
+      onError(error.message || 'Erreur de paiement');
+    } else {
+      onSuccess();
+    }
+    setIsProcessing(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <PaymentElement />
+      <button
+        type="submit"
+        disabled={!stripe || isProcessing}
+        style={{
+          width: '100%',
+          marginTop: '16px',
+          padding: '14px',
+          backgroundColor: colors.primary,
+          color: colors.backgroundWhite,
+          border: 'none',
+          borderRadius: '8px',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+        }}
+      >
+        {isProcessing ? 'Traitement...' : 'Payer maintenant'}
+      </button>
+    </form>
+  );
+}
 
 export default function ReserveMeal() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +85,8 @@ export default function ReserveMeal() {
   const [availableBonuses, setAvailableBonuses] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isReservationBlocked, setIsReservationBlocked] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -125,6 +188,21 @@ export default function ReserveMeal() {
       });
 
       if (response.success) {
+        const created = response.data;
+        // Si le repas est payant, afficher le paiement Stripe
+        if (meal && meal.price && meal.price > 0 && created) {
+          const payResponse = await reservationService.initiatePayment(created.id);
+          if (payResponse.success && payResponse.data) {
+            setClientSecret(payResponse.data.clientSecret);
+            setShowPayment(true);
+            setReserving(false);
+            return;
+          } else {
+            setError(payResponse.error || "Erreur lors de l'initialisation du paiement");
+            setReserving(false);
+            return;
+          }
+        }
         navigate('/reservations');
       } else {
         setError(response.error || 'Erreur lors de la réservation');
@@ -344,6 +422,29 @@ export default function ReserveMeal() {
                 </span>
               </span>
             </label>
+          </div>
+        )}
+
+        {/* Paiement Stripe pour repas premium */}
+        {showPayment && clientSecret && meal && (
+          <div
+            style={{
+              backgroundColor: colors.backgroundWhite,
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '24px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}
+          >
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: colors.textPrimary, margin: '0 0 8px 0' }}>
+              Paiement sécurisé - {meal.price}€
+            </h3>
+            <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 16px 0' }}>
+              4€ reversés au cuisinier après récupération, 1€ de frais de service.
+            </p>
+            <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+              <PaymentForm onSuccess={() => navigate('/reservations')} onError={setError} />
+            </Elements>
           </div>
         )}
 

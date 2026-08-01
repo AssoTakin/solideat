@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { mealService } from '../services/meal.service';
+import { addressService } from '../services/address.service';
 import prisma from '../config/database';
 
 export class MealController {
@@ -103,7 +104,7 @@ export class MealController {
         }
       }
 
-      const meal = await mealService.getMealById(id, userLat, userLng);
+      const meal = await mealService.getMealById(id, userLat, userLng, req.user?.id);
 
       res.json({
         success: true,
@@ -143,6 +144,27 @@ export class MealController {
    * DELETE /meals/:id
    * Suppression d'un repas
    */
+  /**
+   * GET /meals/address-suggestions
+   * Autocomplétion d'adresses
+   */
+  async getAddressSuggestions(req: AuthRequest | any, res: Response): Promise<void> {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.trim().length < 3) {
+        res.json({ success: true, data: [] });
+        return;
+      }
+      const suggestions = await addressService.searchAddresses(query.trim());
+      res.json({ success: true, data: suggestions });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || "Erreur lors de la recherche d'adresse",
+      });
+    }
+  }
+
   async deleteMeal(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;

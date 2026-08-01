@@ -1024,10 +1024,10 @@ SOLID'EAT est une plateforme de cuisine collaborative entre particuliers permett
   - Badge spécial "Héros anti-gaspillage" après X repas sauvés
 - **Gestion de la confidentialité et des contacts (Amélioration Future VoIP & Protection des Données)** :
   - **Numéro masqué par défaut** : Par souci de sécurité et pour maintenir les communications au sein de l'application, les numéros de téléphone des utilisateurs sont masqués par défaut pour tous les membres.
-  - **Avantages Premium de Confidentialité (Actifs)** :
-    - **Géolocalisation floutée (Floutage d'adresse)** : Flouter son adresse exacte sur la carte publique pour les repas proposés (affichage d'un rayon de 500m) tant que la réservation n'est pas confirmée.
-    - **Mode Incognito (Navigation invisible)** : Visiter les profils et consulter les repas sans apparaître dans l'historique des membres.
-    - **Profil d'activité masqué** : Masquer l'historique de ses repas partagés/reçus et de ses statistiques d'impact sur son profil public **uniquement pour les membres gratuits**. Les autres membres Premium continuent de voir ces informations, favorisant la transparence au sein de la communauté engagée.
+  - **Avantages Premium de Confidentialité (Évolution future / V2)** :
+    - **Géolocalisation floutée (Floutage d'adresse)** : Flouter son adresse exacte sur la carte publique pour les repas proposés (affichage d'un rayon de 500m) tant que la réservation n'est pas confirmée. **Non implémenté dans le MVP.**
+    - **Mode Incognito (Navigation invisible)** : Visiter les profils et consulter les repas sans apparaître dans l'historique des membres. **Non implémenté dans le MVP.**
+    - **Profil d'activité masqué** : Masquer l'historique de ses repas partagés/reçus et de ses statistiques d'impact sur son profil public **uniquement pour les membres gratuits**. Les autres membres Premium continuent de voir ces informations, favorisant la transparence au sein de la communauté engagée. **Non implémenté dans le MVP.**
   - **Perspective d'évolution future (V2)** : Une **fonctionnalité d'appel vocal VoIP sécurisé direct** (via WebRTC) intégrée à la messagerie sera proposée dans une version ultérieure (V2) afin de permettre aux utilisateurs de s'appeler de manière fluide sans divulguer leur numéro de téléphone physique et sans quitter l'écosystème de l'application.
   - **Chiffrement de bout en bout (E2EE - Évolution Future)** : Option pour chiffrer ses conversations privées de messagerie.
 

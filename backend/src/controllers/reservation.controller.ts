@@ -107,6 +107,26 @@ export class ReservationController {
   }
 
   /**
+   * POST /reservations/:id/pay
+   * Initie le paiement Stripe pour une réservation de repas premium.
+   */
+  async payReservation(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const result = await reservationService.initiatePayment(id, req.user!.id);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || "Erreur lors de l'initialisation du paiement",
+      });
+    }
+  }
+
+  /**
    * POST /reservations/:id/report-not-picked-up
    * Signaler un repas non récupéré
    */

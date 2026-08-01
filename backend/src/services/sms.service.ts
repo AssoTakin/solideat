@@ -1,7 +1,11 @@
-import twilio from 'twilio';
+/* eslint-disable @typescript-eslint/no-var-requires */
+const twilio = require('twilio');
+/* eslint-enable @typescript-eslint/no-var-requires */
+
+type TwilioClient = ReturnType<typeof twilio>;
 
 export class SmsService {
-  private client: twilio.Twilio | null = null;
+  private client: TwilioClient | null = null;
   private phoneNumber: string;
 
   constructor() {
@@ -35,8 +39,8 @@ export class SmsService {
         from: this.phoneNumber,
         to,
       });
-    } catch (error) {
-      throw new Error('Impossible d\'envoyer le SMS de vérification');
+    } catch {
+      throw new Error("Impossible d'envoyer le SMS de vérification");
     }
   }
 

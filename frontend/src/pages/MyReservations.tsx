@@ -12,10 +12,11 @@ import {
   EyeIcon,
   XIcon,
   StarIcon,
+  CheckIcon,
+  AlertTriangleIcon,
 } from '../components/Icons';
 
 // Design System Colors
-
 
 export default function MyReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -23,9 +24,15 @@ export default function MyReservations() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
 
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     loadReservations();
   }, [filter]);
+
+  const setLoadingAction = (id: string, loading: boolean) => {
+    setActionLoading((prev) => ({ ...prev, [id]: loading }));
+  };
 
   const loadReservations = async () => {
     setLoading(true);
@@ -56,7 +63,7 @@ export default function MyReservations() {
   };
 
   const handleCancel = async (reservation: Reservation) => {
-    const reason = window.prompt('Motif d\'annulation (obligatoire, max 200 caractères):');
+    const reason = window.prompt("Motif d'annulation (obligatoire, max 200 caractères):");
     if (!reason || reason.trim().length === 0) {
       alert('Le motif est obligatoire');
       return;
@@ -71,16 +78,61 @@ export default function MyReservations() {
       return;
     }
 
+    setLoadingAction(reservation.id, true);
     try {
       const response = await reservationService.cancelReservation(reservation.id, reason);
       if (response.success) {
         alert('Réservation annulée avec succès');
         loadReservations();
       } else {
-        alert(response.error || 'Erreur lors de l\'annulation');
+        alert(response.error || "Erreur lors de l&apos;annulation");
       }
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Erreur lors de l\'annulation');
+      alert(err.response?.data?.error || "Erreur lors de l&apos;annulation");
+    } finally {
+      setLoadingAction(reservation.id, false);
+    }
+  };
+
+  const handleMarkAsPickedUp = async (reservation: Reservation) => {
+    if (!window.confirm('Confirmer que ce repas a été récupéré ?')) {
+      return;
+    }
+    setLoadingAction(reservation.id, true);
+    try {
+      const response = await reservationService.markAsPickedUp(reservation.id);
+      if (response.success) {
+        alert('Repas marqué comme récupéré');
+        loadReservations();
+      } else {
+        alert(response.error || 'Erreur lors du signalement');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erreur lors du signalement');
+    } finally {
+      setLoadingAction(reservation.id, false);
+    }
+  };
+
+  const handleReportNotPickedUp = async (reservation: Reservation) => {
+    if (
+      !window.confirm("Signaler que ce repas n'a pas été récupéré ? Cette action est irréversible.")
+    ) {
+      return;
+    }
+    setLoadingAction(reservation.id, true);
+    try {
+      const response = await reservationService.reportNotPickedUp(reservation.id);
+      if (response.success) {
+        alert('Signalement envoyé. Le repas sera remis à disposition ou marqué comme expiré.');
+        loadReservations();
+      } else {
+        alert(response.error || 'Erreur lors du signalement');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erreur lors du signalement');
+    } finally {
+      setLoadingAction(reservation.id, false);
     }
   };
 
@@ -137,7 +189,14 @@ export default function MyReservations() {
           borderBottom: `1px solid ${colors.backgroundLight}`,
         }}
       >
-        <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textPrimary, margin: '0 0 16px 0' }}>
+        <h1
+          style={{
+            fontSize: '20px',
+            fontWeight: 'bold',
+            color: colors.textPrimary,
+            margin: '0 0 16px 0',
+          }}
+        >
           Mes réservations
         </h1>
 
@@ -171,7 +230,14 @@ export default function MyReservations() {
         </div>
       </div>
 
-      <main style={{ padding: '16px', maxWidth: '800px', margin: '0 auto', ...getMainContentStyle(false) }}>
+      <main
+        style={{
+          padding: '16px',
+          maxWidth: '800px',
+          margin: '0 auto',
+          ...getMainContentStyle(false),
+        }}
+      >
         {error && (
           <div
             style={{
@@ -213,12 +279,19 @@ export default function MyReservations() {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
               <CalendarIcon size={48} color={colors.textSecondary} />
             </div>
-            <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
+            <p
+              style={{
+                fontSize: '18px',
+                fontWeight: 'bold',
+                color: colors.textPrimary,
+                marginBottom: '8px',
+              }}
+            >
               Aucune réservation
             </p>
             {filter === 'all' && (
               <p style={{ fontSize: '14px', color: colors.textSecondary }}>
-                Vous n'avez pas encore de réservations. Explorez les repas disponibles !
+                Vous n&apos;avez pas encore de réservations. Explorez les repas disponibles !
               </p>
             )}
           </div>
@@ -257,7 +330,9 @@ export default function MyReservations() {
                     >
                       {reservation.meal.name}
                     </h3>
-                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0' }}>
+                    <p
+                      style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0' }}
+                    >
                       <strong>Cuisinier:</strong>{' '}
                       <Link
                         to={`/users/${reservation.meal.cook.id}`}
@@ -266,18 +341,51 @@ export default function MyReservations() {
                         {reservation.meal.cook.username}
                       </Link>
                     </p>
-                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <CalendarIcon size={14} color={colors.textSecondary} /> {new Date(reservation.meal.serviceDate).toLocaleDateString('fr-FR', {
+                    <p
+                      style={{
+                        fontSize: '14px',
+                        color: colors.textSecondary,
+                        margin: '0 0 4px 0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <CalendarIcon size={14} color={colors.textSecondary} />{' '}
+                      {new Date(reservation.meal.serviceDate).toLocaleDateString('fr-FR', {
                         weekday: 'long',
                         day: 'numeric',
                         month: 'long',
                       })}
                     </p>
-                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <ClockIcon size={14} color={colors.textSecondary} /> {formatPickupTime(reservation.meal.pickupTimeStart, reservation.meal.pickupTimeEnd)}
+                    <p
+                      style={{
+                        fontSize: '14px',
+                        color: colors.textSecondary,
+                        margin: '0 0 4px 0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <ClockIcon size={14} color={colors.textSecondary} />{' '}
+                      {formatPickupTime(
+                        reservation.meal.pickupTimeStart,
+                        reservation.meal.pickupTimeEnd
+                      )}
                     </p>
-                    <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <MapPinIcon size={14} color={colors.textSecondary} /> {reservation.meal.pickupAddress}
+                    <p
+                      style={{
+                        fontSize: '14px',
+                        color: colors.textSecondary,
+                        margin: '0 0 4px 0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <MapPinIcon size={14} color={colors.textSecondary} />{' '}
+                      {reservation.meal.pickupAddress}
                     </p>
                     <div
                       style={{
@@ -287,8 +395,8 @@ export default function MyReservations() {
                           reservation.meal.status === 'SERVED'
                             ? colors.success
                             : reservation.meal.status === 'RESERVED'
-                            ? colors.warning
-                            : colors.error,
+                              ? colors.warning
+                              : colors.error,
                         color: colors.backgroundWhite,
                         borderRadius: '4px',
                         fontSize: '12px',
@@ -299,8 +407,8 @@ export default function MyReservations() {
                       {reservation.meal.status === 'SERVED'
                         ? 'Servi'
                         : reservation.meal.status === 'RESERVED'
-                        ? 'Réservé'
-                        : reservation.meal.status}
+                          ? 'Réservé'
+                          : reservation.meal.status}
                     </div>
                     {reservation.cancelledAt && (
                       <p style={{ color: colors.error, fontSize: '12px', margin: '8px 0 0 0' }}>
@@ -341,6 +449,7 @@ export default function MyReservations() {
                   {reservation.meal.status === 'RESERVED' && !reservation.cancelledAt && (
                     <button
                       onClick={() => handleCancel(reservation)}
+                      disabled={actionLoading[reservation.id]}
                       style={{
                         padding: '8px 16px',
                         backgroundColor: colors.error,
@@ -349,34 +458,86 @@ export default function MyReservations() {
                         borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: 'bold',
-                        cursor: 'pointer',
+                        cursor: actionLoading[reservation.id] ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
+                        opacity: actionLoading[reservation.id] ? 0.7 : 1,
                       }}
                     >
                       <XIcon size={14} color={colors.backgroundWhite} /> Annuler
                     </button>
                   )}
-                  {reservation.meal.status === 'SERVED' && reservation.pickedUpAt && !reservation.cancelledAt && (
-                    <Link
-                      to={`/meals/${reservation.mealId}/review`}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: colors.warning,
-                        color: colors.textPrimary,
-                        textDecoration: 'none',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
-                    >
-                      <StarIcon size={14} color={colors.textPrimary} fill={colors.textPrimary} /> Noter ce repas
-                    </Link>
-                  )}
+                  {reservation.meal.status === 'RESERVED' &&
+                    !reservation.cancelledAt &&
+                    !reservation.pickedUpAt && (
+                      <button
+                        onClick={() => handleMarkAsPickedUp(reservation)}
+                        disabled={actionLoading[reservation.id]}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: colors.success,
+                          color: colors.backgroundWhite,
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          cursor: actionLoading[reservation.id] ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          opacity: actionLoading[reservation.id] ? 0.7 : 1,
+                        }}
+                      >
+                        <CheckIcon size={14} color={colors.backgroundWhite} /> Marquer récupéré
+                      </button>
+                    )}
+                  {reservation.meal.status === 'RESERVED' &&
+                    !reservation.cancelledAt &&
+                    !reservation.pickedUpAt && (
+                      <button
+                        onClick={() => handleReportNotPickedUp(reservation)}
+                        disabled={actionLoading[reservation.id]}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: colors.warning,
+                          color: colors.textPrimary,
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          cursor: actionLoading[reservation.id] ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          opacity: actionLoading[reservation.id] ? 0.7 : 1,
+                        }}
+                      >
+                        <AlertTriangleIcon size={14} color={colors.textPrimary} /> Non récupéré
+                      </button>
+                    )}
+                  {reservation.meal.status === 'SERVED' &&
+                    reservation.pickedUpAt &&
+                    !reservation.cancelledAt && (
+                      <Link
+                        to={`/meals/${reservation.mealId}/review`}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: colors.warning,
+                          color: colors.textPrimary,
+                          textDecoration: 'none',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <StarIcon size={14} color={colors.textPrimary} fill={colors.textPrimary} />{' '}
+                        Noter ce repas
+                      </Link>
+                    )}
                 </div>
               </div>
             ))}
