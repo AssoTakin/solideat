@@ -15,7 +15,16 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 // Design System Colors
 
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+const stripePromise = (async () => {
+  try {
+    const { data } = await api.get('/users/stripe-config');
+    const pk = data?.data?.publishableKey || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    if (!pk) throw new Error('Clé Stripe non configurée');
+    return loadStripe(pk);
+  } catch {
+    return loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+  }
+})();
 
 
 function PaymentForm({
