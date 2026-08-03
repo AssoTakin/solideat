@@ -237,8 +237,14 @@ export class StripeService {
   }
 
   /**
-   * Transfère le revenu net (4€) au compte Stripe Connect du cuisinier.
-   * Utilisé après récupération effective du repas.
+   * Transfère manuellement le revenu net (4€) au compte Stripe Connect du cuisinier.
+   *
+   * IMPORTANT : en production nous utilisons un "destination charge" lors de la
+   * création du PaymentIntent (`transfer_data.destination` + `application_fee_amount`).
+   * Cela transfère automatiquement 4€ au cuisinier et 1€ à la plateforme au moment du
+   * paiement. Cette méthode n'est donc normalement plus appelée dans le flow standard.
+   * Elle est conservée pour les cas où un transfert manuel serait nécessaire, et utilise
+   * obligatoirement le `chargeId` (pas le `paymentIntentId`) comme `source_transaction`.
    */
   async transferNetAmountToCook(
     cookConnectedAccountId: string,
