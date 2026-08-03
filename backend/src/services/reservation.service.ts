@@ -551,16 +551,7 @@ export class ReservationService {
     const reservation = await prisma.reservation.findUnique({
       where: { id: reservationId },
       include: {
-        meal: {
-          include: {
-            cook: {
-              select: {
-                id: true,
-                stripeConnectedAccountId: true,
-              },
-            },
-          },
-        },
+        meal: true,
         transaction: true,
       },
     });
@@ -581,27 +572,14 @@ export class ReservationService {
       throw new Error("Le paiement de la réservation n'est pas confirmé");
     }
 
-    if (reservation.payoutTransferId) {
-      throw new Error("Le reversement a déjà été effectué");
-    }
-
-    if (!reservation.meal.cook.stripeConnectedAccountId || !reservation.stripePaymentIntentId) {
-      throw new Error("Configuration Stripe manquante pour le reversement");
-    }
-
-    const { stripeService } = await import('./stripe.service');
-    const transfer = await stripeService.transferNetAmountToCook(
-      reservation.meal.cook.stripeConnectedAccountId,
-      reservation.stripePaymentIntentId,
-      reservation.id
-    );
-
+// Avec destination charges, Stripe a déjà transféré le montant net (4€)
+    // au compte Connect du cuisinier lors du paiement. On marque juste la réservation.
     await prisma.$transaction([
       prisma.reservation.update({
         where: { id: reservationId },
         data: {
           paymentStatus: 'PAYOUT_DONE',
-          payoutTransferId: transfer.id,
+          payoutAmount: 400,
         },
       }),
       prisma.transaction.updateMany({
