@@ -1,8 +1,11 @@
-FROM node:20-alpine
+FROM node:20-slim
+
+# Install OpenSSL and other deps needed by Prisma
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (dev deps needed for build)
 COPY package*.json ./
 RUN npm install --include=dev
 
