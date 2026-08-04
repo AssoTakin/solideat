@@ -1,9 +1,9 @@
 # Flow vente de repas premium (5€/repas) - État actuel
 
-**Date** : 2026-08-01  
-**Statut** : ✅ Implémenté, testé E2E en local, déployé en production  
-**Branche** : `dev/local-work` (commit `b3e6f92`)
-
+| **Date** : 2026-08-04  
+|**Statut** : ✅ Implémenté, testé E2E local + staging, déployé en production avec clés Stripe live  
+|**Branche** : `dev/local-work` / `main` (commits `d5846e7`, `5b238b6`, `975a98e`)
+|
 ---
 
 ## Résumé exécutif
@@ -70,6 +70,8 @@ Le flow premium est **fonctionnel de bout en bout** :
 | `backend/src/routes/user.routes.ts` | `GET /api/users/stripe-config` (publishable key dynamique) |
 | `backend/src/routes/stripe.routes.ts` | Routes Stripe Connect |
 | `backend/prisma/schema.prisma` | `Reservation.paymentStatus`, `Reservation.stripePaymentIntentId`, `Reservation.payoutAmount`, `Reservation.payoutTransferId`, modèle `Transaction` |
+| `backend/src/e2e/premium-flow.e2e.test.ts` | Test E2E premium local (6/6 pass) |
+| `backend/src/e2e/premium-flow.staging.e2e.test.ts` | Test E2E premium contre Railway staging (1/1 pass) |
 | `frontend/src/pages/ReserveMeal.tsx` | Stripe Elements, `PaymentElement`, chargement clé publique dynamique |
 | `frontend/src/pages/CreateMeal.tsx` | Option "Vendre ce repas", vérification compte Connect |
 
@@ -156,7 +158,7 @@ Endpoint : `POST https://api.solid-eat.com/webhooks/stripe`
 
 ---
 
-## Test E2E local (2026-08-01)
+## Test E2E local (2026-08-04)
 
 Clés Stripe test utilisées :
 - `sk_test_...`
@@ -173,6 +175,22 @@ Clés Stripe test utilisées :
 8. `Reservation.paymentStatus = PAID`
 9. Transaction créée : amount=5, platformFee=1, netAmount=4
 10. Marquage récupéré → `paymentStatus = PAYOUT_DONE`, `payoutAmount = 400`
+
+## Test E2E Railway staging (2026-08-04)
+
+- Service staging : `solideat-staging` (`bcf202f3-...`), domaine `https://solideat-staging-staging.up.railway.app`
+- Clés Stripe test utilisées, base de production Supabase (comptes de test nettoyés en `afterAll`)
+- Le test crée un vrai PaymentIntent Stripe test, envoie un webhook `payment_intent.succeeded` signé manuellement (la livraison asynchrone Stripe vers le staging n'était pas fiable), puis marque le repas comme récupéré et vérifie `PAYOUT_DONE`
+- **Résultat : 1/1 pass**
+
+## Production (2026-08-04)
+
+- Clés Stripe **live** injectées dans Railway production : `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`
+- Webhook Stripe production recréé : `we_1U0eVc...` pointant sur `https://api.solid-eat.com/webhooks/stripe`
+- Événements webhook : `payment_intent.succeeded`, `payment_intent.payment_failed`, `account.updated`, abonnements
+- Déploiement backend prod `f0df2211...` SUCCESS, `/api/users/stripe-config` retourne `pk_live_...`
+- Les paiements en production utilisent des **vraies cartes** (pas de `pm_card_visa`)
+- Les cuisiniers doivent **terminer l'onboarding Stripe Connect** avant de pouvoir vendre un repas premium
 
 ---
 
@@ -195,12 +213,15 @@ Clés Stripe test utilisées :
 - Les cartes de test Stripe (`pm_card_visa`) ne fonctionnent qu'en mode test.
 - Les cuisiniers doivent **terminer l'onboarding Stripe Connect** avant de pouvoir vendre un repas premium.
 - L'helper `isConnectedAccountReady` vérifie que `transfers` capability est active avant autorisation de création de repas payant.
+- Le build Railway production nécessite `typescript` dans les `dependencies` (et non les `devDependencies`) et un `Dockerfile` avec `openssl` pour Prisma.
+- Les tests E2E premium sont isolés dans `backend/src/e2e/` et ignorés par `npm test` ; ils s'exécutent explicitement avec `npx jest src/e2e/premium-flow.e2e.test.ts`.
 
 ---
 
 ## Prochaines améliorations
 
-- [ ] Créer un environnement Railway **staging** avec clés Stripe test pour tester sans toucher à la production.
-- [ ] Ajouter des tests automatisés backend sur le flow premium (supertest + mock Stripe).
+- [x] Créer un environnement Railway **staging** avec clés Stripe test pour tester sans toucher à la production.
+- [x] Ajouter des tests automatisés backend sur le flow premium (supertest + Stripe test).
 - [ ] Ajouter un test E2E Playwright complet (UI) une fois `computer_use` disponible.
 - [ ] Documenter la procédure d'onboarding Stripe Connect pour les cuisiniers.
+- [ ] Valider un vrai paiement live de 5€ en production avec onboarding Connect complet.

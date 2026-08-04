@@ -8,11 +8,13 @@ SOLID'EAT connecte les cuisiniers amateurs qui ont préparé trop de repas avec 
 
 ## 🏗️ Architecture
 
-- **Frontend** : React 18+ avec TypeScript, Vite
-- **Backend** : Node.js avec Express.js et TypeScript
+- **Frontend** : React 18+ avec TypeScript, Vite, Redux Toolkit, React Hook Form, Zod, Axios
+- **Backend** : Node.js 20 avec Express.js et TypeScript
+- **ORM** : Prisma
 - **Base de données** : Supabase PostgreSQL (ou PostgreSQL 15+ avec Prisma ORM)
 - **Cache/Queue** : Redis 7+ (Upstash recommandé)
-- **Stockage** : Cloudinary (images) ou Supabase Storage
+- **Stockage** : Cloudinary (images)
+- **Paiements** : Stripe (abonnements + repas premium 5€)
 
 ## 📁 Structure du projet
 
@@ -101,16 +103,21 @@ Toute la documentation du projet se trouve dans le dossier `/docs` :
 ## 🧪 Tests
 
 ```bash
-# Backend
+# Backend unitaires
 cd backend
-npm test              # Tests unitaires
-npm run test:coverage  # Avec couverture
-npm run test:integration  # Tests d'intégration
+npm test              # 124 tests unitaires
+
+# Backend E2E premium (clés Stripe test requises)
+cd backend
+npx jest src/e2e/premium-flow.e2e.test.ts --testTimeout=60000
+
+# Backend E2E staging Railway (clés Stripe test requises)
+cd backend
+npx jest src/e2e/premium-flow.staging.e2e.test.ts --testTimeout=60000
 
 # Frontend
 cd frontend
 npm test              # Tests unitaires
-npm run test:coverage # Avec couverture
 npm run test:e2e      # Tests E2E (Playwright)
 ```
 
@@ -135,23 +142,36 @@ npm run test:e2e      # Tests E2E (Playwright)
 ## 📝 Workflow Git
 
 - **Branches principales** :
-  - `main` : Code en production
-  - `develop` : Code de développement
+  - `main` : Code en production (déployé automatiquement sur Railway + Vercel)
+  - `dev/local-work` : Branche de travail active
   - `feature/US-XXX` : Branches pour chaque User Story
 
 - **Convention de commits** : `type(scope): description [US-XXX]`
   - Types : `feat`, `fix`, `test`, `docs`, `refactor`, `style`, `chore`
 
+- **Règle** : ne jamais push directement sur `main`. Pousser sur `dev/local-work`, puis merger dans `main` via une PR ou un merge `--no-ff` avec validation.
+
 ## 🚀 Déploiement
 
 ### Production
 
-- **Frontend** : Vercel → `https://solid-eat.com`
-- **Backend** : Railway → `https://api.solid-eat.com`
-- **Base de données** : Supabase PostgreSQL
-- **Cache** : Upstash Redis
+| Composant | Service | URL |
+|---|---|---|
+| Frontend | Vercel | `https://solid-eat.com` |
+| Frontend | Vercel | `https://solid-eat.fr` |
+| Backend | Railway | `https://api.solid-eat.com` |
+| Base de données | Supabase | PostgreSQL |
+| Cache | Upstash | Redis |
 
-Voir `docs/dev/PLAN_PRODUCTION.md` pour les détails complets.
+### Environnements
+
+| Environnement | Branche | Backend | Stripe | Usage |
+|---|---|---|---|---|
+| Local | `dev/local-work` | `npm run dev` | Test (`sk_test_...`) | Développement |
+| Staging | `main` | `solideat-staging` sur Railway | Test (`sk_test_...`) | Tests E2E |
+| Production | `main` | `solideat` sur Railway | Live (`sk_live_...`) | Production |
+
+Voir `docs/dev/STATUT_DEPLOIEMENT.md` et `docs/dev/VARIABLES_RAILWAY.md` pour les détails complets.
 
 ## 📄 Licence
 
