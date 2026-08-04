@@ -1,142 +1,119 @@
 # ✅ CONFIGURATION STRIPE - TERMINÉE
 
-**Date** : 23 janvier 2026  
-**Agent** : DEV  
-**Statut** : ✅ Configuration complète et fonctionnelle
+**Date** : 4 août 2026  
+**Agent** : SolidProjectBot  
+**Statut** : ✅ Configuration complète et fonctionnelle en test ET production
 
 ---
 
 ## ✅ CE QUI A ÉTÉ FAIT
 
-### 1. Installation Stripe CLI
-- ✅ Stripe CLI version 1.34.0 installé
-- ✅ Vérification : `stripe --version`
+### 1. Compte Stripe
+- Compte : **TAKÍN** (`acct_1L5u5cEKzPeYzUoc`)
+- Mode test : ✅ actif
+- Mode live : ✅ actif avec clés live injectées dans Railway production
 
-### 2. Connexion à Stripe
-- ✅ Authentification réussie via le navigateur
-- ✅ Compte Stripe : `takainside.org` (Mode Test)
-- ✅ Vérification : `stripe config --list`
+### 2. Clés Stripe
 
-### 3. Configuration Backend
-- ✅ Route `/` ajoutée et fonctionnelle
-- ✅ Route `/health` fonctionnelle
-- ✅ Route `/webhooks/stripe` configurée correctement
-- ✅ Variables Stripe configurées dans `backend/.env`
+| Environnement | Clé secrète | Clé publique | Webhook secret |
+|---|---|---|---|
+| Local / test | `sk_test_...` | `pk_test_...` | `whsec_...` (Stripe CLI ou endpoint test) |
+| Staging Railway | `sk_test_...` | `pk_test_...` | `whsec_...` (endpoint `we_1U0d5N...`) |
+| Production | `sk_live_...` | `pk_live_...` | `whsec_...` (endpoint `we_1U0eV...`) |
 
-### 4. Webhook Secret
-- ✅ Stripe CLI listen démarré
-- ✅ Webhook secret obtenu : `whsec_VOTRE_WEBHOOK_SECRET_ICI`
-- ✅ Secret configuré dans `backend/.env`
+### 3. Webhooks
 
----
+#### Production
+- **URL** : `https://api.solid-eat.com/webhooks/stripe`
+- **Endpoint ID** : `we_1U0eVcEKzPeYzUocMQmwvfFS`
+- **Événements** :
+  - `payment_intent.succeeded`
+  - `payment_intent.payment_failed`
+  - `account.updated`
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
+  - `customer.subscription.deleted`
+  - `invoice.payment_succeeded`
+  - `invoice.payment_failed`
 
-## 📋 CONFIGURATION FINALE
+#### Staging
+- **URL** : `https://solideat-staging-staging.up.railway.app/webhooks/stripe`
+- **Endpoint ID** : `we_1U0d5NEKzPeYzUocng0Uz7Ox`
+- **Événements** : repas premium + abonnements
 
-### Fichier `backend/.env`
+### 4. Backend
+- Route `/webhooks/stripe` active et valide la signature Stripe
+- `GET /api/users/stripe-config` retourne la clé publique dynamique (`pk_live_...` en prod)
+- Flow premium 5€ implémenté avec `destination charge` (4€ au cuisinier, 1€ commission)
+- Webhook `payment_intent.succeeded` met à jour `Reservation.paymentStatus = PAID` + crée `Transaction`
+- `PUT /api/reservations/:id/pickup` finalise `PAYOUT_DONE`
 
-```env
-# Stripe - Mode Test
-STRIPE_SECRET_KEY=sk_test_VOTRE_CLE_SECRETE_ICI
-STRIPE_PUBLISHABLE_KEY=pk_test_VOTRE_CLE_PUBLIQUE_ICI
-STRIPE_WEBHOOK_SECRET=whsec_VOTRE_WEBHOOK_SECRET_ICI
-STRIPE_PRICE_ID_WEEKLY=price_1SskWJEKzPeYzUocyJFFovsz
-STRIPE_PRICE_ID_MONTHLY=price_1SskX7EKzPeYzUoc6e7K1qV3
-STRIPE_PRICE_ID_YEARLY=price_1SskZOEKzPeYzUocbtrhA6Ry
-```
+### 5. Frontend
+- `ReserveMeal.tsx` charge `pk_live_...` via `/api/users/stripe-config`
+- Stripe `PaymentElement` intégré
 
 ---
 
 ## 🚀 UTILISATION
 
-### Pour développer avec Stripe :
+### Développement local
 
-1. **Démarrer le backend** (dans un terminal) :
-   ```bash
-   cd backend
-   npm run dev
-   ```
+```bash
+cd backend
+npm run dev
 
-2. **Démarrer Stripe CLI listen** (dans un autre terminal) :
-   ```bash
-   stripe listen --forward-to localhost:3000/webhooks/stripe
-   ```
-   
-   ⚠️ **IMPORTANT** : Gardez ce terminal ouvert pendant le développement. Stripe CLI doit tourner en continu pour forwarder les webhooks.
+# Dans un autre terminal
+stripe listen --forward-to localhost:3000/webhooks/stripe
+```
 
-3. **Tester les webhooks** (dans un troisième terminal) :
-   ```bash
-   # Tester la création d'une subscription
-   stripe trigger customer.subscription.created
-   
-   # Tester le paiement réussi
-   stripe trigger invoice.payment_succeeded
-   
-   # Tester l'échec de paiement
-   stripe trigger invoice.payment_failed
-   ```
+### Production
+- Les clés sont injectées via les variables Railway
+- Le webhook Stripe envoie les événements à `https://api.solid-eat.com/webhooks/stripe`
 
 ---
 
 ## 📝 NOTES IMPORTANTES
 
-### Webhook Secret
-
-- Le webhook secret affiché par Stripe CLI est **unique à chaque session**
-- Si vous redémarrez `stripe listen`, un **nouveau secret** sera généré
-- Vous devrez alors **mettre à jour** `STRIPE_WEBHOOK_SECRET` dans `backend/.env`
-- **Redémarrer le backend** après chaque changement de secret
-
 ### Mode Test vs Production
 
-- Configuration actuelle : **Mode Test** ✅
-- Les webhooks sont forwardés vers `localhost:3000/webhooks/stripe`
-- Pour la production, vous devrez :
-  1. Créer un webhook dans le Dashboard Stripe
-  2. Utiliser l'URL de production (ex: `https://api.solideat.fr/webhooks/stripe`)
-  3. Récupérer le webhook secret depuis le Dashboard
+| | Test | Production |
+|---|---|---|
+| Clés | `sk_test_...` / `pk_test_...` | `sk_live_...` / `pk_live_...` |
+| Cartes | `pm_card_visa`, `4242 4242 4242 4242` | Vraies cartes uniquement |
+| Webhook | livraison fiable en local via Stripe CLI | livraison directe par Stripe |
+| Connect onboarding | simulateur Stripe | processus réel (KYC) |
+
+### Build Railway production
+- `typescript` doit être dans `dependencies` (pas `devDependencies`)
+- `Dockerfile` basé sur `node:20-slim` avec `openssl` installé pour Prisma
+- Fichiers : `backend/package.json`, `backend/Dockerfile`
+
+### Tests E2E
+- Local : `npx jest src/e2e/premium-flow.e2e.test.ts --testTimeout=60000`
+- Staging : `npx jest src/e2e/premium-flow.staging.e2e.test.ts --testTimeout=60000`
+- Les tests E2E sont ignorés par `npm test` (`testPathIgnorePatterns: ['/src/e2e/']`)
 
 ---
 
 ## ✅ VÉRIFICATIONS
 
-### Vérifier que tout fonctionne :
-
-1. **Backend** :
-   ```bash
-   curl http://localhost:3000/health
-   ```
-   Résultat attendu : `{"status":"ok","database":"connected"}`
-
-2. **Route de base** :
-   ```bash
-   curl http://localhost:3000/
-   ```
-   Résultat attendu : Informations sur l'API
-
-3. **Stripe CLI** :
-   ```bash
-   stripe config --list
-   ```
-   Résultat attendu : Configuration Stripe affichée
-
-4. **Webhook** :
-   ```bash
-   stripe trigger customer.subscription.created
-   ```
-   Résultat attendu : Événement forwardé et traité par le backend
+1. **Backend health** : `https://api.solid-eat.com/health` → 200
+2. **Stripe config** : `https://api.solid-eat.com/api/users/stripe-config` → `pk_live_...`
+3. **Webhook production** : `we_1U0eVc...` enabled, livemode: true
+4. **Déploiement prod** : `f0df2211...` SUCCESS
 
 ---
 
 ## 🎉 RÉSUMÉ
 
-✅ **Stripe CLI installé et connecté**  
-✅ **Backend configuré avec toutes les routes**  
-✅ **Webhook secret configuré**  
-✅ **Prêt pour le développement local**
+✅ **Compte Stripe live connecté**  
+✅ **Clés live injectées en production**  
+✅ **Webhook production configuré**  
+✅ **Flow premium 5€ déployé et opérationnel**
 
-**Configuration Stripe complète et fonctionnelle !** 🚀
+**Configuration Stripe production complète et fonctionnelle !** 🚀
 
 ---
 
 **Document créé par** : DEV  
-**Dernière mise à jour** : 23 janvier 2026
+**Dernière mise à jour** : 4 août 2026
