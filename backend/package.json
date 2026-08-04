@@ -47,7 +47,8 @@
     "stripe": "^20.2.0",
     "twilio": "^4.19.0",
     "web-push": "^3.6.7",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -71,7 +72,6 @@
     "prisma": "^5.7.1",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",
-    "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "tsx": "^4.7.0"
   }
 }
