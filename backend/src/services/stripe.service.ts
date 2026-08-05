@@ -212,13 +212,27 @@ export class StripeService {
    * Crée un PaymentIntent pour l'achat d'un repas premium (5€ = 500 centimes).
    * Frais plateforme : 1€, reversement cuisinier : 4€.
    */
+  /**
+   * Calcule les frais de transaction Stripe estimés pour un montant donné (en centimes).
+   * Tarif Stripe FR standard : 1,5% + 0,25€ par transaction.
+   */
+  estimateStripeFeeCents(amountCents: number): number {
+    const fixedFeeCents = 25; // 0,25€
+    const variableFeeCents = Math.round(amountCents * 0.015); // 1,5%
+    return fixedFeeCents + variableFeeCents;
+  }
+
   async createMealPaymentIntent(
     buyerCustomerId: string,
     cookConnectedAccountId: string,
-    reservationId: string
+    reservationId: string,
+    mealPriceCents = 500
   ): Promise<Stripe.PaymentIntent> {
-    const amountCents = 500; // 5€
-    const platformFeeCents = 100; // 1€
+    const amountCents = mealPriceCents; // ex: 5€ = 500 centimes
+    const stripeFeeCents = this.estimateStripeFeeCents(amountCents); // frais Stripe estimés
+    const platformFeeCents = 100 + stripeFeeCents; // Solideat 1€ + frais transaction inclus
+    // Le cuisinier reçoit le montant total moins la commission Solideat qui inclut les frais Stripe
+    // Destination charge : Stripe prélève ses frais sur le montant total; l'application fee reste nette pour Solideat
 
     return await stripe.paymentIntents.create({
       amount: amountCents,
@@ -231,6 +245,7 @@ export class StripeService {
       metadata: {
         reservationId,
         type: 'meal_payment',
+        netToCookCents: amountCents - platformFeeCents,
       },
       automatic_payment_methods: { enabled: true },
     });
