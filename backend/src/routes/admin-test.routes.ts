@@ -4,13 +4,26 @@ import bcrypt from 'bcrypt';
 
 const router = Router();
 
-// Temporary admin route for live payment test - REMOVE AFTER TEST
+// Find existing user by Connect account
+router.get('/find-user-by-connect/:accountId', async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { stripeConnectedAccountId: req.params.accountId },
+      select: { id: true, email: true, firstName: true, lastName: true, subscriptionType: true, stripeConnectedAccountId: true },
+    });
+    res.json({ success: true, data: user });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Create new test premium accounts with NEW Stripe Connect account
 router.post('/create-test-premium-accounts', async (_req, res) => {
   try {
     const timestamp = Date.now();
     const hashedPassword = await bcrypt.hash('SolideatTest2026!', 10);
     
-    // Create seller premium account
+    // Create seller premium account WITHOUT Connect account (we'll update after)
     const seller = await prisma.user.create({
       data: {
         email: `e2e-seller-live-${timestamp}@solid-eat.com`,
@@ -31,7 +44,6 @@ router.post('/create-test-premium-accounts', async (_req, res) => {
         subscriptionType: 'PREMIUM_MONTHLY',
         subscriptionStart: new Date(),
         subscriptionEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        stripeConnectedAccountId: 'acct_1TzelgERjalkmWOB',
       },
     });
     
