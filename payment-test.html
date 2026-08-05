@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement Test Solideat - 5€</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; }
+        #payment-form { border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; }
+        #card-element { border: 1px solid #ccc; border-radius: 4px; padding: 12px; margin: 20px 0; }
+        button { background: #0074d4; color: white; border: none; border-radius: 4px; padding: 12px 24px; font-size: 16px; cursor: pointer; width: 100%; }
+        button:disabled { background: #ccc; }
+        #error-message { color: #e74c3c; margin-top: 10px; }
+        #success-message { color: #27ae60; margin-top: 10px; }
+        .price { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🍽️ Test Paiement Premium Solideat</h1>
+    <div class="price">5,00 €</div>
+    <p style="text-align: center; color: #666;">Repas Premium Test Live 5€</p>
+    
+    <form id="payment-form">
+        <div id="card-element"></div>
+        <button type="submit" id="submit-button">Payer 5,00 €</button>
+        <div id="error-message"></div>
+        <div id="success-message"></div>
+    </form>
+
+    <script>
+        const clientSecret = 'pi_3U143cEKzPeYzUoc0KkYtqmK_secret_W7iucA5xn6MeMXrOuCNQrSwWw';
+        const stripe = Stripe('pk_live_51L5u5cEKzPeYzUocrPhXEPQBVJR7PzEMAFEmnKAyy4cFXD7ngncM4FqLudQrngTvwFtpfKAtAx8T1VHFrB7WetEu00GIV4RVyn');
+        const elements = stripe.elements();
+        const cardElement = elements.create('card');
+        cardElement.mount('#card-element');
+
+        const form = document.getElementById('payment-form');
+        const submitButton = document.getElementById('submit-button');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            submitButton.disabled = true;
+            errorMessage.textContent = '';
+            successMessage.textContent = '';
+
+            const {paymentIntent, error} = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: {
+                    card: cardElement,
+                    billing_details: {
+                        name: 'Test Solideat',
+                    }
+                }
+            });
+
+            if (error) {
+                errorMessage.textContent = error.message;
+                submitButton.disabled = false;
+            } else {
+                successMessage.textContent = '✅ Paiement réussi ! Redirection...';
+                setTimeout(() => {
+                    window.location.href = 'https://solid-eat.com/meals/2aadcfbe-5e13-43a4-bce7-b421f6aeb77b?payment=success&reservation=fec1548e-fd32-449a-a03c-21fca7bf2853';
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
