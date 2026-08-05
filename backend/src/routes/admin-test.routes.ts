@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 const router = Router();
 
 // Temporary admin route for live payment test - REMOVE AFTER TEST
-router.post('/create-test-premium-accounts', async (req, res) => {
+router.post('/create-test-premium-accounts', async (_req, res) => {
   try {
     const timestamp = Date.now();
     const hashedPassword = await bcrypt.hash('SolideatTest2026!', 10);
@@ -14,7 +14,7 @@ router.post('/create-test-premium-accounts', async (req, res) => {
     const seller = await prisma.user.create({
       data: {
         email: `e2e-seller-live-${timestamp}@solid-eat.com`,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         phone: `+336${String(timestamp).slice(-8)}`,
         firstName: 'Seller',
         lastName: 'Live',
@@ -22,14 +22,15 @@ router.post('/create-test-premium-accounts', async (req, res) => {
         addressStreet: '12 Rue de Test',
         addressZipCode: '75001',
         addressCity: 'Paris',
-        addressLatitude: 48.8566,
-        addressLongitude: 2.3522,
-        cguAccepted: true,
-        sanitaryCharterAccepted: true,
+        latitude: 48.8566,
+        longitude: 2.3522,
+        cguAcceptedAt: new Date(),
+        sanitaryCharterAcceptedAt: new Date(),
         emailVerified: true,
         phoneVerified: true,
-        subscriptionType: 'PREMIUM',
-        subscriptionStatus: 'ACTIVE',
+        subscriptionType: 'PREMIUM_MONTHLY',
+        subscriptionStart: new Date(),
+        subscriptionEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         stripeConnectedAccountId: 'acct_1TzelgERjalkmWOB',
       },
     });
@@ -39,7 +40,7 @@ router.post('/create-test-premium-accounts', async (req, res) => {
     const buyer = await prisma.user.create({
       data: {
         email: `e2e-buyer-live-${buyerTimestamp}@solid-eat.com`,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         phone: `+336${String(buyerTimestamp).slice(-8)}`,
         firstName: 'Buyer',
         lastName: 'Live',
@@ -47,14 +48,15 @@ router.post('/create-test-premium-accounts', async (req, res) => {
         addressStreet: '15 Rue de Test',
         addressZipCode: '75002',
         addressCity: 'Paris',
-        addressLatitude: 48.8566,
-        addressLongitude: 2.3522,
-        cguAccepted: true,
-        sanitaryCharterAccepted: true,
+        latitude: 48.8566,
+        longitude: 2.3522,
+        cguAcceptedAt: new Date(),
+        sanitaryCharterAcceptedAt: new Date(),
         emailVerified: true,
         phoneVerified: true,
-        subscriptionType: 'PREMIUM',
-        subscriptionStatus: 'ACTIVE',
+        subscriptionType: 'PREMIUM_MONTHLY',
+        subscriptionStart: new Date(),
+        subscriptionEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },
     });
     
