@@ -191,8 +191,12 @@ export default function PaymentPage() {
     const initStripe = async () => {
       try {
         await loadStripeScript();
-        const s = await stripePromise;
-        setStripe(s);
+        // Race against timeout
+        const s = await Promise.race([
+          stripePromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout chargement Stripe')), 10000))
+        ]);
+        setStripe(s as Stripe | null);
         if (!s) {
           setError('Impossible de charger Stripe. Vérifiez votre connexion ou contactez le support.');
         }
