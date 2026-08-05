@@ -16,31 +16,44 @@ router.post('/create-payment-test', async (_req, res) => {
     const sellerUsername = `seller${String(timestamp).slice(-6)}`;
     
     // Use existing validated Connect account (Taka Inside)
-    const account = { id: 'acct_1TzelgERjalkmWOB' };
+    const accountId = 'acct_1TzelgERjalkmWOB';
 
-    const seller = await prisma.user.create({
-      data: {
-        email: sellerEmail,
-        passwordHash: password,
-        phone,
-        firstName: 'Seller',
-        lastName: 'Test',
-        username: sellerUsername,
-        addressStreet: '12 Rue de Test',
-        addressZipCode: '75001',
-        addressCity: 'Paris',
-        latitude: 48.8566,
-        longitude: 2.3522,
-        cguAcceptedAt: new Date(),
-        sanitaryCharterAcceptedAt: new Date(),
-        emailVerified: true,
-        phoneVerified: true,
-        subscriptionType: 'PREMIUM_MONTHLY',
-        subscriptionStart: new Date(),
-        subscriptionEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        stripeConnectedAccountId: account.id,
-      },
+    // Try to find existing seller with this Connect account
+    let seller = await prisma.user.findUnique({
+      where: { stripeConnectedAccountId: accountId },
     });
+
+    if (!seller) {
+      seller = await prisma.user.create({
+        data: {
+          email: sellerEmail,
+          passwordHash: password,
+          phone,
+          firstName: 'Seller',
+          lastName: 'Test',
+          username: sellerUsername,
+          addressStreet: '12 Rue de Test',
+          addressZipCode: '75001',
+          addressCity: 'Paris',
+          latitude: 48.8566,
+          longitude: 2.3522,
+          cguAcceptedAt: new Date(),
+          sanitaryCharterAcceptedAt: new Date(),
+          emailVerified: true,
+          phoneVerified: true,
+          subscriptionType: 'PREMIUM_MONTHLY',
+          subscriptionStart: new Date(),
+          subscriptionEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          stripeConnectedAccountId: accountId,
+        },
+      });
+    } else {
+      // Reset password for existing seller
+      await prisma.user.update({
+        where: { id: seller.id },
+        data: { passwordHash: password },
+      });
+    }
 
     // Create buyer premium
     const buyerTimestamp = timestamp + 1;
@@ -113,7 +126,7 @@ router.post('/create-payment-test', async (_req, res) => {
         buyer: { email: buyer.email, password: 'SolideatTest2026!' },
         mealId: meal.id,
         reservationId: reservation.id,
-        connectAccountId: account.id,
+        connectAccountId: accountId,
       },
     });
   } catch (error: any) {
