@@ -1,7 +1,7 @@
 import { colors } from '../utils/theme';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
 import {
   Elements,
   CardElement,
@@ -49,15 +49,6 @@ function PaymentForm({ reservation, clientSecret, onSuccess }: { reservation: an
       setLoading(false);
     } else if (paymentIntent?.status === 'succeeded') {
       onSuccess();
-    } else if (paymentIntent?.status === 'requires_action') {
-      // 3D Secure - let Stripe handle
-      const { error: actionError } = await stripe.handleNextAction({ clientSecret });
-      if (actionError) {
-        setError(actionError.message || 'Authentification 3D Secure échouée');
-        setLoading(false);
-      } else {
-        onSuccess();
-      }
     } else {
       setError("Le paiement n\'a pas pu être confirmé. Statut: " + (paymentIntent?.status || 'inconnu'));
       setLoading(false);
@@ -157,8 +148,16 @@ export default function PaymentPage() {
   const [error, setError] = useState<string | null>(null);
   const [paid, setPaid] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [stripe, setStripe] = useState<Stripe | null>(null);
 
   useEffect(() => {
+    stripePromise.then((s) => {
+      setStripe(s);
+      if (!s) {
+        setError('Impossible de charger Stripe. Vérifiez votre connexion ou contactez le support.');
+      }
+    });
+
     const loadReservation = async () => {
       if (!reservationId) {
         setError('ID de réservation manquant');
@@ -182,7 +181,6 @@ export default function PaymentPage() {
           setError(response.error || 'Erreur lors du chargement');
         }
 
-        // Initiate payment to get client secret
         const payResponse = await reservationService.initiatePayment(reservationId);
         if (payResponse.success && payResponse.data) {
           setClientSecret(payResponse.data.clientSecret);
@@ -199,7 +197,7 @@ export default function PaymentPage() {
     loadReservation();
   }, [reservationId]);
 
-  if (loading) {
+  if (loading || (!stripe && !error)) {
     return (
       <div
         style={{
@@ -246,7 +244,7 @@ export default function PaymentPage() {
     );
   }
 
-  if (!reservation) return null;
+  if (!reservation || !stripe) return null;
 
   return (
     <div
@@ -357,7 +355,7 @@ export default function PaymentPage() {
                 </Elements>
               ) : (
                 <div style={{ textAlign: 'center', padding: '16px', color: colors.textSecondary }}>
-                  Chargement de Stripe...
+                  Chargement du paiement...
                 </div>
               )}
             </>
