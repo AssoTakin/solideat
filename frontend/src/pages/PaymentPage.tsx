@@ -4,7 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { loadStripe, Stripe } from '@stripe/stripe-js';
 import {
   Elements,
-  CardElement,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
@@ -31,11 +33,38 @@ function loadStripeScript(): Promise<void> {
   });
 }
 
+const inputLabelStyle = {
+  display: 'block',
+  fontSize: '14px',
+  fontWeight: 'bold',
+  color: colors.textPrimary,
+  marginBottom: '6px',
+};
+
+const stripeInputContainerStyle = {
+  border: '2px solid #e0e0e0',
+  borderRadius: '8px',
+  padding: '12px',
+  backgroundColor: colors.backgroundWhite,
+};
+
 function PaymentForm({ reservation, clientSecret, onSuccess }: { reservation: any; clientSecret: string; onSuccess: () => void }) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const elementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#32325d',
+        '::placeholder': { color: '#aab7c4' },
+        lineHeight: '24px',
+      },
+      invalid: { color: '#fa755a' },
+    },
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,8 +73,8 @@ function PaymentForm({ reservation, clientSecret, onSuccess }: { reservation: an
     setLoading(true);
     setError(null);
 
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
+    const cardNumber = elements.getElement(CardNumberElement);
+    if (!cardNumber) {
       setError('Formulaire de carte non initialisé');
       setLoading(false);
       return;
@@ -53,7 +82,7 @@ function PaymentForm({ reservation, clientSecret, onSuccess }: { reservation: an
 
     const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
-        card: cardElement,
+        card: cardNumber,
         billing_details: {
           name: `${reservation.user?.firstName || 'Solideat'} ${reservation.user?.lastName || 'User'}`,
         },
@@ -71,36 +100,28 @@ function PaymentForm({ reservation, clientSecret, onSuccess }: { reservation: an
     }
   };
 
-  const cardElementOptions = {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#32325d',
-        '::placeholder': { color: '#aab7c4' },
-        lineHeight: '24px',
-        padding: '12px',
-      },
-      invalid: {
-        color: '#fa755a',
-      },
-    },
-  };
-
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: '24px' }}>
-      <div
-        style={{
-          border: '2px solid #e0e0e0',
-          borderRadius: '8px',
-          padding: '16px',
-          backgroundColor: colors.backgroundWhite,
-          marginBottom: '16px',
-          minHeight: '60px',
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <CardElement options={cardElementOptions} />
+      <div style={{ marginBottom: '16px' }}>
+        <label style={inputLabelStyle}>Numéro de carte</label>
+        <div style={stripeInputContainerStyle}>
+          <CardNumberElement options={elementOptions} />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+        <div style={{ flex: 1 }}>
+          <label style={inputLabelStyle}>Date d\'expiration</label>
+          <div style={stripeInputContainerStyle}>
+            <CardExpiryElement options={elementOptions} />
+          </div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={inputLabelStyle}>CVC</label>
+          <div style={stripeInputContainerStyle}>
+            <CardCvcElement options={elementOptions} />
+          </div>
+        </div>
       </div>
 
       {error && (
