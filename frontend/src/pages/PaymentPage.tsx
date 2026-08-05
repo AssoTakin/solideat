@@ -182,6 +182,7 @@ export default function PaymentPage() {
   const navigate = useNavigate();
   const [reservation, setReservation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [stripeLoading, setStripeLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paid, setPaid] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -191,18 +192,15 @@ export default function PaymentPage() {
     const initStripe = async () => {
       try {
         await loadStripeScript();
-        // Race against timeout
         const s = await Promise.race([
           stripePromise,
           new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout chargement Stripe')), 10000))
         ]);
         setStripe(s as Stripe | null);
-        if (!s) {
-          setError('Impossible de charger Stripe. Vérifiez votre connexion ou contactez le support.');
-        }
       } catch (e: any) {
-        setError('Erreur chargement Stripe: ' + e.message);
-        setLoading(false);
+        console.error('Stripe load error:', e);
+      } finally {
+        setStripeLoading(false);
       }
     };
     initStripe();
@@ -246,7 +244,7 @@ export default function PaymentPage() {
     loadReservation();
   }, [reservationId]);
 
-  if (loading || (!stripe && !error)) {
+  if (loading) {
     return (
       <div
         style={{
@@ -391,7 +389,15 @@ export default function PaymentPage() {
                 </p>
               </div>
 
-              {clientSecret ? (
+              {stripeLoading ? (
+                <div style={{ textAlign: 'center', padding: '16px', color: colors.textSecondary }}>
+                  Chargement de Stripe...
+                </div>
+              ) : !stripe ? (
+                <div style={{ textAlign: 'center', padding: '16px', color: colors.error }}>
+                  Impossible de charger Stripe.
+                </div>
+              ) : clientSecret ? (
                 <Elements stripe={stripePromise}>
                   <PaymentForm
                     reservation={reservation}
