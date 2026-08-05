@@ -15,6 +15,22 @@ import { ClockIcon, LockIcon } from '../components/Icons';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
+function loadStripeScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector('script[data-stripe-script]')) {
+      resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/';
+    script.async = true;
+    script.setAttribute('data-stripe-script', 'true');
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Stripe.js'));
+    document.head.appendChild(script);
+  });
+}
+
 function PaymentForm({ reservation, clientSecret, onSuccess }: { reservation: any; clientSecret: string; onSuccess: () => void }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -151,12 +167,20 @@ export default function PaymentPage() {
   const [stripe, setStripe] = useState<Stripe | null>(null);
 
   useEffect(() => {
-    stripePromise.then((s) => {
-      setStripe(s);
-      if (!s) {
-        setError('Impossible de charger Stripe. Vérifiez votre connexion ou contactez le support.');
+    const initStripe = async () => {
+      try {
+        await loadStripeScript();
+        const s = await stripePromise;
+        setStripe(s);
+        if (!s) {
+          setError('Impossible de charger Stripe. Vérifiez votre connexion ou contactez le support.');
+        }
+      } catch (e: any) {
+        setError('Erreur chargement Stripe: ' + e.message);
+        setLoading(false);
       }
-    });
+    };
+    initStripe();
 
     const loadReservation = async () => {
       if (!reservationId) {
