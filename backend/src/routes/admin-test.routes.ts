@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import prisma from '../config/database';
 import bcrypt from 'bcrypt';
-import { stripe } from '../services/stripe.service';
 
 const router = Router();
 
@@ -16,46 +15,8 @@ router.post('/create-payment-test', async (_req, res) => {
     const sellerEmail = `e2e-seller-${timestamp}@solid-eat.com`;
     const sellerUsername = `seller${String(timestamp).slice(-6)}`;
     
-    // Create Stripe Connect account for seller
-    const account = await stripe.accounts.create({
-      type: 'express',
-      country: 'FR',
-      email: sellerEmail,
-      capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
-      business_type: 'individual',
-      individual: {
-        first_name: 'Seller',
-        last_name: 'Test',
-        email: sellerEmail,
-        phone,
-        address: {
-          line1: '12 Rue de Test',
-          city: 'Paris',
-          postal_code: '75001',
-          country: 'FR',
-        },
-        dob: { day: 1, month: 1, year: 1990 },
-      },
-      business_profile: {
-        url: 'https://solid-eat.com',
-        mcc: '5812', // Restaurants
-        name: 'Solideat Test Seller',
-      },
-    });
-
-    // Create external account (iban) for the connect account
-    try {
-      await stripe.accounts.createExternalAccount(account.id, {
-        external_account: {
-          object: 'bank_account',
-          country: 'FR',
-          currency: 'eur',
-          account_number: 'FR1420041010050500013M02606',
-        },
-      });
-    } catch (e: any) {
-      console.log('External account warning:', e.message);
-    }
+    // Use existing validated Connect account (Taka Inside)
+    const account = { id: 'acct_1TzelgERjalkmWOB' };
 
     const seller = await prisma.user.create({
       data: {
