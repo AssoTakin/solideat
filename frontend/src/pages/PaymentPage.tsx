@@ -1,10 +1,10 @@
 import { colors } from '../utils/theme';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
 import {
   Elements,
-  CardElement,
+  PaymentElement,
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
@@ -15,12 +15,13 @@ import { ClockIcon, LockIcon } from '../components/Icons';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
-function PaymentForm({ reservation, onSuccess }: { reservation: any; onSuccess: () => void }) {
+function PaymentForm({ reservation }: { reservation: any }) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string>('');
+  const [secretLoading, setSecretLoading] = useState(true);
 
   useEffect(() => {
     const initPayment = async () => {
@@ -29,10 +30,12 @@ function PaymentForm({ reservation, onSuccess }: { reservation: any; onSuccess: 
         if (response.success && response.data) {
           setClientSecret(response.data.clientSecret);
         } else {
-          setError(response.error || 'Erreur lors de l\'initialisation du paiement');
+          setError(response.error || "Erreur lors de l\'initialisation du paiement");
         }
       } catch (err: any) {
-        setError(err.response?.data?.error || 'Erreur lors de l\'initialisation du paiement');
+        setError(err.response?.data?.error || "Erreur lors de l\'initialisation du paiement");
+      } finally {
+        setSecretLoading(false);
       }
     };
     initPayment();
@@ -45,52 +48,40 @@ function PaymentForm({ reservation, onSuccess }: { reservation: any; onSuccess: 
     setLoading(true);
     setError(null);
 
-    const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: elements.getElement(CardElement)!,
-        billing_details: {
-          name: reservation.user?.firstName + ' ' + reservation.user?.lastName || 'Solideat User',
-        },
+    const { error: stripeError } = await stripe.confirmPayment({
+      elements,
+      clientSecret,
+      confirmParams: {
+        return_url: `${window.location.origin}/payment-status?reservation=${reservation.id}`,
       },
     });
 
     if (stripeError) {
       setError(stripeError.message || 'Une erreur est survenue lors du paiement');
       setLoading(false);
-    } else if (paymentIntent.status === 'succeeded') {
-      onSuccess();
-    } else {
-      setError('Le paiement n\'a pas pu être confirmé. Statut: ' + paymentIntent.status);
-      setLoading(false);
     }
-  };
-
-  const cardElementOptions = {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#32325d',
-        '::placeholder': { color: '#aab7c4' },
-      },
-      invalid: {
-        color: '#fa755a',
-      },
-    },
   };
 
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: '24px' }}>
-      <div
-        style={{
-          border: `1px solid ${'#e0e0e0'}`,
-          borderRadius: '8px',
-          padding: '16px',
-          backgroundColor: colors.backgroundWhite,
-          marginBottom: '16px',
-        }}
-      >
-        <CardElement options={cardElementOptions} />
-      </div>
+      {secretLoading ? (
+        <div style={{ textAlign: 'center', padding: '24px', color: colors.textSecondary }}>
+          Chargement du formulaire de paiement...
+        </div>
+      ) : clientSecret ? (
+        <div
+          style={{
+            border: '1px solid #e0e0e0',
+            borderRadius: '8px',
+            padding: '16px',
+            backgroundColor: colors.backgroundWhite,
+            marginBottom: '16px',
+            minHeight: '120px',
+          }}
+        >
+          <PaymentElement />
+        </div>
+      ) : null}
 
       {error && (
         <div
@@ -109,7 +100,7 @@ function PaymentForm({ reservation, onSuccess }: { reservation: any; onSuccess: 
 
       <button
         type="submit"
-        disabled={!stripe || !elements || !clientSecret || loading}
+        disabled={!stripe || !elements || !clientSecret || loading || secretLoading}
         style={{
           width: '100%',
           padding: '14px 24px',
@@ -119,8 +110,8 @@ function PaymentForm({ reservation, onSuccess }: { reservation: any; onSuccess: 
           borderRadius: '8px',
           fontSize: '16px',
           fontWeight: 'bold',
-          cursor: loading ? 'not-allowed' : 'pointer',
-          opacity: loading || !clientSecret ? 0.7 : 1,
+          cursor: loading || secretLoading ? 'not-allowed' : 'pointer',
+          opacity: loading || !clientSecret || secretLoading ? 0.7 : 1,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -152,6 +143,7 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paid, setPaid] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const loadReservation = async () => {
@@ -162,20 +154,27 @@ export default function PaymentPage() {
       }
 
       try {
-        const response = await reservationService.getMyReservations();
-        if (response.success && response.data) {
-          const found = response.data.find((r) => r.id === reservationId);
+        const [resResponse, payResponse] = await Promise.all([
+          reservationService.getMyReservations(),
+          reservationService.initiatePayment(reservationId),
+        ]);
+
+        if (resResponse.success && resResponse.data) {
+          const found = resResponse.data.find((r) => r.id === reservationId);
           if (found) {
             setReservation(found);
-            // If already paid, redirect
-            if ((found as any).paymentStatus === 'PAID' || (found as any).paymentStatus === 'PAYOUT_DONE') {
+            if (found.paymentStatus === 'PAID' || found.paymentStatus === 'PAYOUT_DONE') {
               setPaid(true);
             }
           } else {
             setError('Réservation non trouvée');
           }
         } else {
-          setError(response.error || 'Erreur lors du chargement');
+          setError(resResponse.error || 'Erreur lors du chargement');
+        }
+
+        if (payResponse.success && payResponse.data) {
+          setClientSecret(payResponse.data.clientSecret);
         }
       } catch (err: any) {
         setError(err.response?.data?.error || 'Erreur lors du chargement');
@@ -235,6 +234,16 @@ export default function PaymentPage() {
   }
 
   if (!reservation) return null;
+
+  const elementsOptions: StripeElementsOptions = {
+    clientSecret: clientSecret,
+    appearance: {
+      theme: 'stripe',
+      variables: {
+        colorPrimary: colors.primary,
+      },
+    },
+  };
 
   return (
     <div
@@ -332,15 +341,15 @@ export default function PaymentPage() {
                 </p>
               </div>
 
-              <Elements stripe={stripePromise}>
-                <PaymentForm
-                  reservation={reservation}
-                  onSuccess={() => {
-                    setPaid(true);
-                    setTimeout(() => navigate('/reservations'), 2000);
-                  }}
-                />
-              </Elements>
+              {clientSecret ? (
+                <Elements stripe={stripePromise} options={elementsOptions}>
+                  <PaymentForm reservation={reservation} />
+                </Elements>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '16px', color: colors.textSecondary }}>
+                  Chargement de Stripe...
+                </div>
+              )}
             </>
           )}
         </div>
