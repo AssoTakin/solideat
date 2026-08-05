@@ -225,3 +225,44 @@ Clés Stripe test utilisées :
 - [ ] Ajouter un test E2E Playwright complet (UI) une fois `computer_use` disponible.
 - [ ] Documenter la procédure d'onboarding Stripe Connect pour les cuisiniers.
 - [ ] Valider un vrai paiement live de 5€ en production avec onboarding Connect complet.
+
+
+## Mise à jour 2026-08-05 : modèle économique premium validé
+
+### Choix retenu : prix psychologique 5 €, frais de transaction au cuisinier
+
+| Poste | Montant | Commentaire |
+|---|---|---|
+| Prix affiché / payé par le client | 5,00 € | Prix psychologique maintenu |
+| Commission Solideat (net) | 1,00 € | Ce que la plateforme encaisse réellement |
+| Frais de transaction Stripe | ~0,33 € | Jamais affiché comme "Stripe" au client/cuisinier |
+| Reversement net au cuisinier | 3,67 € | Transfert automatique après récupération du repas |
+
+> **Nommage** : les frais Stripe sont présentés comme **"frais de transaction"** ou **"frais de paiement sécurisé"** dans la communication produit. Le terme "Stripe" n'apparaît pas.
+
+### Implémentation
+
+- `backend/src/services/stripe.service.ts`
+  - Calcul des frais Stripe estimés (1,5% + 0,25€)
+  - `application_fee_amount = 100 centimes (Solideat) + frais transaction`
+  - Le montant net reversé au cuisinier devient `5€ − 1,33€ = 3,67€`
+
+- `backend/src/services/meal.service.ts`
+  - `platformFeeAmount = 1,33€`
+  - `netAmount = 3,67€` stockés sur le repas
+
+- `backend/src/services/reservation.service.ts`
+  - `payoutAmount` calculé à partir de `meal.netAmount`
+
+- `frontend/src/pages/CreateMeal.tsx`
+  - UI mise à jour : "Vous recevrez environ 3,67€ après livraison"
+  - Explication : "Frais de service + frais de transaction déduits du reversement"
+
+### Validation live (2026-08-05)
+
+- Paiement Stripe live de 5 € via tunnel frontend (`/payment/:reservationId`)
+- `application_fee_amount` : 133 centimes
+- Reversement net calculé : 367 centimes (3,67 €)
+- Webhook `payment_intent.succeeded` traité correctement
+- Marquage "récupéré" par le vendeur → `PAYOUT_DONE`
+- Routes admin-test temporaires supprimées après validation

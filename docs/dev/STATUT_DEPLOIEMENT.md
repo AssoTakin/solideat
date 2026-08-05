@@ -113,3 +113,14 @@
 
 **Document créé par** : DEV  
 **Dernière mise à jour** : 4 août 2026
+
+
+## 2026-08-05 : tunnel premium + nettoyage admin-test
+
+| Service | Statut | Notes |
+|---|---|---|
+| Railway backend | ✅ Production `SUCCESS` | Routes admin-test retirées |
+| Vercel frontend | ✅ `READY` | Tunnel `/payment/:reservationId` actif |
+| Stripe live | ✅ Opérationnel | Clés live, webhook configuré |
+| Paiement live | ✅ Validé | 5€, 1€ net Solideat, 3,67€ cuisinier |
+| Tests E2E backend | ✅ 1/1 staging, 6/6 local | Isolés dans `backend/src/e2e/` |
