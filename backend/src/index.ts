@@ -165,7 +165,6 @@ import subscriptionRoutes from './routes/subscription.routes';
 import bonusDonorRoutes from './routes/bonus-donor.routes';
 import badgeRoutes from './routes/badge.routes';
 import pushRoutes from './routes/push.routes';
-import adminTestRoutes from './routes/admin-test.routes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -178,7 +177,6 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/bonus-donors', bonusDonorRoutes);
 app.use('/api/badges', badgeRoutes);
 app.use('/api/push', pushRoutes);
-app.use('/admin-test', adminTestRoutes);
 
 // 404 handler
 app.use((req, res) => {
