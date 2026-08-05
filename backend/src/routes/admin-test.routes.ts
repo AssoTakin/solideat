@@ -13,6 +13,10 @@ router.post('/cleanup-test-data', async (_req, res) => {
     const reservationId = 'fec1548e-fd32-449a-a03c-21fca7bf2853';
     
     // Delete in order to respect foreign keys
+    const deletedTransaction = await prisma.transaction.deleteMany({
+      where: { reservationId: reservationId },
+    });
+    
     const deletedReservation = await prisma.reservation.deleteMany({
       where: { id: reservationId },
     });
@@ -32,6 +36,7 @@ router.post('/cleanup-test-data', async (_req, res) => {
     res.json({
       success: true,
       data: {
+        transactionsDeleted: deletedTransaction.count,
         reservationsDeleted: deletedReservation.count,
         mealsDeleted: deletedMeal.count,
         sellersDeleted: deletedSeller.count,
