@@ -1507,11 +1507,11 @@ export default function CreateMeal() {
                         lineHeight: '1.5',
                       }}
                     >
-                      Si cette option est cochée, votre repas sera vendu <strong>5€</strong> (frais
-                      de service inclus).
+                      Si cette option est cochée, votre repas sera vendu <strong>5€</strong> (prix psychologique).
                       <br />
-                      <strong>Vous recevrez 4€</strong> après la livraison du repas. La plateforme
-                      perçoit 1€ de frais de service.
+                      <strong>Vous recevrez environ 3,67€</strong> après la livraison du repas.
+                      La plateforme perçoit 1€ de frais de service ; les frais de transaction
+                      Stripe (~0,33€) sont déduits du reversement.
                     </p>
                   </div>
                 </label>

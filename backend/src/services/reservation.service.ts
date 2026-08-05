@@ -572,14 +572,16 @@ export class ReservationService {
       throw new Error("Le paiement de la réservation n'est pas confirmé");
     }
 
-// Avec destination charges, Stripe a déjà transféré le montant net (4€)
-    // au compte Connect du cuisinier lors du paiement. On marque juste la réservation.
+// Avec destination charges, Stripe a déjà transféré le montant net au compte
+    // Connect du cuisinier lors du paiement. On marque juste la réservation avec le
+    // montant net stocké sur le repas (frais de transaction Stripe déduits).
+    const netAmountCents = Math.round((reservation.meal.netAmount || 4) * 100);
     await prisma.$transaction([
       prisma.reservation.update({
         where: { id: reservationId },
         data: {
           paymentStatus: 'PAYOUT_DONE',
-          payoutAmount: 400,
+          payoutAmount: netAmountCents,
         },
       }),
       prisma.transaction.updateMany({
@@ -594,7 +596,7 @@ export class ReservationService {
         cookId,
         'SYSTEM_MESSAGE',
         'Reversement effectué',
-        `Vous avez reçu 4€ pour le repas "${reservation.meal.name}".`,
+        `Vous avez reçu ${(netAmountCents / 100).toFixed(2).replace('.', ',')}€ pour le repas "${reservation.meal.name}".`,
         `/dashboard`,
         true
       )

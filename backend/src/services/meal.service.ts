@@ -34,7 +34,7 @@ export class MealService {
       // Le prix doit être exactement 5€ selon les spécifications
       if (data.price !== 5) {
         throw new Error(
-          'Le prix de vente est fixé à 5€ par repas (frais de service inclus). Vous recevrez 4€ après la livraison.'
+          'Le prix de vente est fixé à 5€ par repas. Vous recevrez environ 3,67€ après frais de service et frais de transaction.'
         );
       }
 
@@ -85,6 +85,16 @@ export class MealService {
     const photoUrl = uploadResult.url;
 
     // Créer le repas
+    // Calculer la commission plateforme et le revenu net du cuisinier
+    let platformFeeAmount: number | null = null;
+    let netAmount: number | null = null;
+    if (data.price && data.price > 0) {
+      const stripeService = (await import('./stripe.service')).stripeService;
+      const stripeFeeCents = stripeService.estimateStripeFeeCents(data.price * 100);
+      platformFeeAmount = (100 + stripeFeeCents) / 100; // 1€ Solideat + frais transaction
+      netAmount = data.price - platformFeeAmount;
+    }
+
     const meal = await prisma.meal.create({
       data: {
         name: data.name,
@@ -102,6 +112,8 @@ export class MealService {
         ingredients: data.ingredients as Prisma.JsonArray,
         portions: data.portions,
         price: data.price,
+        platformFeeAmount,
+        netAmount,
         status: MealStatus.AVAILABLE,
         cookId: userId,
       },
