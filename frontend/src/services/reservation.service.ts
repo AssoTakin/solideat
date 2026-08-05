@@ -10,7 +10,10 @@ export interface Reservation {
   pickedUpAt?: string;
   cancelledAt?: string;
   cancellationReason?: string;
+  paymentStatus?: string;
   meal: {
+    price: number;
+
     id: string;
     name: string;
     photo: string;

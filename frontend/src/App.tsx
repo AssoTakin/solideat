@@ -12,6 +12,7 @@ import EditProfile from './pages/EditProfile';
 import MealList from './pages/MealList';
 import MealDetails from './pages/MealDetails';
 import MyReservations from './pages/MyReservations';
+import PaymentPage from './pages/PaymentPage';
 import ReserveMeal from './pages/ReserveMeal';
 import Conversations from './pages/Conversations';
 import Conversation from './pages/Conversation';
@@ -71,6 +72,7 @@ function App() {
         <Route path="/meals/:mealId/review" element={<CreateReview />} />
         <Route path="/anti-gaspi" element={<AntiGaspi />} />
         <Route path="/reservations" element={<MyReservations />} />
+        <Route path="/payment/:reservationId" element={<PaymentPage />} />
         <Route path="/messages" element={<Conversations />} />
         <Route path="/messages/:mealId" element={<Conversation />} />
         <Route path="/notifications" element={<Notifications />} />
