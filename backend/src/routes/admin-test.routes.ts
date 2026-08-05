@@ -21,6 +21,29 @@ router.post('/cleanup-test-data', async (_req, res) => {
       where: { id: reservationId },
     });
     
+    // Delete notifications/messages for both users before deleting users
+    await prisma.notification.deleteMany({
+      where: { userId: { in: [sellerId, buyerId] } },
+    });
+    await prisma.message.deleteMany({
+      where: { OR: [{ senderId: { in: [sellerId, buyerId] } }, { receiverId: { in: [sellerId, buyerId] } }] },
+    });
+    await prisma.review.deleteMany({
+      where: { OR: [{ reviewerId: { in: [sellerId, buyerId] } }, { cookId: { in: [sellerId, buyerId] } }] },
+    });
+    await prisma.userBadge.deleteMany({
+      where: { userId: { in: [sellerId, buyerId] } },
+    });
+    await prisma.bonusDonor.deleteMany({
+      where: { userId: { in: [sellerId, buyerId] } },
+    });
+    await prisma.sanction.deleteMany({
+      where: { userId: { in: [sellerId, buyerId] } },
+    });
+    await prisma.pushSubscription.deleteMany({
+      where: { userId: { in: [sellerId, buyerId] } },
+    });
+    
     const deletedMeal = await prisma.meal.deleteMany({
       where: { id: mealId },
     });
