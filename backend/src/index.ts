@@ -77,14 +77,15 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://js.stripe.com'],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'", 'https://api.solid-eat.com', 'https://*.solid-eat.com'],
+        connectSrc: ["'self'", 'https://api.solid-eat.com', 'https://*.solid-eat.com', 'https://api.stripe.com'],
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
         frameAncestors: ["'none'"],
         upgradeInsecureRequests: [],
+        frameSrc: ['https://js.stripe.com', 'https://hooks.stripe.com'],
       },
     },
     crossOriginEmbedderPolicy: false,
