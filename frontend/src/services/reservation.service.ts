@@ -12,7 +12,7 @@ export interface Reservation {
   cancellationReason?: string;
   paymentStatus?: string;
   meal: {
-    price: number;
+    price: number | null;
 
     id: string;
     name: string;
