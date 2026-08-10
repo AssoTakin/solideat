@@ -107,6 +107,18 @@ code {
   box-shadow: var(--shadow-sm) !important;
 }
 
+/* Bouton d'affichage du mot de passe : pas d'effet hover (évite le saut d'icône) */
+.design-modern button[aria-label*="mot de passe"],
+.design-modern button[aria-label*="mot de passe"]:not(:disabled):hover,
+.design-modern button[aria-label*="mot de passe"]:not(:disabled):active,
+.design-modern button[aria-label*="Afficher le mot de passe"],
+.design-modern button[aria-label*="Masquer le mot de passe"] {
+  transform: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
 .design-modern button:not(:disabled):hover,
 .design-modern a[style*="backgroundColor"]:hover {
   transform: translateY(-1px) !important;

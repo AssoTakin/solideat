@@ -12,7 +12,6 @@ import { InfoIcon } from '../components/Icons';
 
 // Design System Colors
 
-
 const registerSchema = z.object({
   email: z.string().email('Email invalide'),
   password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
@@ -324,6 +323,7 @@ export default function Register() {
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: colors.textPrimary }}>
               Mot de passe * (min 8 caractères)
             </label>
+
             <div style={{ position: 'relative', height: '48px', display: 'flex', alignItems: 'center' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
