@@ -452,7 +452,7 @@ export default function Login() {
               />
                             <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPassword(!showPassword); const input = e.currentTarget.parentElement?.querySelector('input'); if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); } }}
                 style={{
                   position: 'absolute',
                   right: '12px',
