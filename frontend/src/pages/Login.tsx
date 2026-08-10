@@ -457,11 +457,12 @@ export default function Login() {
                   right: '12px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  background: 'none',
+                  background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
-                  padding: '4px',
-                  display: 'flex',
+                  padding: 0,
+                  margin: 0,
+                  display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: colors.textSecondary,
@@ -470,6 +471,8 @@ export default function Login() {
                   height: '24px',
                   width: '24px',
                   fontSize: '18px',
+                  verticalAlign: 'middle',
+                  textAlign: 'center',
                 }}
                 aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
               >
