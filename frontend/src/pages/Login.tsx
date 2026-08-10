@@ -459,14 +459,18 @@ export default function Login() {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  padding: '4px',
+                  padding: '0',
+                  margin: '0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: colors.textSecondary,
                   outline: 'none',
+                  lineHeight: 1,
+                  height: '24px',
+                  width: '24px',
                 }}
-                title={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
               >
                 {showPassword ? (
                   <svg
