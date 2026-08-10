@@ -472,6 +472,7 @@ export default function Login() {
                   fontSize: '18px',
                   verticalAlign: 'middle',
                   textAlign: 'center',
+                  transition: 'none',
                 }}
                 aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
               >
