@@ -1,4 +1,7 @@
 import { useEffect } from 'react';
+
+// FORCE_BUNDLE_REBUILD_MARKER_v3 - ensures Vite hash changes when this file changes
+
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Register from './pages/Register';
