@@ -119,7 +119,7 @@ code {
   transition: none !important;
 }
 
-.design-modern button:not(:disabled):hover,
+.design-modern button:not(:disabled):not([style*="position: absolute"]):not([aria-label*="mot de passe"]):hover,
 .design-modern a[style*="backgroundColor"]:hover {
   transform: translateY(-1px) !important;
   filter: brightness(1.05) !important;
