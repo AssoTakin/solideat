@@ -26,6 +26,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [diagnosticLogs, setDiagnosticLogs] = useState<any[]>([]);
+  // Password visibility toggle state — kept stable to avoid icon reflow
   const [showPassword, setShowPassword] = useState(false);
 
   // Charger les logs de diagnostic au montage et réinitialiser l'état de redirection
