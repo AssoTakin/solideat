@@ -366,11 +366,7 @@ export default function Register() {
                 }}
                 aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
               >
-                {showPassword ? (
-                  <span style={{ display: 'inline-block', width: '20px', height: '20px', lineHeight: '20px', fontSize: '16px', textAlign: 'center', overflow: 'hidden' }}>👁️</span>
-                ) : (
-                  <span style={{ display: 'inline-block', width: '20px', height: '20px', lineHeight: '20px', fontSize: '16px', textAlign: 'center', overflow: 'hidden' }}>🙈</span>
-                )}
+                {showPassword ? 'cacher' : 'voir'}
               </button>
             </div>
             {errors.password && (
