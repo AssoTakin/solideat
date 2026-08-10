@@ -434,7 +434,11 @@ export default function Login() {
                 Mot de passe oublié ?
               </Link>
             </div>
-            <div style={{ position: 'relative' }}>
+            <div style={{
+                  position: 'relative',
+                  height: '48px',
+                  display: 'flex',
+                  alignItems: 'center', position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
                 {...register('password')}
@@ -455,8 +459,7 @@ export default function Login() {
                 style={{
                   position: 'absolute',
                   right: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
+                  top: '12px',
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
