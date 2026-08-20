@@ -103,13 +103,28 @@
 
 ## 🔄 PROCHAINES ÉTAPES (P1)
 
-- ⬜ **Impact environnemental** (US-026)
-- ⬜ **Bonus donateur** (US-027, US-028)
-- ⬜ **Attribution badges** (US-032)
-- ⬜ **Annulation abonnement** (US-036)
-- ⬜ **Notifications push** (US-038)
-- ⬜ **Expiration bonus** (US-051)
-- ⬜ **Renouvellement abonnements** (US-054)
+- ✅ **Impact environnemental** (US-026) — logique backend/dashboard existants, considéré finalisé
+- ✅ **Bonus donateur** (US-027, US-028) — acquisition, transfert, utilisation en réservation
+- ✅ **Attribution badges** (US-032) — `badgeService.checkAndAwardBadges()` appelé après chaque avis
+- ✅ **Annulation abonnement** (US-036) — annulation en fin de période + réactivation + statut "annulation programmée"
+- ✅ **Notifications push** (US-038) — service-worker, API registration, push sur réservation/message/rappel
+- ✅ **Expiration bonus** (US-051) — job quotidien `bonus.jobs.ts`
+- ✅ **Renouvellement abonnements** (US-054) — job quotidien `subscription.jobs.ts`, respecte `cancelAtPeriodEnd`
+
+### Fichiers clés modifiés
+
+- `backend/prisma/schema.prisma`
+- `backend/src/services/subscription.service.ts`
+- `backend/src/controllers/subscription.controller.ts`
+- `backend/src/routes/subscription.routes.ts`
+- `backend/src/jobs/subscription.jobs.ts`
+- `backend/src/services/push-notification.service.ts`
+- `backend/src/services/message.service.ts`
+- `backend/src/services/reservation.service.ts`
+- `backend/src/jobs/meal.jobs.ts`
+- `backend/src/services/email.service.ts`
+- `frontend/src/services/subscription.service.ts`
+- `frontend/src/pages/SubscriptionPlans.tsx`
 
 ---
 

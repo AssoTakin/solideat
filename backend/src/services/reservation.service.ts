@@ -4,6 +4,7 @@ import { quotaService } from './quota.service';
 import { sanctionService } from './sanction.service';
 import { bonusDonorService } from './bonus-donor.service';
 import { notificationService } from './notification.service';
+import { pushNotificationService } from './push-notification.service';
 
 export class ReservationService {
   /**
@@ -128,6 +129,13 @@ export class ReservationService {
         `/reservations`,
         true
       )
+      .catch(() => {
+        // Erreur silencieuse
+      });
+
+    // Notification push nouvelle réservation (US-038)
+    pushNotificationService
+      .sendReservationNotification(meal.cookId, reservation)
       .catch(() => {
         // Erreur silencieuse
       });

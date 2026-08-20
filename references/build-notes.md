@@ -58,13 +58,29 @@ git pull --ff-only origin dev/local-work
 
 ### Reste à faire (P1)
 
-- Impact environnemental (US-026)
-- Bonus donateur (US-027, US-028)
-- Badges (US-032)
-- Annulation abonnement (US-036)
-- Notifications push (US-038)
-- Expiration bonus (US-051)
-- Renouvellement abonnements (US-054)
+- ~~Impact environnemental (US-026)~~ ✅
+- ~~Bonus donateur (US-027, US-028)~~ ✅
+- ~~Badges (US-032)~~ ✅
+- ~~Annulation abonnement (US-036)~~ ✅ — implémentée + réactivation + statut "annulation programmée"
+- ~~Notifications push (US-038)~~ ✅ — service-worker, API registration, événements critiques
+- ~~Expiration bonus (US-051)~~ ✅ — job quotidien `bonus.jobs.ts`
+- ~~Renouvellement abonnements (US-054)~~ ✅ — job quotidien `subscription.jobs.ts`, respecte `cancelAtPeriodEnd`
+
+### Fichiers clés modifiés ce tour
+
+- `backend/prisma/schema.prisma` : champs `stripeSubscriptionStatus`, `subscriptionCancelAtPeriodEnd`
+- `backend/src/services/subscription.service.ts` : `cancelSubscription`, `reactivateSubscription`, statut retourné
+- `backend/src/controllers/subscription.controller.ts` : route `reactivateSubscription`
+- `backend/src/routes/subscription.routes.ts` : `PATCH /subscriptions/reactivate`
+- `backend/src/services/stripe.service.ts` : `cancelSubscription`, `reactivateSubscription` déjà présentes
+- `backend/src/jobs/subscription.jobs.ts` : nettoyage statut annulation, champs synchronisés
+- `backend/src/services/push-notification.service.ts` : helpers `sendMessageNotification`, `sendReviewReminderNotification`
+- `backend/src/services/message.service.ts` : push sur nouveau message
+- `backend/src/services/reservation.service.ts` : push sur nouvelle réservation
+- `backend/src/jobs/meal.jobs.ts` : push sur rappel d'avis
+- `backend/src/services/email.service.ts` : email réactivation abonnement
+- `frontend/src/services/subscription.service.ts` : méthode `reactivateSubscription`, types étendus
+- `frontend/src/pages/SubscriptionPlans.tsx` : UI réactivation + bannière "annulation programmée"
 
 ---
 
