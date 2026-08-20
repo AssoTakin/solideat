@@ -1,4 +1,4 @@
-import webpush from 'web-push';
+import * as webpush from 'web-push';
 import prisma from '../config/database';
 
 // Configuration Web Push (à configurer avec les clés VAPID)
@@ -187,6 +187,37 @@ export class PushNotificationService {
         mealId: meal.id,
       },
       link: `/meals/${meal.id}`,
+    });
+  }
+
+  /**
+   * Envoie une notification push pour un nouveau message
+   */
+  async sendMessageNotification(userId: string, message: any): Promise<void> {
+    await this.sendPushNotification(userId, {
+      title: `Nouveau message de ${message.sender?.username || 'Un membre'}`,
+      message: message.content.length > 80 ? `${message.content.substring(0, 77)}...` : message.content,
+      data: {
+        type: 'MESSAGE',
+        messageId: message.id,
+        mealId: message.mealId,
+      },
+      link: `/messages/${message.mealId}`,
+    });
+  }
+
+  /**
+   * Envoie une notification push pour un rappel d'avis obligatoire
+   */
+  async sendReviewReminderNotification(userId: string, meal: any): Promise<void> {
+    await this.sendPushNotification(userId, {
+      title: 'Avis obligatoire',
+      message: `N'oubliez pas de laisser un avis sur le repas "${meal.name}" pour maintenir votre compte actif.`,
+      data: {
+        type: 'REVIEW_REMINDER',
+        mealId: meal.id,
+      },
+      link: `/meals/${meal.id}/review`,
     });
   }
 }

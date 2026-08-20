@@ -1,6 +1,7 @@
 import { MealStatus, NotificationType } from '@prisma/client';
 import prisma from '../config/database';
 import { notificationService } from './notification.service';
+import { pushNotificationService } from './push-notification.service';
 
 export class MessageService {
   /**
@@ -145,6 +146,11 @@ export class MessageService {
       `/messages/${mealId}`,
       false
     ).catch(() => {
+      // Erreur silencieuse
+    });
+
+    // Envoyer notification push spécifique message (US-038)
+    pushNotificationService.sendMessageNotification(receiverId, message).catch(() => {
       // Erreur silencieuse
     });
 

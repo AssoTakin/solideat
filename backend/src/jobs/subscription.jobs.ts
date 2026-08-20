@@ -24,6 +24,7 @@ export function setupSubscriptionRenewalJob(): void {
             lte: in3Days,
             gt: now,
           },
+          subscriptionCancelAtPeriodEnd: false,
         },
         select: {
           id: true,
@@ -80,6 +81,7 @@ export function setupSubscriptionRenewalJob(): void {
                   where: { id: user.id },
                   data: {
                     subscriptionEnd: newEndDate,
+                    stripeSubscriptionStatus: stripeSubscription.status,
                   },
                 });
               } else {
@@ -90,6 +92,9 @@ export function setupSubscriptionRenewalJob(): void {
                     subscriptionType: SubscriptionType.FREE,
                     subscriptionStart: null,
                     subscriptionEnd: null,
+                    stripeSubscriptionId: null,
+                    stripeSubscriptionStatus: null,
+                    subscriptionCancelAtPeriodEnd: false,
                   },
                 });
               }
@@ -121,6 +126,7 @@ export function setupSubscriptionRenewalJob(): void {
         select: {
           id: true,
           email: true,
+          subscriptionCancelAtPeriodEnd: true,
         },
       });
 
@@ -132,6 +138,9 @@ export function setupSubscriptionRenewalJob(): void {
             subscriptionType: SubscriptionType.FREE,
             subscriptionStart: null,
             subscriptionEnd: null,
+            stripeSubscriptionId: null,
+            stripeSubscriptionStatus: null,
+            subscriptionCancelAtPeriodEnd: false,
           },
         });
 
