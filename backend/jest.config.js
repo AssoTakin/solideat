@@ -20,5 +20,4 @@ module.exports = {
   },
 
   testPathIgnorePatterns: ['/node_modules/', '/src/e2e/'],
-  forceExit: true,
 };
