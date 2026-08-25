@@ -68,18 +68,39 @@ git pull --ff-only origin dev/local-work
 
 ### Fix tests - 2026-08-25
 
-- Problème : `npm test` restait bloqué après avoir passé 124/124 tests à cause de handles asynchrones non fermés (services singletons Email / Push / SMS probablement).
-- Solution : ajout de `forceExit: true` dans `backend/jest.config.js` pour forcer Jest à quitter proprement après la suite.
-- Résultat : `npm test` passe en ~30 s sans timeout.
+- Problème : `npm test` restait bloqué après avoir passé 124/124 tests à cause de handles asynchrones non fermés.
+- Cause racine : ioredis tente des reconnexions infinies dans l'environnement de test (où Redis n'est pas disponible), laissant des sockets ouverts à chaque test qui importe un service utilisant le cache.
+- Solution propre : ajout de `retryStrategy: () => null` dans `backend/src/config/redis.ts` quand `NODE_ENV === 'test'`. Pas de `forceExit`.
+- Résultat : `npm test` passe en ~8 s sans timeout et sans forcer la sortie.
 
 ### Fichiers clés modifiés ce tour
 
-- `backend/jest.config.js` : ajout `forceExit: true`
-- `docs/dev/AVANCEMENT_GLOBAL.md` : mise à jour compteur tests
+- `backend/src/config/redis.ts` : désactive les reconnexions Redis en test
+- `backend/jest.config.js` : retire le `forceExit` temporaire
+- `docs/dev/AVANCEMENT_GLOBAL.md` : compteur tests 124/124
 - `references/build-notes.md` : fix tests documenté
 
 ### Fichiers clés modifiés tour précédent
 
+- `backend/prisma/schema.prisma` : champs `stripeSubscriptionStatus`, `subscriptionCancelAtPeriodEnd`
+- `backend/src/services/subscription.service.ts` : `cancelSubscription`, `reactivateSubscription`, statut retourné
+- `backend/src/controllers/subscription.controller.ts` : route `reactivateSubscription`
+- `backend/src/routes/subscription.routes.ts` : `PATCH /subscriptions/reactivate`
+- `backend/src/services/stripe.service.ts` : `cancelSubscription`, `reactivateSubscription` déjà présentes
+- `backend/src/jobs/subscription.jobs.ts` : nettoyage statut annulation, champs synchronisés
+- `backend/src/services/push-notification.service.ts` : helpers `sendMessageNotification`, `sendReviewReminderNotification`
+- `backend/src/services/message.service.ts` : push sur nouveau message
+- `backend/src/services/reservation.service.ts` : push sur nouvelle réservation
+- `backend/src/jobs/meal.jobs.ts` : push sur rappel d'avis
+- `backend/src/services/email.service.ts` : email réactivation abonnement
+- `frontend/src/services/subscription.service.ts` : méthode `reactivateSubscription`, types étendus
+- `frontend/src/pages/SubscriptionPlans.tsx` : UI réactivation + bannière "annulation programmée"
+
+- `backend/src/controllers/stripe.controller.ts`
+- `frontend/src/pages/ReserveMeal.tsx`
+- `frontend/src/pages/CreateMeal.tsx`
+
+---
 
 ## 💰 Flow premium (5 € / repas)
 
