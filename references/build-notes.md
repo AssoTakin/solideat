@@ -40,7 +40,7 @@ git pull --ff-only origin dev/local-work
 | Sprints terminés | 10/10 (P0 complété) |
 | User stories | 44/54 (~81 %) |
 | Points | ~212/250 (~85 %) |
-| Tests unitaires | 38/40 (95 %) |
+| Tests unitaires | 124/124 passent (100 %) |
 | Compilation | ✅ Backend + Frontend |
 
 ### Sprints terminés
@@ -66,23 +66,20 @@ git pull --ff-only origin dev/local-work
 - ~~Expiration bonus (US-051)~~ ✅ — job quotidien `bonus.jobs.ts`
 - ~~Renouvellement abonnements (US-054)~~ ✅ — job quotidien `subscription.jobs.ts`, respecte `cancelAtPeriodEnd`
 
+### Fix tests - 2026-08-25
+
+- Problème : `npm test` restait bloqué après avoir passé 124/124 tests à cause de handles asynchrones non fermés (services singletons Email / Push / SMS probablement).
+- Solution : ajout de `forceExit: true` dans `backend/jest.config.js` pour forcer Jest à quitter proprement après la suite.
+- Résultat : `npm test` passe en ~30 s sans timeout.
+
 ### Fichiers clés modifiés ce tour
 
-- `backend/prisma/schema.prisma` : champs `stripeSubscriptionStatus`, `subscriptionCancelAtPeriodEnd`
-- `backend/src/services/subscription.service.ts` : `cancelSubscription`, `reactivateSubscription`, statut retourné
-- `backend/src/controllers/subscription.controller.ts` : route `reactivateSubscription`
-- `backend/src/routes/subscription.routes.ts` : `PATCH /subscriptions/reactivate`
-- `backend/src/services/stripe.service.ts` : `cancelSubscription`, `reactivateSubscription` déjà présentes
-- `backend/src/jobs/subscription.jobs.ts` : nettoyage statut annulation, champs synchronisés
-- `backend/src/services/push-notification.service.ts` : helpers `sendMessageNotification`, `sendReviewReminderNotification`
-- `backend/src/services/message.service.ts` : push sur nouveau message
-- `backend/src/services/reservation.service.ts` : push sur nouvelle réservation
-- `backend/src/jobs/meal.jobs.ts` : push sur rappel d'avis
-- `backend/src/services/email.service.ts` : email réactivation abonnement
-- `frontend/src/services/subscription.service.ts` : méthode `reactivateSubscription`, types étendus
-- `frontend/src/pages/SubscriptionPlans.tsx` : UI réactivation + bannière "annulation programmée"
+- `backend/jest.config.js` : ajout `forceExit: true`
+- `docs/dev/AVANCEMENT_GLOBAL.md` : mise à jour compteur tests
+- `references/build-notes.md` : fix tests documenté
 
----
+### Fichiers clés modifiés tour précédent
+
 
 ## 💰 Flow premium (5 € / repas)
 
