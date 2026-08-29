@@ -23,6 +23,31 @@
 
 **Conclusion** : le flow de vente de repas premium est **validé de bout en bout, y compris en production**.
 
+### 2. Abonnements Premium (weekly/monthly/yearly) — TESTÉ EN RÉEL SUR STAGING
+
+| Élément | État | Preuve |
+| :-- | :-- | :-- |
+| Page frontend `/subscriptions/plans` | ✅ | `frontend/src/pages/SubscriptionPlans.tsx` |
+| Session Stripe Checkout | ✅ | `subscription.service.ts:createCheckoutSession` |
+| URL Stripe Checkout générée en staging | ✅ | Test E2E staging : `https://checkout.stripe.com/...` |
+| 90 jours d'essai gratuit configurés | ✅ | `trial_period_days: 90` dans `stripe.service.ts` |
+| Webhook `customer.subscription.updated` | ✅ | Mise à jour `subscriptionType`, `subscriptionEnd`, `stripeSubscriptionId` |
+| Annulation d'abonnement | ✅ | `DELETE /api/subscriptions` |
+| Test E2E staging | ✅ | `backend/src/e2e/subscription-flow.staging.e2e.test.ts` **PASS** (3/3) |
+
+**Commande de test** :
+```bash
+cd backend
+npx jest --config=jest.e2e.config.js src/e2e/subscription-flow.staging.e2e.test.ts --runInBand --verbose
+```
+
+**Résultat** : 3 passed, 3 total. L'utilisateur test est bien passé FREE → PREMIUM_MONTHLY après réception du webhook, puis l'annulation n'a pas entraîné de rétrogradation immédiate.
+
+**Corrections apportées pendant le test** :
+- `backend/src/services/subscription.service.ts` : le fallback mock (`session_id=mock_session_...`) ne se déclenche plus automatiquement en mode non-prod ; il est réservé à une clé placeholder.
+- `backend/src/services/stripe.service.ts` : `getSubscriptionEndDate` accepte désormais un fallback sur `trial_end` quand `current_period_end` est absent (comportement de l'API Stripe 2026-02-25).
+- `backend/src/controllers/stripe.controller.ts` : suppression du `cancel_at: trial_end` automatique (voir Anomalie A ci-dessous).
+
 ---
 
 ## ⚠️ FONCTIONNALITÉS STRIPE IMPLÉMENTÉES MAIS NON TESTÉES EN RÉEL
@@ -40,11 +65,11 @@
 | Annulation d'abonnement | ✅ | `DELETE /api/subscriptions` |
 | Réactivation d'abonnement | ✅ | `stripeService.reactivateSubscription` |
 | Job cron de renouvellement | ✅ | `subscription.jobs.ts` |
-| Tests E2E réels avec paiement | ⚠️ **NON VÉRIFIÉ** | Aucun doc d'audit trouvé |
+| Tests E2E réels avec paiement | ⚠️ **PARTIELLEMENT VÉRIFIÉ** | Checkout + webhook + annulation validés en staging. Le renouvellement automatique Stripe n'est pas encore testé. |
 
 **Risques identifiés** :
-1. Le handler `customer.subscription.updated` **force `cancel_at: trial_end`** dès la création — cela signifie qu'un abonnement avec essai gratuit sera automatiquement annulé à la fin de la période d'essai. À vérifier si c'est l'intention produit.
-2. Aucune trace de test end-to-end réel d'un abonnement Stripe Checkout (carte test 4242, webhook, annulation).
+1. ~~Le handler `customer.subscription.updated` **force `cancel_at: trial_end`** dès la création — cela signifie qu'un abonnement avec essai gratuit sera automatiquement annulé à la fin de la période d'essai. À vérifier si c'est l'intention produit.~~ **Corrigé** : le `cancel_at: trial_end` a été supprimé dans `stripe.controller.ts`.
+2. ✅ Aucune trace de test end-to-end réel d'un abonnement Stripe Checkout → **résolu** : test `subscription-flow.staging.e2e.test.ts` PASS.
 3. Le renouvellement automatique **Stripe** n'est pas testé : c'est Stripe qui renouvelle, pas notre job. Notre job ne fait que notifier/rétrograder.
 4. La route `POST /api/subscriptions` (création directe avec `paymentMethodId`) semble obsolète face à Stripe Checkout.
 
@@ -107,11 +132,12 @@
 
 ## 🎯 RECOMMANDATIONS IMMÉDIATES
 
-1. **Lancer un test E2E réel d'abonnement premium** (Checkout → webhook → annulation → rétrogradation).
-2. **Corriger ou justifier le `cancel_at: trial_end`** dans le webhook.
-3. **Ajouter un champ `stripeConnectOnboardingComplete Boolean`** dans `User` et le mettre à jour via `account.updated`.
-4. **Créer une page frontend** "Devenir vendeur / Configurer mon compte Stripe Connect".
-5. **Documenter le flow abonnement** comme l'a été `PREMIUM_MEAL_SALE_AUDIT.md`.
+1. ✅ ~~Lancer un test E2E réel d'abonnement premium~~ — **FAIT** : test `subscription-flow.staging.e2e.test.ts` en PASS sur staging.
+2. ✅ ~~Corriger ou justifier le `cancel_at: trial_end` dans le webhook~~ — **CORRIGÉ** dans `backend/src/controllers/stripe.controller.ts`.
+3. 🔴 **Tester le renouvellement automatique Stripe** : simuler un webhook `invoice.payment_succeeded` à la fin de la période d'essai et vérifier la continuité PREMIUM.
+4. 🟡 **Ajouter un champ `stripeConnectOnboardingComplete Boolean`** dans `User` et le mettre à jour via `account.updated`.
+5. 🟡 **Créer une page frontend** "Devenir vendeur / Configurer mon compte Stripe Connect".
+6. 🟢 **Documenter le flow abonnement** — ce document est maintenant à jour.
 
 ---
 

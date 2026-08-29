@@ -84,17 +84,10 @@ export class StripeController {
    * Gère la création/mise à jour d'une subscription
    */
   private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
-    // Si l'abonnement a une période d'essai et n'est pas encore programmé pour être annulé
-    if (subscription.trial_end && !subscription.cancel_at) {
-      try {
-        const { stripe } = await import('../services/stripe.service');
-        await stripe.subscriptions.update(subscription.id, {
-          cancel_at: subscription.trial_end,
-        });
-      } catch (stripeError: any) {
-        console.error(`⚠️ Impossible d'annuler automatiquement l'abonnement sur Stripe :`, stripeError.message);
-      }
-    }
+    // NOTE : on ne programme plus d'annulation automatique à la fin de l'essai.
+    // L'offre de lancement à 90 jours doit convertir en abonnement payant si le
+    // client a fourni un moyen de paiement. L'annulation est gérée explicitement
+    // par l'utilisateur via DELETE /subscriptions ou par Stripe en cas d'impayé.
 
     const customerId = subscription.customer as string;
 

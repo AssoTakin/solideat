@@ -202,10 +202,15 @@ export class StripeService {
    */
   getSubscriptionEndDate(subscription: Stripe.Subscription): Date {
     const periodEnd = (subscription as any).current_period_end;
-    if (!periodEnd) {
-      throw new Error('current_period_end non disponible dans la subscription');
+    if (periodEnd) {
+      return new Date(periodEnd * 1000);
     }
-    return new Date(periodEnd * 1000);
+    // Fallback : offre de lancement avec trial_end
+    const trialEnd = (subscription as any).trial_end;
+    if (trialEnd) {
+      return new Date(trialEnd * 1000);
+    }
+    throw new Error('current_period_end non disponible dans la subscription');
   }
 
   /**
