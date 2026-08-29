@@ -330,13 +330,17 @@ export class StripeController {
    * Met à jour le statut du compte Stripe Connect du cuisinier.
    */
   private async handleConnectAccountUpdated(account: Stripe.Account): Promise<void> {
-    if (!account.email) {
-      return;
-    }
+    // Détermine si l'onboarding est terminé : compte capable de recevoir des transferts.
+    const transfersCap = account.capabilities?.transfers;
+    const onboardingComplete =
+      (transfersCap === 'active' || transfersCap === 'pending') &&
+      account.details_submitted === true;
 
     await prisma.user.updateMany({
       where: { stripeConnectedAccountId: account.id },
-      data: {},
+      data: {
+        stripeConnectOnboardingComplete: onboardingComplete,
+      },
     });
   }
 }

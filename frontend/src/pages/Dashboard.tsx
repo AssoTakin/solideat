@@ -29,6 +29,8 @@ import {
   CalendarIcon,
   LeafIcon,
   PlusIcon,
+  StoreIcon,
+  CheckCircleIcon,
 } from '../components/Icons';
 
 // Design System Colors EXACTES depuis UX_DESIGN.md
@@ -833,6 +835,46 @@ export default function Dashboard() {
 
             {/* Actions rapides */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {user && !user.stripeConnectOnboardingComplete && (
+                <Link
+                  to="/connect-vendeur"
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '14px',
+                    backgroundColor: colors.warning,
+                    color: colors.backgroundWhite,
+                    textDecoration: 'none',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  <StoreIcon size={16} color={colors.backgroundWhite} /> Devenir vendeur
+                </Link>
+              )}
+              {user?.stripeConnectOnboardingComplete && (
+                <div
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '12px',
+                    backgroundColor: colors.success + '15',
+                    color: colors.success,
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  <CheckCircleIcon size={16} color={colors.success} /> Stripe Connect activé
+                </div>
+              )}
               <Link
                 to="/reservations"
                 style={{

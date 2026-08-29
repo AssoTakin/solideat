@@ -80,14 +80,16 @@ npx jest --config=jest.e2e.config.js src/e2e/subscription-flow.staging.e2e.test.
 | Création compte Connect Express | ✅ | `POST /api/users/me/connect-account` |
 | Lien d'onboarding | ✅ | `stripeService.createAccountLink` |
 | Vérification capability `transfers` | ✅ | `isConnectedAccountReady` |
-| Webhook `account.updated` | ✅ | Handler présent mais quasi vide |
-| Page/interface d'onboarding côté frontend | ⚠️ | Recherche n'a trouvé aucune page dédiée |
-| Test E2E onboarding Connect complet | ⚠️ **NON VÉRIFIÉ** | Le test E2E premium mock le compte Connect |
+| Webhook `account.updated` | ✅ | Met à jour `stripeConnectOnboardingComplete` dans `User` |
+| Endpoint statut Connect | ✅ | `GET /api/users/me/connect-status` |
+| Page frontend onboarding | ✅ | `/connect-vendeur` ("Devenir vendeur") |
+| Indicateur statut dashboard | ✅ | `Dashboard.tsx` |
+| Test E2E onboarding Connect complet | ⚠️ **MOCKÉ** | Test backend `tests/integration/stripe-connect.test.ts` PASS (3/3) ; test E2E Stripe Connect réel non lancé. |
 
 **Risques identifiés** :
-1. Le handler `account.updated` ne met à jour aucun champ utilisateur (data vide). Impossible de savoir si le cuisinier a terminé son onboarding.
-2. Aucune interface frontend visible pour guider le cuisinier dans l'onboarding Stripe Connect.
-3. Le blocage "Vous devez configurer votre compte Stripe Connect" dans `meal.service.ts` est bon, mais l'UX pour résoudre le problème n'est pas claire.
+1. ✅ ~~Le handler `account.updated` ne met à jour aucun champ utilisateur~~ — **Résolu** : le champ `stripeConnectOnboardingComplete` est désormais mis à jour.
+2. ✅ ~~Aucune interface frontend visible pour guider le cuisinier~~ — **Résolu** : page `/connect-vendeur` + indicateur dashboard.
+3. Le blocage "Vous devez configurer votre compte Stripe Connect" dans `meal.service.ts` est bon, et l'UX pointe maintenant vers `/connect-vendeur`.
 
 ### 4. Transferts / reversements manuels
 
@@ -135,9 +137,9 @@ npx jest --config=jest.e2e.config.js src/e2e/subscription-flow.staging.e2e.test.
 1. ✅ ~~Lancer un test E2E réel d'abonnement premium~~ — **FAIT** : test `subscription-flow.staging.e2e.test.ts` en PASS sur staging.
 2. ✅ ~~Corriger ou justifier le `cancel_at: trial_end` dans le webhook~~ — **CORRIGÉ** dans `backend/src/controllers/stripe.controller.ts`.
 3. 🔴 **Tester le renouvellement automatique Stripe** : simuler un webhook `invoice.payment_succeeded` à la fin de la période d'essai et vérifier la continuité PREMIUM.
-4. 🟡 **Ajouter un champ `stripeConnectOnboardingComplete Boolean`** dans `User` et le mettre à jour via `account.updated`.
-5. 🟡 **Créer une page frontend** "Devenir vendeur / Configurer mon compte Stripe Connect".
-6. 🟢 **Documenter le flow abonnement** — ce document est maintenant à jour.
+4. ✅ ~~**Ajouter un champ `stripeConnectOnboardingComplete Boolean`** dans `User` et le mettre à jour via `account.updated`~~ — **FAIT** (migration + webhook + API + tests 3/3).
+5. ✅ ~~**Créer une page frontend** "Devenir vendeur / Configurer mon compte Stripe Connect"~~ — **FAIT** (`frontend/src/pages/SellerConnect.tsx`, route `/connect-vendeur`, indicateur dashboard).
+6. 🟢 **Documenter le flow abonnement + Connect** — ce document est maintenant à jour.
 
 ---
 

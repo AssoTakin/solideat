@@ -41,9 +41,10 @@ model User {
   stripeCustomerId  String?   @unique
   stripeSubscriptionId String? @unique
   stripeConnectedAccountId String? @unique
+  stripeConnectOnboardingComplete Boolean @default(false)
   stripeSubscriptionStatus String? // statut brut Stripe (active, trialing, canceled...)
   subscriptionCancelAtPeriodEnd Boolean @default(false) // true si annulé mais actif jusqu'à la fin de période
-  
+
   // Confidentialité
   hidePhoneNumber   Boolean   @default(true) // Premium uniquement
   incognitoMode     Boolean   @default(false) // Premium uniquement

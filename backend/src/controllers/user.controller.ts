@@ -32,6 +32,8 @@ export class UserController {
           addressCity: true,
           latitude: true,
           longitude: true,
+          stripeConnectedAccountId: true,
+          stripeConnectOnboardingComplete: true,
           subscriptionType: true,
           subscriptionStart: true,
           subscriptionEnd: true,
@@ -362,7 +364,7 @@ export class UserController {
 
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { email: true, stripeConnectedAccountId: true },
+        select: { email: true, stripeConnectedAccountId: true, stripeConnectOnboardingComplete: true },
       });
 
       if (!user) {
@@ -376,12 +378,12 @@ export class UserController {
         accountId = account.id;
         await prisma.user.update({
           where: { id: userId },
-          data: { stripeConnectedAccountId: accountId },
+          data: { stripeConnectedAccountId: accountId, stripeConnectOnboardingComplete: false },
         });
       }
 
-      const refreshUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/dashboard?connect=refresh`;
-      const returnUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/dashboard?connect=success`;
+      const refreshUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/connect-vendeur?status=refresh`;
+      const returnUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/connect-vendeur?status=success`;
       const accountLink = await stripeService.createAccountLink(accountId, refreshUrl, returnUrl);
 
       res.json({
@@ -389,12 +391,48 @@ export class UserController {
         data: {
           url: accountLink.url,
           accountId,
+          onboardingComplete: user.stripeConnectOnboardingComplete,
         },
       });
     } catch (error: any) {
       res.status(500).json({
         success: false,
         error: error.message || 'Erreur lors de la création du compte Stripe Connect',
+      });
+    }
+  }
+
+  /**
+   * GET /users/me/connect-status
+   * Renvoie l'état d'onboarding Stripe Connect de l'utilisateur.
+   */
+  async getConnectStatus(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          stripeConnectedAccountId: true,
+          stripeConnectOnboardingComplete: true,
+        },
+      });
+
+      if (!user) {
+        res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: {
+          accountId: user.stripeConnectedAccountId,
+          onboardingComplete: user.stripeConnectOnboardingComplete,
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur lors de la récupération du statut Connect',
       });
     }
   }

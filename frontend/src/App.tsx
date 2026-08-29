@@ -26,6 +26,7 @@ import EditMeal from './pages/EditMeal';
 import Notifications from './pages/Notifications';
 import Help from './pages/Help';
 import Diagnostic from './pages/Diagnostic';
+import SellerConnect from './pages/SellerConnect';
 import { initializePushNotifications } from './utils/pushNotifications';
 
 function App() {
@@ -82,6 +83,7 @@ function App() {
         <Route path="/help" element={<Help />} />
         <Route path="/subscriptions/plans" element={<SubscriptionPlans />} />
         <Route path="/subscriptions/success" element={<SubscriptionSuccess />} />
+        <Route path="/connect-vendeur" element={<SellerConnect />} />
         <Route path="/health" element={<div>Frontend OK</div>} />
         <Route path="/diagnostic" element={<Diagnostic />} />
       </Routes>
