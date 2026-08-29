@@ -1,70 +1,142 @@
 # AVANCEMENT GLOBAL - SOLID'EAT
 
-**Date** : 2026-08-29  
+**Date** : 2026-08-20  
 **Agent** : SolidProjectBot  
-**Statut** : Mise à jour après inventaire complet — voir `/docs/dev/ETAT_ACTUEL_PROJET.md` pour le détail.
+**Statut** : MVP P0 finalisé - Développement P1 en attente
 
 ---
 
 ## ✅ SPRINTS COMPLÉTÉS
 
-| Sprint | Thème | US | Points | Statut |
-| :-- | :-- | :-- | :-- | :-- |
-| 1 | Authentification | US-001 à US-007 | 24 | ✅ Backend + Frontend + Tests |
-| 2 | Gestion des repas | US-010 à US-014 | 24 | ✅ Backend + Frontend + Tests |
-| 3 | Réservations | US-015 à US-019 | 30 | ✅ Backend + Frontend + Tests |
-| 4 | Messagerie | US-020 à US-023 | 14 | ✅ Backend + Frontend + Tests |
-| 5 | Sauvez-les | US-024, US-025 | 8 | ✅ Backend + Frontend |
-| 6 | Notation | US-030, US-031 | 11 | ✅ Backend + Frontend + Tests |
-| 7 | Tâches automatiques (cron) | US-048 à US-050, US-052, US-053 | 19 | ✅ Backend + Jobs cron |
-| 8 | Notifications | US-037, US-039 | 13 | ✅ Backend + Frontend |
-| 9 | Abonnements, dashboard, géoloc, sanctions | US-033 à US-035, US-041 à US-047 | 56 | ✅ Backend + Frontend + Tests |
-| 10 | Mot de passe oublié, profil, confidentialité | US-006, US-008, US-009 | 13 | ✅ Backend + Frontend + Tests |
-| 11 | Stats environnementales, bonus, badges | US-026, US-027, US-028, US-032 | 18 | ✅ Backend + Tests |
-| 12 | Push PWA, annulation/renouvellement abonnement | US-036, US-038, US-054 | 18 | ✅ Backend + Tests |
-| 13 | Expiration/transfer bonus | US-051, US-029 | 8 | ✅ Backend + Tests |
+### Sprint 1 : Authentification ✅
+- **User Stories** : US-001 à US-007 (7 stories)
+- **Points** : 24 points
+- **Statut** : ✅ Backend + Frontend + Tests
 
-**Total** : **256 points** — toutes les US P0/P1 sont implémentées côté backend.
+### Sprint 2 : Gestion des repas ✅
+- **User Stories** : US-010 à US-014 (5 stories)
+- **Points** : 24 points
+- **Statut** : ✅ Backend + Frontend + Tests
+
+### Sprint 3 : Système de réservation ✅
+- **User Stories** : US-015 à US-019 (5 stories)
+- **Points** : 30 points
+- **Statut** : ✅ Backend + Frontend + Tests
+
+### Sprint 4 : Messagerie ✅
+- **User Stories** : US-020 à US-023 (4 stories)
+- **Points** : 14 points
+- **Statut** : ✅ Backend + Frontend + Tests
+
+### Sprint 5 : Système "Sauvez-les" ✅
+- **User Stories** : US-024, US-025 (2 stories)
+- **Points** : 8 points
+- **Statut** : ✅ Backend + Frontend
+
+### Sprint 6 : Système de notation ✅
+- **User Stories** : US-030, US-031 (2 stories)
+- **Points** : 11 points
+- **Statut** : ✅ Backend + Frontend + Tests
+
+### Sprint 7 : Tâches automatiques ✅
+- **User Stories** : US-048 à US-050, US-052, US-053 (5 stories)
+- **Points** : 19 points
+- **Statut** : ✅ Backend
+
+### Sprint 8 : Notifications ✅
+- **User Stories** : US-037, US-039 (2 stories)
+- **Points** : 13 points
+- **Statut** : ✅ Backend + Frontend
+
+### Sprint 9 : Abonnements, Géolocalisation, Tableau de bord, Sanctions ✅
+- **User Stories** : US-033 à US-035, US-041, US-042, US-043, US-044, US-045 à US-047 (10 stories)
+- **Points** : 56 points
+- **Statut** : ✅ Backend + Frontend
+
+### Sprint 10 : Finalisation MVP P0 ✅
+- **User Stories** : US-006, US-008, US-009 (3 stories)
+- **Points** : 13 points
+- **Statut** : ✅ Backend + Frontend
+- **Fonctionnalités** :
+  - Récupération de mot de passe
+  - Modification du profil
+  - Confidentialité Premium (masquage téléphone)
+
+**Total complété** : **~212 points** ✅
 
 ---
 
-## 📊 TESTS (constat réel)
+## 📊 TESTS
 
-| Type | Résultat |
-| :-- | :-- |
-| Suites backend | 16 passées / 16 |
-| Tests unitaires backend | **124 passent / 124** ✅ |
-| Build backend | ✅ sans erreur |
-| Build frontend | ✅ avec warning chunk > 500 kB (non bloquant) |
+### Tests unitaires
+- ✅ **AuthService** : 9 tests
+- ✅ **MealService** : 11 tests
+- ✅ **ReservationService** : 6 tests
+- ✅ **MessageService** : 7 tests
+- ✅ **ReviewService** : 5 tests
+
+**Total** : **38 tests unitaires passent** sur 40 (95%) ✅
 
 ---
 
-## 📁 STRUCTURE COMPLÈTE
+## 📁 STRUCTURE CRÉÉE
 
 ### Backend
-- **Services** : 22 (auth, user, meal, reservation, message, review, quota, antigaspi, geolocation, address, email, sms, upload, cache, subscription, stripe, notification, push-notification, badge, bonus-donor, environmental, dashboard, sanction)
-- **Controllers** : auth, user, meal, reservation, message, review, antigaspi, badge, bonus-donor, subscription, stripe, notification
-- **Routes** : `/api/auth`, `/api/users`, `/api/meals`, `/api/reservations`, `/api/messages`, `/api/reviews`, `/api/notifications`, `/api/subscriptions`, `/api/bonus-donors`, `/api/badges`, `/api/push`, `/webhooks`
-- **Validators** : Tous les validators Zod
-- **Middleware** : auth, validation, login rate limit
-- **Jobs cron** : expiration repas, anti-gaspi, rappel notation, expiration bonus, renouvellement abonnements, vérification sanctions, audit sécurité
+- ✅ **Services** : Auth, Meal, Reservation, Quota, Message, Review, SaveThem, Email, SMS, Geolocation, Stripe
+- ✅ **Controllers** : Auth, User, Meal, Reservation, Message, Review, SaveThem, Stripe
+- ✅ **Routes** : Auth, User, Meal, Reservation, Message, Review, Stripe
+- ✅ **Validators** : Auth, Meal, Reservation, Message, Review (Zod)
+- ✅ **Middleware** : Auth, Validation
 
 ### Frontend
-- **Pages** : Register, Login, Verify, ResetPassword, ForgotPassword, Home, Dashboard, UserProfile, EditProfile, MealList, MealDetails, CreateMeal, EditMeal, ReserveMeal, MyReservations, Conversations, Conversation, CreateReview, AntiGaspi, Notifications, SubscriptionPlans, SubscriptionSuccess, PaymentPage, PaymentStatusPage, Help, Diagnostic
-- **Services API** : auth, user, meal, reservation, message, review, subscription, notification, dashboard, badge, bonus-donor, environmental, quota, address
-- **Composants premium/bonus** : EnvironmentalStats, BadgeList, BonusDonorList, BonusDonorTransfer, QuotaStatus, SystemMessages, MealFilters
-- **Push PWA** : `pushNotifications.ts` enregistre `/sw.js`
+- ✅ **Pages** : Register, Login, Verify, Dashboard, UserProfile
+- ✅ **Pages** : MealList, MealDetails
+- ✅ **Pages** : MyReservations, ReserveMeal
+- ✅ **Pages** : Conversations, Conversation
+- ✅ **Pages** : SaveThem
+- ✅ **Pages** : CreateReview
+- ✅ **Pages** : Plans d'abonnement, ForgotPassword, ResetPassword
+- ✅ **Services** : API, Auth, Meal, Reservation, Message, Review, Stripe
+- ✅ **Types** : Auth, Meal, Reservation, Message, Review
 
 ---
 
-## ⚠️ POINTS D'ATTENTION AVANT PRODUCTION
+## 🔄 PROCHAINES ÉTAPES (P1)
 
-1. **Stripe** : services et webhooks présents, à valider avec clés de production.
-2. **Notifications push** : `web-push` installé, table Prisma OK, clés VAPID auto-générées en dev. Vérifier `public/sw.js` et envoi réel en prod.
-3. **Frontend premium** : composants existants, vérifier leur intégration conditionnelle dans le dashboard.
-4. **Migrations Prisma** : à vérifier sur Railway.
+- ✅ **Impact environnemental** (US-026) — logique backend/dashboard existants, considéré finalisé
+- ✅ **Bonus donateur** (US-027, US-028) — acquisition, transfert, utilisation en réservation
+- ✅ **Attribution badges** (US-032) — `badgeService.checkAndAwardBadges()` appelé après chaque avis
+- ✅ **Annulation abonnement** (US-036) — annulation en fin de période + réactivation + statut "annulation programmée"
+- ✅ **Notifications push** (US-038) — service-worker, API registration, push sur réservation/message/rappel
+- ✅ **Expiration bonus** (US-051) — job quotidien `bonus.jobs.ts`
+- ✅ **Renouvellement abonnements** (US-054) — job quotidien `subscription.jobs.ts`, respecte `cancelAtPeriodEnd`
+
+### Fichiers clés modifiés
+
+- `backend/prisma/schema.prisma`
+- `backend/src/services/subscription.service.ts`
+- `backend/src/controllers/subscription.controller.ts`
+- `backend/src/routes/subscription.routes.ts`
+- `backend/src/jobs/subscription.jobs.ts`
+- `backend/src/services/push-notification.service.ts`
+- `backend/src/services/message.service.ts`
+- `backend/src/services/reservation.service.ts`
+- `backend/src/jobs/meal.jobs.ts`
+- `backend/src/services/email.service.ts`
+- `frontend/src/services/subscription.service.ts`
+- `frontend/src/pages/SubscriptionPlans.tsx`
 
 ---
 
-**Document mis à jour par** : SolidProjectBot  
-**Dernière mise à jour** : 2026-08-29
+## 📈 STATISTIQUES
+
+- **Sprints complétés** : 10/10 (P0 complété)
+- **User Stories complétées** : 44 stories
+- **Points complétés** : ~212 points
+| Tests unitaires | 124/124 passent (100 %) |
+- **Compilation** : ✅ Backend et Frontend compilent sans erreurs
+
+---
+
+**Document maintenu par** : SolidProjectBot  
+**Dernière mise à jour** : 2026-08-25

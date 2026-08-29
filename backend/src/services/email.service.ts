@@ -323,6 +323,22 @@ export class EmailService {
   }
 
   /**
+   * Envoie un email pour un abonnement réactivé
+   */
+  async sendSubscriptionReactivatedEmail(to: string): Promise<void> {
+    const subject = 'Abonnement réactivé - SOLID\'EAT';
+    const html = `
+      <h1>Abonnement réactivé</h1>
+      <p>Votre abonnement premium a été réactivé avec succès.</p>
+      <p>Il se renouvellera normalement à la fin de la période en cours.</p>
+      <p><a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/subscriptions">Gérer mon abonnement</a></p>
+    `;
+    const text = 'Votre abonnement premium a été réactivé avec succès. Il se renouvellera normalement.';
+
+    await this.sendMail(to, subject, html, text, true);
+  }
+
+  /**
    * Envoie un email pour un échec de paiement
    */
   async sendSubscriptionPaymentFailedEmail(to: string): Promise<void> {

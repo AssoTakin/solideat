@@ -21,6 +21,9 @@ export interface CurrentSubscription {
   startDate?: string;
   endDate?: string;
   stripeCustomerId?: string;
+  cancelled?: boolean;
+  cancelAtPeriodEnd?: boolean;
+  stripeStatus?: string;
 }
 
 export interface CreateSubscriptionDto {
@@ -134,16 +137,36 @@ export const subscriptionService = {
    */
   async cancelSubscription(): Promise<{ success: boolean; message?: string; error?: string }> {
     if (USE_MOCK_DATA) {
-      mockCurrentSubscription = null;
-      // Mettre à jour l'utilisateur connecté mocké
-      const user = mockUsers[0] as any;
-      user.subscriptionType = 'FREE';
+      if (!mockCurrentSubscription) {
+        return { success: false, error: 'Aucun abonnement actif' };
+      }
+      mockCurrentSubscription.cancelAtPeriodEnd = true;
+      mockCurrentSubscription.cancelled = true;
       return {
         success: true,
         message: 'Abonnement annulé avec succès',
       };
     }
     const response = await api.delete('/subscriptions');
+    return response.data;
+  },
+
+  /**
+   * Réactive un abonnement annulé (US-036)
+   */
+  async reactivateSubscription(): Promise<{ success: boolean; message?: string; error?: string }> {
+    if (USE_MOCK_DATA) {
+      if (!mockCurrentSubscription) {
+        return { success: false, error: 'Aucun abonnement actif' };
+      }
+      mockCurrentSubscription.cancelAtPeriodEnd = false;
+      mockCurrentSubscription.cancelled = false;
+      return {
+        success: true,
+        message: 'Abonnement réactivé avec succès',
+      };
+    }
+    const response = await api.patch('/subscriptions/reactivate');
     return response.data;
   },
 };

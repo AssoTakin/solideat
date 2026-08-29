@@ -122,6 +122,26 @@ export class SubscriptionController {
       });
     }
   }
+
+  /**
+   * PATCH /subscriptions/reactivate
+   * Réactive un abonnement précédemment annulé (US-036)
+   */
+  async reactivateSubscription(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      await subscriptionService.reactivateSubscription(req.user!.id);
+
+      res.json({
+        success: true,
+        message: 'Abonnement réactivé avec succès',
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erreur lors de la réactivation de l\'abonnement',
+      });
+    }
+  }
 }
 
 export const subscriptionController = new SubscriptionController();

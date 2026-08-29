@@ -3,6 +3,7 @@ import { MealStatus, NotificationType } from '@prisma/client';
 import prisma from '../config/database';
 import { antiGaspiService } from '../services/antigaspi.service';
 import { notificationService } from '../services/notification.service';
+import { pushNotificationService } from '../services/push-notification.service';
 
 /**
  * Job : Expiration automatique des repas
@@ -171,6 +172,13 @@ export function setupReviewReminderJob(): void {
             `/meals/${reservation.mealId}/review`,
             true
           )
+          .catch(() => {
+            // Erreur silencieuse
+          });
+
+        // Notification push rappel avis (US-038)
+        pushNotificationService
+          .sendReviewReminderNotification(reservation.userId, reservation.meal)
           .catch(() => {
             // Erreur silencieuse
           });

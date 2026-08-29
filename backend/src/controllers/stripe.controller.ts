@@ -127,6 +127,8 @@ export class StripeController {
         subscriptionStart,
         subscriptionEnd,
         stripeSubscriptionId: subscription.id,
+        stripeSubscriptionStatus: subscription.status,
+        subscriptionCancelAtPeriodEnd: subscription.cancel_at_period_end === true,
       },
     });
 

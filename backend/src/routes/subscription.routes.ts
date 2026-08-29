@@ -38,4 +38,11 @@ router.delete(
   subscriptionController.cancelSubscription.bind(subscriptionController)
 );
 
+// Réactivation d'abonnement (nécessite authentification)
+router.patch(
+  '/reactivate',
+  authenticate,
+  subscriptionController.reactivateSubscription.bind(subscriptionController)
+);
+
 export default router;

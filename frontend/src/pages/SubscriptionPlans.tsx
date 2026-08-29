@@ -113,6 +113,27 @@ export default function SubscriptionPlans() {
     }
   };
 
+  const handleReactivateSubscription = async () => {
+    if (!window.confirm('Voulez-vous réactiver votre abonnement premium ?')) {
+      return;
+    }
+
+    setCancelling(true);
+    try {
+      const response = await subscriptionService.reactivateSubscription();
+      if (response.success) {
+        alert('Abonnement réactivé avec succès.');
+        loadData();
+      } else {
+        alert(response.error || 'Erreur lors de la réactivation');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erreur lors de la réactivation');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) {
     return (
       <div
@@ -213,22 +234,52 @@ export default function SubscriptionPlans() {
                     <strong>Expire le:</strong> {new Date(currentSubscription.endDate).toLocaleDateString('fr-FR')}
                   </p>
                 )}
+                {currentSubscription.cancelAtPeriodEnd && (
+                  <p style={{
+                    fontSize: '14px',
+                    color: colors.error,
+                    margin: '8px 0 0 0',
+                    fontWeight: 'bold',
+                  }}>
+                    ⚠️ Annulation programmée à la fin de la période
+                  </p>
+                )}
               </div>
-              <button
-                onClick={() => setShowCancelModal(true)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: colors.error,
-                  color: colors.backgroundWhite,
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                }}
-              >
-                Annuler
-              </button>
+              {currentSubscription.cancelAtPeriodEnd ? (
+                <button
+                  onClick={handleReactivateSubscription}
+                  disabled={cancelling}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: colors.success,
+                    color: colors.backgroundWhite,
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    cursor: cancelling ? 'not-allowed' : 'pointer',
+                    opacity: cancelling ? 0.6 : 1,
+                  }}
+                >
+                  {cancelling ? 'Traitement...' : 'Réactiver'}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: colors.error,
+                    color: colors.backgroundWhite,
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Annuler
+                </button>
+              )}
             </div>
           </div>
         )}

@@ -85,6 +85,8 @@ export class SubscriptionService {
         subscriptionEnd: true,
         stripeCustomerId: true,
         stripeSubscriptionId: true,
+        stripeSubscriptionStatus: true,
+        subscriptionCancelAtPeriodEnd: true,
       },
     });
 
@@ -96,19 +98,24 @@ export class SubscriptionService {
       return {
         type: 'FREE',
         active: false,
+        cancelAtPeriodEnd: false,
       };
     }
 
     const now = new Date();
     const isActive = user.subscriptionEnd ? user.subscriptionEnd > now : false;
+    const isCancelled = user.subscriptionCancelAtPeriodEnd === true;
 
     return {
       type: user.subscriptionType,
       startDate: user.subscriptionStart,
       endDate: user.subscriptionEnd,
       active: isActive,
+      cancelled: isCancelled,
+      cancelAtPeriodEnd: isCancelled,
       stripeCustomerId: user.stripeCustomerId,
       stripeSubscriptionId: user.stripeSubscriptionId,
+      stripeStatus: user.stripeSubscriptionStatus,
     };
   }
 
@@ -293,6 +300,7 @@ export class SubscriptionService {
         subscriptionEnd: true,
         stripeCustomerId: true,
         stripeSubscriptionId: true,
+        subscriptionCancelAtPeriodEnd: true,
         email: true,
       },
     });
@@ -305,6 +313,10 @@ export class SubscriptionService {
       throw new Error('Aucun abonnement actif');
     }
 
+    if (user.subscriptionCancelAtPeriodEnd) {
+      throw new Error('Votre abonnement est déjà en cours d\'annulation');
+    }
+
     // Annuler la subscription Stripe si elle existe
     if (user.stripeSubscriptionId) {
       try {
@@ -313,6 +325,14 @@ export class SubscriptionService {
         // Si l'abonnement n'existe plus dans Stripe, on continue quand même
       }
     }
+
+    // Marquer localement comme annulé en fin de période
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        subscriptionCancelAtPeriodEnd: true,
+      },
+    });
 
     // Envoyer une notification
     const { notificationService } = await import('./notification.service');
@@ -327,6 +347,68 @@ export class SubscriptionService {
     // Envoyer un email
     const { emailService } = await import('./email.service');
     emailService.sendSubscriptionCancelledEmail(user.email, user.subscriptionEnd).catch(() => {
+      // Erreur silencieuse
+    });
+  }
+
+  /**
+   * Réactive un abonnement précédemment annulé (US-036)
+   */
+  async reactivateSubscription(userId: string): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        subscriptionType: true,
+        subscriptionEnd: true,
+        stripeSubscriptionId: true,
+        subscriptionCancelAtPeriodEnd: true,
+        email: true,
+      },
+    });
+
+    if (!user) {
+      throw new Error('Utilisateur non trouvé');
+    }
+
+    if (user.subscriptionType === 'FREE') {
+      throw new Error('Aucun abonnement actif');
+    }
+
+    if (!user.subscriptionCancelAtPeriodEnd) {
+      throw new Error('Votre abonnement n\'est pas en cours d\'annulation');
+    }
+
+    // Réactiver dans Stripe si possible
+    if (user.stripeSubscriptionId) {
+      try {
+        await stripeService.reactivateSubscription(user.stripeSubscriptionId);
+      } catch (error: any) {
+        // Si la subscription n'existe plus, on continue quand même
+      }
+    }
+
+    // Mettre à jour localement
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        subscriptionCancelAtPeriodEnd: false,
+      },
+    });
+
+    // Envoyer une notification
+    const { notificationService } = await import('./notification.service');
+    await notificationService.createNotification(
+      userId,
+      'SYSTEM_MESSAGE',
+      'Abonnement réactivé',
+      'Votre abonnement premium a été réactivé avec succès. Il se renouvellera normalement.',
+      '/dashboard'
+    );
+
+    // Envoyer un email
+    const { emailService } = await import('./email.service');
+    emailService.sendSubscriptionReactivatedEmail(user.email).catch(() => {
       // Erreur silencieuse
     });
   }
