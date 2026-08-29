@@ -15,7 +15,8 @@ import {
   BarChartIcon,
   CrownIcon,
   HandshakeIcon,
-  HomeIcon
+  HomeIcon,
+  TrophyIcon,
 } from './Icons';
 
 // Design System Colors
@@ -412,6 +413,25 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                     <CrownIcon size={16} color={colors.premium} /> Formules & Abonnements
                   </Link>
                   <Link
+                    to="/premium"
+                    onClick={() => setShowDropdown(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      color: colors.premium,
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <TrophyIcon size={16} color={colors.premium} /> Espace Premium
+                  </Link>
+                  <Link
                     to="/help"
                     onClick={() => setShowDropdown(false)}
                     style={{
@@ -428,6 +448,24 @@ export default function Navigation({ showBottomBar = true }: NavigationProps) {
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <HelpCircleIcon size={16} color={colors.textPrimary} /> Aide & FAQ
+                  </Link>
+                  <Link
+                    to="/push-settings"
+                    onClick={() => setShowDropdown(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      color: colors.textPrimary,
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.backgroundLight)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <BellIcon size={16} color={colors.textPrimary} /> Notifications push
                   </Link>
                   <div style={{ height: '1px', backgroundColor: colors.backgroundLight, margin: '4px 0' }} />
                   <button

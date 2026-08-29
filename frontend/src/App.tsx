@@ -27,31 +27,12 @@ import Notifications from './pages/Notifications';
 import Help from './pages/Help';
 import Diagnostic from './pages/Diagnostic';
 import SellerConnect from './pages/SellerConnect';
-import { initializePushNotifications } from './utils/pushNotifications';
-
+import PushSettings from './pages/PushSettings';
+import PremiumDashboard from './pages/PremiumDashboard';
 function App() {
   useEffect(() => {
     // Appliquer le thème moderne premium par défaut
     document.documentElement.className = 'design-modern';
-  }, []);
-
-  useEffect(() => {
-    // Initialiser les notifications push au chargement de l'app
-    // Fait de manière asynchrone pour ne pas bloquer le chargement
-    const initNotifications = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          await initializePushNotifications();
-        }
-      } catch (error) {
-        // Erreur silencieuse - les notifications push ne sont pas critiques
-        // Ne pas logger pour éviter le bruit dans la console
-      }
-    };
-    
-    // Démarrer l'initialisation après un court délai pour ne pas bloquer le rendu initial
-    setTimeout(initNotifications, 1000);
   }, []);
 
   return (
@@ -77,14 +58,15 @@ function App() {
         <Route path="/payment/:reservationId" element={<PaymentPage />} />
         <Route path="/payment-status" element={<PaymentStatusPage />} />
         <Route path="/payment/:reservationId" element={<PaymentPage />} />
-        <Route path="/messages" element={<Conversations />} />
-        <Route path="/messages/:mealId" element={<Conversation />} />
+        <Route path="/conversations" element={<Conversations />} />
+        <Route path="/conversations/:id" element={<Conversation />} />
         <Route path="/notifications" element={<Notifications />} />
-        <Route path="/help" element={<Help />} />
         <Route path="/subscriptions/plans" element={<SubscriptionPlans />} />
         <Route path="/subscriptions/success" element={<SubscriptionSuccess />} />
         <Route path="/connect-vendeur" element={<SellerConnect />} />
-        <Route path="/health" element={<div>Frontend OK</div>} />
+        <Route path="/push-settings" element={<PushSettings />} />
+        <Route path="/premium" element={<PremiumDashboard />} />
+        <Route path="/help" element={<Help />} />
         <Route path="/diagnostic" element={<Diagnostic />} />
       </Routes>
     </div>
