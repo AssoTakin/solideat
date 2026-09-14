@@ -487,7 +487,16 @@ export class UserController {
       for (const email of emails) {
         const user = await prisma.user.findUnique({ where: { email } });
         if (user) {
+          // Nettoyer toutes les entités liées par userId (FK dans l'ordre)
           await prisma.$transaction([
+            prisma.pushSubscription.deleteMany({ where: { userId: user.id } }),
+            prisma.notification.deleteMany({ where: { userId: user.id } }),
+            prisma.sanction.deleteMany({ where: { userId: user.id } }),
+            prisma.bonusDonor.deleteMany({ where: { userId: user.id } }),
+            prisma.userBadge.deleteMany({ where: { userId: user.id } }),
+            prisma.message.deleteMany({ where: { OR: [{ senderId: user.id }, { receiverId: user.id }] } }),
+            prisma.review.deleteMany({ where: { OR: [{ reviewerId: user.id }, { cookId: user.id }] } }),
+            prisma.transaction.deleteMany({ where: { OR: [{ buyerId: user.id }, { cookId: user.id }] } }),
             prisma.reservation.deleteMany({ where: { OR: [{ userId: user.id }, { meal: { cookId: user.id } }] } }),
             prisma.meal.deleteMany({ where: { cookId: user.id } }),
             prisma.user.delete({ where: { id: user.id } }),
