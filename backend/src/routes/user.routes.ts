@@ -47,6 +47,13 @@ router.delete(
   userController.adminCleanupTest.bind(userController)
 );
 
+// [TEMP] Admin DB : forcer cascade delete sur Notification.user - SUPPRIMER APRES USAGE
+router.post(
+  '/admin/fix-notification-fk',
+  authenticate,
+  userController.adminFixNotificationFk.bind(userController)
+);
+
 // Quotas (nécessite authentification)
 router.get('/me/quotas', authenticate, userController.getQuotas.bind(userController));
 
