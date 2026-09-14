@@ -549,7 +549,7 @@ export class ReservationService {
     return {
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-    };
+    }
   }
 
   /**
@@ -559,7 +559,11 @@ export class ReservationService {
     const reservation = await prisma.reservation.findUnique({
       where: { id: reservationId },
       include: {
-        meal: true,
+        meal: {
+          include: {
+            cook: true,
+          },
+        },
         transaction: true,
       },
     });
@@ -580,10 +584,19 @@ export class ReservationService {
       throw new Error("Le paiement de la réservation n'est pas confirmé");
     }
 
-// Avec destination charges, Stripe a déjà transféré le montant net au compte
-    // Connect du cuisinier lors du paiement. On marque juste la réservation avec le
-    // montant net stocké sur le repas (frais de transaction Stripe déduits).
     const netAmountCents = Math.round((reservation.meal.netAmount || 4) * 100);
+    const cookAccountId = reservation.meal.cook.stripeConnectedAccountId;
+
+    // Si le compte Connect n'était pas prêt au moment du paiement (pas de destination charge),
+    // on effectue maintenant le transfert manuel si le compte est devenu prêt.
+    if (cookAccountId && reservation.stripePaymentIntentId) {
+      const { stripeService } = await import('../services/stripe.service');
+      const isReady = await stripeService.isConnectedAccountReady(cookAccountId);
+      if (isReady) {
+        await stripeService.transferNetAmountToCook(cookAccountId, reservation.stripePaymentIntentId, reservationId);
+      }
+    }
+
     await prisma.$transaction([
       prisma.reservation.update({
         where: { id: reservationId },
