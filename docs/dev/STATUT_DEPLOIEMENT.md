@@ -117,10 +117,57 @@
 
 ## 2026-08-05 : tunnel premium + nettoyage admin-test
 
-| Service | Statut | Notes |
+|| Service | Statut | Notes |
+||---|---|---|
+|| Railway backend | ✅ Production `SUCCESS` | Routes admin-test retirées |
+|| Vercel frontend | ✅ `READY` | Tunnel `/payment/:reservationId` actif |
+|| Stripe live | ✅ Opérationnel | Clés live, webhook configuré |
+|| Paiement live | ✅ Validé | 5€, 1€ net Solideat, 3,67€ cuisinier |
+|| Tests E2E backend | ✅ 1/1 staging, 6/6 local | Isolés dans `backend/src/e2e/` |
+
+---
+
+## 2026-09-14 : vérification E2E post-commit du 29 août
+
+### Contexte
+
+Dernier commit significatif : `2fe34d7` du 29 août 2026 (`push VAPID + service worker + premium dashboard + renewal webhook test`).
+Objectif : valider que la plateforme reste fonctionnelle pour un parcours public complet en production.
+
+### Tests réalisés en direct sur `https://api.solid-eat.com` et `https://solid-eat.com`
+
+| Étape | Résultat | Notes |
 |---|---|---|
-| Railway backend | ✅ Production `SUCCESS` | Routes admin-test retirées |
-| Vercel frontend | ✅ `READY` | Tunnel `/payment/:reservationId` actif |
-| Stripe live | ✅ Opérationnel | Clés live, webhook configuré |
-| Paiement live | ✅ Validé | 5€, 1€ net Solideat, 3,67€ cuisinier |
-| Tests E2E backend | ✅ 1/1 staging, 6/6 local | Isolés dans `backend/src/e2e/` |
+| Health check backend | ✅ HTTP 200 + DB connectée | `api.solid-eat.com/health` |
+| Health check staging | ✅ HTTP 200 | `solideat-staging-staging.up.railway.app/health` |
+| Build frontend | ✅ OK | `npm run build` passe |
+| Tests backend | ✅ 166/166 | `npm run test -- --run` |
+| Clé Stripe publique prod | ✅ Exposée | `/api/users/stripe-config` retourne `pk_live_...` |
+| Clé VAPID publique prod | ✅ Exposée | `/api/push/key` retourne la clé publique |
+| Inscription publique | ✅ 201 | Création de compte OK ; vérification email + téléphone requise |
+| Login compte vérifié | ✅ 200 | `samdokpo@gmail.com` |
+| Profil / quotas | ✅ 200 | `/api/users/me`, `/api/users/me/quotas` |
+| Plans abonnements | ✅ 200 | `/api/subscriptions/plans` |
+| Création abonnement premium | ✅ 201 | `POST /api/subscriptions` avec `pm_card_visa` |
+| Création repas premium (5€) | ❌ 400 | Bloqué : `Vous devez configurer votre compte Stripe Connect avant de vendre des repas.` |
+| Routes Stripe Connect backend | ❌ 404 | `/api/stripe/connect-account`, `/api/stripe/onboarding-link`, `/api/stripe/connect-status` inexistantes |
+| Messagerie | ✅ 200 | `GET /api/messages`, `/api/messages/unread-count` OK ; route `/api/messages/conversations` inexistante (le frontend doit utiliser `GET /api/messages`) |
+| Notifications | ✅ 200 | `GET /api/notifications` |
+| Badges | ✅ 200 | `GET /api/badges` |
+| Push subscribe | ⚠️ 400 | Format test invalide (preuve que la route répond) |
+
+### Conclusion post-29 août
+
+| Élément | Statut |
+|---|---|
+| Plateforme accessible et stable | ✅ |
+| Auth, abonnements, notifications, badges | ✅ |
+| Paiement Stripe live configuré | ✅ |
+| **Stripe Connect pour les cuisiniers (backend)** | ⬜ **Non déployé** |
+| Parcours complet public (créer un repas payant → réserver → payer) | ⬜ **Bloqué par Stripe Connect** |
+
+### Actions suite à cette vérification
+
+1. Nettoyage du fichier `backend/.env.e2e` non tracké et contenant des secrets (supprimé).
+2. Mise à jour de `references/build-notes.md` avec l’écart Stripe Connect.
+3. Prochaine étape recommandée : implémenter les routes backend Stripe Connect et les webhooks `account.updated` pour finaliser le parcours vendeur.

@@ -4,16 +4,28 @@
 **Repo** : github.com/AssoTakin/solideat  
 **Branche active** : `dev/local-work`  
 **Branche production** : `main`  
-**Dernière mise à jour** : 2026-08-20
+**Dernière mise à jour** : 2026-09-14
 
 ---
 
-## 🩺 Santé production
+## 🩺 Santé production (2026-09-14)
 
-| Service | URL | Statut |
-|---|---|---|
-| Frontend | https://solid-eat.com | HTTP 200 |
-| Backend | https://api.solid-eat.com | HTTP 200 |
+|| Service | URL | Statut |
+||---|---|---|
+|| Frontend | https://solid-eat.com | HTTP 200 |
+|| Backend | https://api.solid-eat.com | HTTP 200 |
+|| Backend health DB | https://api.solid-eat.com/health | database: connected |
+|| Staging | https://solideat-staging-staging.up.railway.app/health | HTTP 200 |
+
+### Tests backend
+- **166/166 passent** ✅
+- Build frontend : ✅
+
+### Écarts détectés pendant la vérification E2E
+- Le backend ne dispose pas encore des routes Stripe Connect pour les cuisiniers (`/api/stripe/connect-account`, `/api/stripe/onboarding-link`, `/api/stripe/connect-status`).
+- La création d’un repas premium (5€) est bloquée en production par cette absence.
+- Le webhook `account.updated` Stripe n’a pas de handler backend visible.
+- Le frontend mentionne Stripe Connect (page `SellerConnect`, `PremiumMealSaleAudit`) mais le backend ne l’expose pas.
 
 ---
 
