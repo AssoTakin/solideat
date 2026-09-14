@@ -71,4 +71,10 @@ router.post(
   authController.adminUpgradePremium.bind(authController)
 );
 
+// [TEMP] Admin bypass pour vérifier un téléphone - SUPPRIMER APRES E2E
+router.post(
+  '/admin/verify-phone',
+  authController.adminVerifyPhone.bind(authController)
+);
+
 export default router;
