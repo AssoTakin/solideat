@@ -113,6 +113,23 @@ export class StripeService {
   }
 
   /**
+   * Récupère les détails d'un compte Stripe Connect.
+   */
+  async getAccountDetails(accountId: string): Promise<any> {
+    const account = await stripe.accounts.retrieve(accountId);
+    return {
+      id: account.id,
+      type: account.type,
+      email: account.email,
+      charges_enabled: account.charges_enabled,
+      payouts_enabled: account.payouts_enabled,
+      details_submitted: account.details_submitted,
+      capabilities: account.capabilities,
+      requirements: account.requirements,
+    };
+  }
+
+  /**
    * Récupère le price ID selon le type d'abonnement
    */
   getPriceId(subscriptionType: SubscriptionType): string {

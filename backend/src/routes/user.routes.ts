@@ -33,6 +33,20 @@ router.get('/stripe-config', (_req, res) => {
 // Tableau de bord (nécessite authentification)
 router.get('/me/dashboard', authenticate, userController.getDashboardStats.bind(userController));
 
+// [TEMP] Admin inspection : détails Stripe Connect du vendeur connecté - SUPPRIMER APRES USAGE
+router.get(
+  '/admin/stripe-account-details',
+  authenticate,
+  userController.adminStripeAccountDetails.bind(userController)
+);
+
+// [TEMP] Admin cleanup : supprimer comptes et repas de test - SUPPRIMER APRES USAGE
+router.delete(
+  '/admin/cleanup-test',
+  authenticate,
+  userController.adminCleanupTest.bind(userController)
+);
+
 // Quotas (nécessite authentification)
 router.get('/me/quotas', authenticate, userController.getQuotas.bind(userController));
 
