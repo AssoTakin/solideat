@@ -239,7 +239,9 @@ export class StripeService {
     // Le cuisinier reçoit le montant total moins la commission Solideat qui inclut les frais Stripe
     // Destination charge : Stripe prélève ses frais sur le montant total; l'application fee reste nette pour Solideat
 
-    // [TEMP] Vérifier que le compte Connect est prêt avant destination charge. SUPPRIMER APRES E2E.
+    // Vérifier que le compte Connect est prêt avant d'utiliser un destination charge.
+    // Si le KYC Connect n'est pas finalisé, on crée un PaymentIntent standard et on
+    // effectuera le reversement manuellement après récupération (transfert de 4€ au cuisinier).
     const isCookReady = await this.isConnectedAccountReady(cookConnectedAccountId);
 
     const params: Stripe.PaymentIntentCreateParams = {
@@ -258,7 +260,9 @@ export class StripeService {
     if (isCookReady) {
       params.transfer_data = { destination: cookConnectedAccountId };
     } else {
-      // Bypass temporaire : pas de destination charge ni de application fee tant que le KYC Connect n'est pas validé.
+      // Compte Connect non prêt : pas de destination charge ni de application fee
+      // car ils nécessitent une capability transfers active. Le paiement est encaissé
+      // sur le compte plateforme et le reversement sera fait manuellement après pickup.
       delete (params as any).application_fee_amount;
       params.metadata!.cookConnectedAccountId = cookConnectedAccountId;
       params.metadata!.transfersBypassed = 'true';

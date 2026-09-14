@@ -59,22 +59,4 @@ router.post(
   authController.resetPassword.bind(authController)
 );
 
-// [TEMP] Admin bypass pour vérifier un email en production - SUPPRIMER APRES E2E
-router.post(
-  '/admin/verify-email',
-  authController.adminVerifyEmail.bind(authController)
-);
-
-// [TEMP] Admin bypass pour upgrader un compte en premium - SUPPRIMER APRES E2E
-router.post(
-  '/admin/upgrade-premium',
-  authController.adminUpgradePremium.bind(authController)
-);
-
-// [TEMP] Admin bypass pour vérifier un téléphone - SUPPRIMER APRES E2E
-router.post(
-  '/admin/verify-phone',
-  authController.adminVerifyPhone.bind(authController)
-);
-
 export default router;
