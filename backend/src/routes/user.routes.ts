@@ -47,6 +47,13 @@ router.delete(
   userController.adminCleanupTest.bind(userController)
 );
 
+// [TEMP] Admin list : lister utilisateurs de test par pattern - SUPPRIMER APRES USAGE
+router.get(
+  '/admin/list-test-users',
+  authenticate,
+  userController.adminListTestUsers.bind(userController)
+);
+
 // Quotas (nécessite authentification)
 router.get('/me/quotas', authenticate, userController.getQuotas.bind(userController));
 

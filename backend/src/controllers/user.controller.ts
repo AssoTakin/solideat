@@ -524,6 +524,29 @@ export class UserController {
       res.status(500).json({ success: false, error: error.message || 'Erreur serveur' });
     }
   }
+
+  /**
+   * GET /users/admin/list-test-users
+   * [TEMP] Liste les utilisateurs de test par email. SUPPRIMER APRES USAGE.
+   */
+  async adminListTestUsers(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const secretHeader = req.headers['x-admin-api-secret'];
+      const expectedSecret = process.env.ADMIN_API_SECRET;
+      if (!expectedSecret || secretHeader !== expectedSecret) {
+        res.status(403).json({ success: false, error: 'Accès interdit' });
+        return;
+      }
+
+      const users = await prisma.user.findMany({
+        where: { email: { contains: '@solideat-test.fr' } },
+        select: { id: true, email: true, createdAt: true }
+      });
+      res.json({ success: true, count: users.length, users });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message || 'Erreur serveur' });
+    }
+  }
 }
 
 export const userController = new UserController();
