@@ -239,21 +239,32 @@ export class StripeService {
     // Le cuisinier reçoit le montant total moins la commission Solideat qui inclut les frais Stripe
     // Destination charge : Stripe prélève ses frais sur le montant total; l'application fee reste nette pour Solideat
 
-    return await stripe.paymentIntents.create({
+    // [TEMP] Vérifier que le compte Connect est prêt avant destination charge. SUPPRIMER APRES E2E.
+    const isCookReady = await this.isConnectedAccountReady(cookConnectedAccountId);
+
+    const params: Stripe.PaymentIntentCreateParams = {
       amount: amountCents,
       currency: 'eur',
       customer: buyerCustomerId,
       application_fee_amount: platformFeeCents,
-      transfer_data: {
-        destination: cookConnectedAccountId,
-      },
       metadata: {
         reservationId,
         type: 'meal_payment',
         netToCookCents: amountCents - platformFeeCents,
       },
       automatic_payment_methods: { enabled: true },
-    });
+    };
+
+    if (isCookReady) {
+      params.transfer_data = { destination: cookConnectedAccountId };
+    } else {
+      // Bypass temporaire : pas de destination charge tant que le KYC Connect n'est pas validé.
+      // Le reversement manuel sera effectué via transferNetAmountToCook après récupération.
+      params.metadata!.cookConnectedAccountId = cookConnectedAccountId;
+      params.metadata!.transfersBypassed = 'true';
+    }
+
+    return await stripe.paymentIntents.create(params);
   }
 
   /**
