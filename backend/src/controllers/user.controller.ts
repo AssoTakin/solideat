@@ -481,10 +481,20 @@ export class UserController {
         return;
       }
 
-      const { emails = [], mealIds = [] } = req.body;
+      const { emails = [], mealIds = [], deleteAllTestUsers = false } = req.body;
       const deleted: any = { users: 0, meals: 0, reservations: 0 };
 
-      for (const email of emails) {
+      let targetEmails: string[] = [...emails];
+      if (deleteAllTestUsers) {
+        const testUsers = await prisma.user.findMany({
+          where: { email: { contains: '@solideat-test.fr' } },
+          select: { email: true }
+        });
+        targetEmails = [...targetEmails, ...testUsers.map(u => u.email)];
+        targetEmails = [...new Set(targetEmails)];
+      }
+
+      for (const email of targetEmails) {
         const user = await prisma.user.findUnique({ where: { email } });
         if (user) {
           // Nettoyer toutes les entités liées par userId (FK dans l'ordre)
