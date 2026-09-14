@@ -258,8 +258,8 @@ export class StripeService {
     if (isCookReady) {
       params.transfer_data = { destination: cookConnectedAccountId };
     } else {
-      // Bypass temporaire : pas de destination charge tant que le KYC Connect n'est pas validé.
-      // Le reversement manuel sera effectué via transferNetAmountToCook après récupération.
+      // Bypass temporaire : pas de destination charge ni de application fee tant que le KYC Connect n'est pas validé.
+      delete (params as any).application_fee_amount;
       params.metadata!.cookConnectedAccountId = cookConnectedAccountId;
       params.metadata!.transfersBypassed = 'true';
     }
