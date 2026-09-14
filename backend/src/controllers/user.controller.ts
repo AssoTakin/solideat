@@ -488,6 +488,10 @@ export class UserController {
         const user = await prisma.user.findUnique({ where: { email } });
         if (user) {
           // Nettoyer toutes les entités liées par userId (FK dans l'ordre)
+          await prisma.$executeRawUnsafe(`
+            ALTER TABLE "Notification" DROP CONSTRAINT IF EXISTS "Notification_userId_fkey";
+            ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+          `);
           await prisma.$transaction([
             prisma.pushSubscription.deleteMany({ where: { userId: user.id } }),
             prisma.notification.deleteMany({ where: { userId: user.id } }),
@@ -512,29 +516,6 @@ export class UserController {
       }
 
       res.json({ success: true, message: 'Cleanup effectué', deleted });
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Erreur serveur' });
-    }
-  }
-
-  /**
-   * POST /users/admin/fix-notification-fk
-   * [TEMP] Exécute la migration SQL manquante directement. SUPPRIMER APRES USAGE.
-   */
-  async adminFixNotificationFk(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const secretHeader = req.headers['x-admin-api-secret'];
-      const expectedSecret = process.env.ADMIN_API_SECRET;
-      if (!expectedSecret || secretHeader !== expectedSecret) {
-        res.status(403).json({ success: false, error: 'Accès interdit' });
-        return;
-      }
-
-      await prisma.$executeRawUnsafe(`
-        ALTER TABLE "Notification" DROP CONSTRAINT IF EXISTS "Notification_userId_fkey";
-        ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-      `);
-      res.json({ success: true, message: 'FK Notification.userId cascade appliquée' });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message || 'Erreur serveur' });
     }
