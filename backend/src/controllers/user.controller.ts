@@ -508,9 +508,15 @@ export class UserController {
       }
 
       for (const mealId of mealIds) {
-        await prisma.reservation.deleteMany({ where: { mealId } });
-        await prisma.meal.delete({ where: { id: mealId } });
-        deleted.meals += 1;
+        try {
+          await prisma.reservation.deleteMany({ where: { mealId } });
+          await prisma.meal.delete({ where: { id: mealId } });
+          deleted.meals += 1;
+        } catch (e: any) {
+          if (!e.message?.includes('Record to delete does not exist')) {
+            throw e;
+          }
+        }
       }
 
       res.json({ success: true, message: 'Cleanup effectué', deleted });
