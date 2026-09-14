@@ -488,10 +488,8 @@ export class UserController {
         const user = await prisma.user.findUnique({ where: { email } });
         if (user) {
           // Nettoyer toutes les entités liées par userId (FK dans l'ordre)
-          await prisma.$executeRawUnsafe(`
-            ALTER TABLE "Notification" DROP CONSTRAINT IF EXISTS "Notification_userId_fkey";
-            ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-          `);
+          await prisma.$executeRawUnsafe(`ALTER TABLE "Notification" DROP CONSTRAINT IF EXISTS "Notification_userId_fkey"`);
+          await prisma.$executeRawUnsafe(`ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`);
           await prisma.$transaction([
             prisma.pushSubscription.deleteMany({ where: { userId: user.id } }),
             prisma.notification.deleteMany({ where: { userId: user.id } }),
