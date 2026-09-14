@@ -317,47 +317,6 @@ export class AuthController {
       });
     }
   }
-
-  /**
-   * DELETE /auth/admin/cleanup-test
-   * [TEMP] Suppression forcée de comptes et repas de test. SUPPRIMER APRES USAGE.
-   */
-  async adminCleanupTest(req: Request, res: Response): Promise<void> {
-    try {
-      const secretHeader = req.headers['x-admin-api-secret'];
-      const expectedSecret = process.env.ADMIN_API_SECRET;
-
-      if (!expectedSecret || secretHeader !== expectedSecret) {
-        res.status(403).json({ success: false, error: 'Accès interdit' });
-        return;
-      }
-
-      const { emails = [], mealIds = [] } = req.body;
-      const deleted: any = { users: 0, meals: 0, reservations: 0 };
-
-      for (const email of emails) {
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (user) {
-          await prisma.$transaction([
-            prisma.reservation.deleteMany({ where: { OR: [{ userId: user.id }, { meal: { cookId: user.id } }] } }),
-            prisma.meal.deleteMany({ where: { cookId: user.id } }),
-            prisma.user.delete({ where: { id: user.id } }),
-          ]);
-          deleted.users += 1;
-        }
-      }
-
-      for (const mealId of mealIds) {
-        await prisma.reservation.deleteMany({ where: { mealId } });
-        await prisma.meal.delete({ where: { id: mealId } });
-        deleted.meals += 1;
-      }
-
-      res.json({ success: true, message: 'Cleanup effectué', deleted });
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Erreur serveur' });
-    }
-  }
 }
 
 export const authController = new AuthController();
