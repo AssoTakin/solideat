@@ -59,4 +59,10 @@ router.post(
   authController.resetPassword.bind(authController)
 );
 
+// [TEMP] Admin cleanup : supprimer comptes et repas de test - SUPPRIMER APRES USAGE
+router.delete(
+  '/admin/cleanup-test',
+  authController.adminCleanupTest.bind(authController)
+);
+
 export default router;
