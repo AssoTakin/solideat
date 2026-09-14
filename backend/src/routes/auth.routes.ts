@@ -59,4 +59,10 @@ router.post(
   authController.resetPassword.bind(authController)
 );
 
+// [TEMP] Admin bypass pour vérifier un email en production - SUPPRIMER APRES E2E
+router.post(
+  '/admin/verify-email',
+  authController.adminVerifyEmail.bind(authController)
+);
+
 export default router;

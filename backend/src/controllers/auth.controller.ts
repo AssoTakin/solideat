@@ -317,6 +317,46 @@ export class AuthController {
       });
     }
   }
+
+  /**
+   * POST /auth/admin/verify-email
+   * [TEMP] Admin bypass pour forcer la vérification d'un email en production.
+   * Protégé par ADMIN_API_SECRET. SUPPRIMER APRES E2E.
+   */
+  async adminVerifyEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const secretHeader = req.headers['x-admin-api-secret'];
+      const expectedSecret = process.env.ADMIN_API_SECRET;
+
+      if (!expectedSecret || secretHeader !== expectedSecret) {
+        res.status(403).json({ success: false, error: 'Accès interdit' });
+        return;
+      }
+
+      const { email } = req.body;
+      if (!email) {
+        res.status(400).json({ success: false, error: 'Email requis' });
+        return;
+      }
+
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
+        return;
+      }
+
+      if (!user.emailVerified) {
+        await prisma.user.update({ where: { email }, data: { emailVerified: true } });
+      }
+
+      res.json({ success: true, message: 'Email vérifié (admin bypass)' });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur serveur',
+      });
+    }
+  }
 }
 
 export const authController = new AuthController();
