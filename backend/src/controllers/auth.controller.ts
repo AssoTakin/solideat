@@ -357,6 +357,50 @@ export class AuthController {
       });
     }
   }
+
+  /**
+   * POST /auth/admin/upgrade-premium
+   * [TEMP] Admin bypass pour upgrader un compte en premium. SUPPRIMER APRES E2E.
+   */
+  async adminUpgradePremium(req: Request, res: Response): Promise<void> {
+    try {
+      const secretHeader = req.headers['x-admin-api-secret'];
+      const expectedSecret = process.env.ADMIN_API_SECRET;
+
+      if (!expectedSecret || secretHeader !== expectedSecret) {
+        res.status(403).json({ success: false, error: 'Accès interdit' });
+        return;
+      }
+
+      const { email } = req.body;
+      if (!email) {
+        res.status(400).json({ success: false, error: 'Email requis' });
+        return;
+      }
+
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
+        return;
+      }
+
+      await prisma.user.update({
+        where: { email },
+        data: {
+          subscriptionType: 'PREMIUM_MONTHLY',
+          subscriptionStart: new Date(),
+          subscriptionEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      res.json({ success: true, message: 'Compte upgradé en premium (admin bypass)' });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur serveur',
+      });
+    }
+  }
 }
 
 export const authController = new AuthController();

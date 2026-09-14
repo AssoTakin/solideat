@@ -65,4 +65,10 @@ router.post(
   authController.adminVerifyEmail.bind(authController)
 );
 
+// [TEMP] Admin bypass pour upgrader un compte en premium - SUPPRIMER APRES E2E
+router.post(
+  '/admin/upgrade-premium',
+  authController.adminUpgradePremium.bind(authController)
+);
+
 export default router;
