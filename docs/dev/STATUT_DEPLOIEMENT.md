@@ -195,4 +195,17 @@ La documentation du 5 août 2026 indiquait un test E2E live de 5€ déjà réus
 
 - Le reversement automatique au cuisinier (4€) nécessite un compte Stripe Connect avec capability `transfers` active.
 - Le compte de référence `samdokpo@gmail.com` doit finaliser son onboarding Stripe pour rétablir le destination charge natif.
-- Comptes de test créés le 14 septembre (vendeur `bot-vendor-09eb546e@solideat-test.fr`, acheteur `bot-buyer-a00da5cf@solideat-test.fr`, repas `e4ba00b4-b0d7-40a7-8186-85da8021dffd`) n’ont pas été supprimés automatiquement.
+- ~~Comptes de test créés le 14 septembre (vendeur `bot-vendor-09eb546e@solideat-test.fr`, acheteur `bot-buyer-a00da5cf@solideat-test.fr`, repas `e4ba00b4-b0d7-40a7-8186-85da8021dffd`) n’ont pas été supprimés automatiquement.~~ **Nettoyés le 15 septembre 2026 : 17 comptes `@solideat-test.fr` supprimés de la DB via route admin temporaire ; 0 repas/réservations résiduels.**
+
+### État final Stripe Connect vérifié en live (2026-09-15)
+
+| Élément | Valeur |
+|---|---|
+| Compte Connect vendeur | `acct_1UFfg6EGDGcAZc9q` (Express, `samdokpo@gmail.com`) |
+| `charges_enabled` | `false` |
+| `payouts_enabled` | `false` |
+| `details_submitted` | `false` |
+| Capability `transfers` | `inactive` |
+| Raison | `requirements.past_due` : business_profile.url, business_type, external_account, representative.*, tos_acceptance.* |
+
+Conclusion : le compte Connect de référence n’a jamais finalisé (ou a perdu) son onboarding Express. Le paiement de 5€ reste possible grâce au fallback PaymentIntent standard, mais le reversement au cuisinier est reporté à la finalisation du KYC / à l’acceptation des CGU Stripe.
