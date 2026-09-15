@@ -5,7 +5,6 @@ import { dashboardService } from '../services/dashboard.service';
 import { quotaService } from '../services/quota.service';
 import { userService } from '../services/user.service';
 import { environmentalService } from '../services/environmental.service';
-import { stripeService } from '../services/stripe.service';
 
 export class UserController {
   /**
@@ -435,126 +434,6 @@ export class UserController {
         success: false,
         error: error.message || 'Erreur lors de la récupération du statut Connect',
       });
-    }
-  }
-
-  /**
-   * GET /users/admin/stripe-account-details
-   * [TEMP] Retourne les détails bruts du compte Stripe Connect pour diagnostic. SUPPRIMER APRES USAGE.
-   */
-  async adminStripeAccountDetails(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const secretHeader = req.headers['x-admin-api-secret'];
-      const expectedSecret = process.env.ADMIN_API_SECRET;
-      if (!expectedSecret || secretHeader !== expectedSecret) {
-        res.status(403).json({ success: false, error: 'Accès interdit' });
-        return;
-      }
-
-      const user = await prisma.user.findUnique({
-        where: { id: req.user!.id },
-        select: { stripeConnectedAccountId: true },
-      });
-
-      if (!user?.stripeConnectedAccountId) {
-        res.status(400).json({ success: false, error: 'Pas de compte Connect' });
-        return;
-      }
-
-      const details = await stripeService.getAccountDetails(user.stripeConnectedAccountId);
-      res.json({ success: true, data: details });
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Erreur serveur' });
-    }
-  }
-
-  /**
-   * DELETE /users/admin/cleanup-test
-   * [TEMP] Suppression forcée de comptes et repas de test. SUPPRIMER APRES USAGE.
-   */
-  async adminCleanupTest(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const secretHeader = req.headers['x-admin-api-secret'];
-      const expectedSecret = process.env.ADMIN_API_SECRET;
-      if (!expectedSecret || secretHeader !== expectedSecret) {
-        res.status(403).json({ success: false, error: 'Accès interdit' });
-        return;
-      }
-
-      const { emails = [], mealIds = [], deleteAllTestUsers = false } = req.body;
-      const deleted: any = { users: 0, meals: 0, reservations: 0 };
-
-      let targetEmails: string[] = [...emails];
-      if (deleteAllTestUsers) {
-        const testUsers = await prisma.user.findMany({
-          where: { email: { contains: '@solideat-test.fr' } },
-          select: { email: true }
-        });
-        targetEmails = [...targetEmails, ...testUsers.map(u => u.email)];
-        targetEmails = [...new Set(targetEmails)];
-      }
-
-      for (const email of targetEmails) {
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (user) {
-          // Nettoyer toutes les entités liées par userId (FK dans l'ordre)
-          await prisma.$executeRawUnsafe(`ALTER TABLE "Notification" DROP CONSTRAINT IF EXISTS "Notification_userId_fkey"`);
-          await prisma.$executeRawUnsafe(`ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`);
-          await prisma.$transaction([
-            prisma.pushSubscription.deleteMany({ where: { userId: user.id } }),
-            prisma.notification.deleteMany({ where: { userId: user.id } }),
-            prisma.sanction.deleteMany({ where: { userId: user.id } }),
-            prisma.bonusDonor.deleteMany({ where: { userId: user.id } }),
-            prisma.userBadge.deleteMany({ where: { userId: user.id } }),
-            prisma.message.deleteMany({ where: { OR: [{ senderId: user.id }, { receiverId: user.id }] } }),
-            prisma.review.deleteMany({ where: { OR: [{ reviewerId: user.id }, { cookId: user.id }] } }),
-            prisma.transaction.deleteMany({ where: { OR: [{ buyerId: user.id }, { cookId: user.id }] } }),
-            prisma.reservation.deleteMany({ where: { OR: [{ userId: user.id }, { meal: { cookId: user.id } }] } }),
-            prisma.meal.deleteMany({ where: { cookId: user.id } }),
-            prisma.user.delete({ where: { id: user.id } }),
-          ]);
-          deleted.users += 1;
-        }
-      }
-
-      for (const mealId of mealIds) {
-        try {
-          await prisma.reservation.deleteMany({ where: { mealId } });
-          await prisma.meal.delete({ where: { id: mealId } });
-          deleted.meals += 1;
-        } catch (e: any) {
-          if (!e.message?.includes('Record to delete does not exist')) {
-            throw e;
-          }
-        }
-      }
-
-      res.json({ success: true, message: 'Cleanup effectué', deleted });
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Erreur serveur' });
-    }
-  }
-
-  /**
-   * GET /users/admin/list-test-users
-   * [TEMP] Liste les utilisateurs de test par email. SUPPRIMER APRES USAGE.
-   */
-  async adminListTestUsers(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const secretHeader = req.headers['x-admin-api-secret'];
-      const expectedSecret = process.env.ADMIN_API_SECRET;
-      if (!expectedSecret || secretHeader !== expectedSecret) {
-        res.status(403).json({ success: false, error: 'Accès interdit' });
-        return;
-      }
-
-      const users = await prisma.user.findMany({
-        where: { email: { contains: '@solideat-test.fr' } },
-        select: { id: true, email: true, createdAt: true }
-      });
-      res.json({ success: true, count: users.length, users });
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Erreur serveur' });
     }
   }
 }
