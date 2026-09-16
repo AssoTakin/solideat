@@ -3,18 +3,29 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import Navigation from '../components/Navigation';
 import { colors } from '../utils/theme';
-import { CheckCircleIcon, AlertCircleIcon, ExternalLinkIcon, ArrowLeftIcon, StoreIcon } from '../components/Icons';
+import {
+  CheckCircleIcon,
+  AlertCircleIcon,
+  ExternalLinkIcon,
+  ArrowLeftIcon,
+  StoreIcon,
+  GiftIcon,
+} from '../components/Icons';
 
 interface ConnectStatus {
   accountId: string | null;
   onboardingComplete: boolean;
 }
 
-export default function SellerConnect() {
+interface SellerConnectProps {
+  __forceStatus?: ConnectStatus | null;
+}
+
+export default function SellerConnect({ __forceStatus }: SellerConnectProps) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<ConnectStatus | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<ConnectStatus | null>(__forceStatus ?? null);
+  const [loading, setLoading] = useState(!__forceStatus);
   const [error, setError] = useState<string | null>(null);
   const [onboardingUrl, setOnboardingUrl] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -24,13 +35,14 @@ export default function SellerConnect() {
   const isSuccess = urlStatus === 'success';
 
   useEffect(() => {
+    if (__forceStatus) return;
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
       return;
     }
     loadStatus();
-  }, [navigate]);
+  }, [navigate, __forceStatus]);
 
   const loadStatus = async () => {
     try {
@@ -53,7 +65,6 @@ export default function SellerConnect() {
       const res = await api.post('/users/me/connect-account');
       if (res.data.success && res.data.data?.url) {
         setOnboardingUrl(res.data.data.url);
-        // Ouvrir dans un nouvel onglet
         window.open(res.data.data.url, '_blank');
       } else {
         setError('Lien d\'onboarding non reçu.');
@@ -83,6 +94,31 @@ export default function SellerConnect() {
   }
 
   const completed = status?.onboardingComplete || false;
+  const accountCreated = !!status?.accountId;
+  const step = completed ? 'active' : accountCreated ? 'pending' : 'not_started';
+
+  const statusConfig = {
+    not_started: {
+      icon: <AlertCircleIcon size={24} color={colors.warning} />,
+      title: 'Compte vendeur non configuré',
+      message: 'Active Stripe Connect pour pouvoir vendre tes repas à 5€.',
+      color: colors.warning,
+    },
+    pending: {
+      icon: <AlertCircleIcon size={24} color={colors.warning} />,
+      title: 'Onboarding en cours',
+      message: 'Ton compte Stripe est créé. Finalise les informations demandées par Stripe pour activer les reversements.',
+      color: colors.warning,
+    },
+    active: {
+      icon: <CheckCircleIcon size={24} color={colors.success} />,
+      title: 'Compte Stripe Connect activé',
+      message: 'Tu peux vendre tes repas. Les reversements se feront automatiquement sur ton compte bancaire une fois les paiements effectués.',
+      color: colors.success,
+    },
+  };
+
+  const currentStatus = statusConfig[step];
 
   return (
     <div
@@ -195,30 +231,28 @@ export default function SellerConnect() {
             </div>
           )}
 
-          {completed ? (
-            <div
-              style={{
-                backgroundColor: colors.success + '15',
-                color: colors.success,
-                padding: '16px',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginBottom: '24px',
-              }}
-            >
-              <CheckCircleIcon size={24} color={colors.success} />
-              <div>
-                <strong style={{ display: 'block', marginBottom: '4px' }}>
-                  Compte Stripe Connect activé
-                </strong>
-                <span style={{ fontSize: '14px' }}>
-                  Tu peux maintenant proposer des repas payants. Les reversements se feront automatiquement sur ton compte.
-                </span>
-              </div>
+          <div
+            style={{
+              backgroundColor: currentStatus.color + '15',
+              color: currentStatus.color,
+              padding: '16px',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              marginBottom: '24px',
+            }}
+          >
+            {currentStatus.icon}
+            <div>
+              <strong style={{ display: 'block', marginBottom: '4px', fontSize: '16px' }}>
+                {currentStatus.title}
+              </strong>
+              <span style={{ fontSize: '14px', lineHeight: 1.5 }}>{currentStatus.message}</span>
             </div>
-          ) : (
+          </div>
+
+          {step !== 'active' && (
             <div
               style={{
                 backgroundColor: colors.backgroundLight,
@@ -229,13 +263,13 @@ export default function SellerConnect() {
             >
               <h2
                 style={{
-                  margin: '0 0 8px',
+                  margin: '0 0 12px',
                   fontSize: '16px',
                   fontWeight: 600,
                   color: colors.textPrimary,
                 }}
               >
-                Pourquoi Stripe Connect ?
+                Ce que tu peux faire en attendant
               </h2>
               <ul
                 style={{
@@ -246,9 +280,49 @@ export default function SellerConnect() {
                   lineHeight: 1.6,
                 }}
               >
-                <li>Vends tes repas premium à 5€</li>
-                <li>Reçois automatiquement 4€ par repas vendu</li>
-                <li>Paiement sécurisé et conforme</li>
+                <li>Proposer des repas gratuits pour tester la plateforme (aucun Stripe Connect requis).</li>
+                <li>
+                  Vendre tes repas premium à 5€ dès maintenant : les acheteurs paient normalement. Les reversements vers ton
+                  compte bancaire commencent dès que Stripe valide ton KYC.
+                </li>
+                <li>
+                  Les reversements sont automatiques une fois ton KYC Stripe finalisé. Si ton compte n'est pas activé au moment de la vente, le paiement reste sécurisé chez Stripe et le transfert vers ton compte est effectué dès la validation.
+                </li>
+              </ul>
+            </div>
+          )}
+
+          {step === 'active' && (
+            <div
+              style={{
+                backgroundColor: colors.backgroundLight,
+                padding: '16px',
+                borderRadius: '12px',
+                marginBottom: '24px',
+              }}
+            >
+              <h2
+                style={{
+                  margin: '0 0 12px',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  color: colors.textPrimary,
+                }}
+              >
+                Récapitulatif vendeur
+              </h2>
+              <ul
+                style={{
+                  margin: 0,
+                  paddingLeft: '20px',
+                  fontSize: '14px',
+                  color: colors.textSecondary,
+                  lineHeight: 1.6,
+                }}
+              >
+                <li>Prix de vente fixé à 5€ par repas premium.</li>
+                <li>Tu perçois environ 3,67€ par repas vendu (5€ - 1€ de service Solideat - frais Stripe).</li>
+                <li>Les reversements sont automatiques sur le compte bancaire rattaché à Stripe Connect.</li>
               </ul>
             </div>
           )}
@@ -269,7 +343,7 @@ export default function SellerConnect() {
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {!completed && (
+            {step !== 'active' && (
               <button
                 onClick={startOnboarding}
                 disabled={actionLoading}
@@ -291,11 +365,15 @@ export default function SellerConnect() {
                 }}
               >
                 <ExternalLinkIcon size={18} color={colors.backgroundWhite} />
-                {actionLoading ? 'Chargement...' : status?.accountId ? 'Continuer l\'onboarding Stripe' : 'Devenir vendeur sur Stripe'}
+                {actionLoading
+                  ? 'Chargement...'
+                  : accountCreated
+                    ? 'Continuer l\'onboarding Stripe'
+                    : 'Devenir vendeur sur Stripe'}
               </button>
             )}
 
-            {completed && (
+            {step === 'active' && (
               <Link
                 to="/meals/new"
                 style={{
@@ -313,6 +391,30 @@ export default function SellerConnect() {
                 }}
               >
                 Proposer un repas payant
+              </Link>
+            )}
+
+            {step !== 'active' && (
+              <Link
+                to="/meals/new"
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  border: `2px solid ${colors.primary}`,
+                  color: colors.primary,
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  textAlign: 'center',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                <GiftIcon size={18} color={colors.primary} />
+                Proposer un repas gratuit
               </Link>
             )}
 
