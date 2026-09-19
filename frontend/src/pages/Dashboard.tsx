@@ -31,6 +31,7 @@ import {
   PlusIcon,
   StoreIcon,
   CheckCircleIcon,
+  AlertTriangleIcon,
 } from '../components/Icons';
 
 // Design System Colors EXACTES depuis UX_DESIGN.md
@@ -69,16 +70,24 @@ export default function Dashboard() {
         setReservedMeals(mockReservations.slice(0, 5));
       } else {
         // Charger les données en parallèle
-        const [userResponse, statsResponse, proposedResponse, reservationsResponse] =
+        const [userResponse, statsResponse, proposedResponse, reservationsResponse, connectStatusResponse] =
           await Promise.all([
             api.get('/users/me'),
             dashboardService.getDashboardStats(),
             mealService.getMeals({ status: 'AVAILABLE', limit: 5 }),
             reservationService.getMyReservations(),
+            api.get('/users/me/connect-status').catch(() => ({ data: { success: false } })),
           ]);
 
         if (userResponse.data.success) {
           currentUser = userResponse.data.data;
+          if (connectStatusResponse.data?.success) {
+            currentUser = {
+              ...currentUser,
+              stripeConnectOnboardingComplete: connectStatusResponse.data.data.onboardingComplete,
+              stripeConnectedAccountId: connectStatusResponse.data.data.accountId ?? currentUser.stripeConnectedAccountId,
+            };
+          }
           setUser(currentUser);
           if (currentUser?.id) {
             localStorage.setItem('userId', currentUser.id);
@@ -835,7 +844,39 @@ export default function Dashboard() {
 
             {/* Actions rapides */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {user && !user.stripeConnectOnboardingComplete && (
+              {user?.stripeConnectedAccountId && !user?.stripeConnectOnboardingComplete && (
+                <div
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: colors.warning + '15',
+                    border: `1px solid ${colors.warning}40`,
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    color: colors.textPrimary,
+                    lineHeight: '1.5',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontWeight: 'bold', color: colors.warning }}>
+                    <AlertTriangleIcon size={16} color={colors.warning} /> Finalisez votre inscription Stripe
+                  </div>
+                  Votre repas peut être mis en vente, mais vous ne pourrez pas être reversé avant d’avoir terminé la vérification KYC.
+                  <Link
+                    to="/connect-vendeur"
+                    style={{
+                      display: 'inline-block',
+                      marginTop: '8px',
+                      color: colors.warning,
+                      textDecoration: 'underline',
+                      fontWeight: 'bold',
+                      fontSize: '13px',
+                    }}
+                  >
+                    Continuer l’onboarding →
+                  </Link>
+                </div>
+              )}
+              {!user?.stripeConnectedAccountId && (
                 <Link
                   to="/connect-vendeur"
                   style={{

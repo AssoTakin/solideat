@@ -339,7 +339,7 @@ export class EmailService {
   }
 
   /**
-   * Envoie un email pour un échec de paiement
+   * Envoie un email pour un échec de paiement d'abonnement
    */
   async sendSubscriptionPaymentFailedEmail(to: string): Promise<void> {
     const subject = 'Échec de paiement - SOLID\'EAT';
@@ -351,6 +351,45 @@ export class EmailService {
       <p>Si vous ne mettez pas à jour votre méthode de paiement, votre abonnement sera suspendu.</p>
     `;
     const text = 'Le paiement de votre abonnement premium a échoué. Veuillez mettre à jour votre méthode de paiement.';
+
+    await this.sendMail(to, subject, html, text, true);
+  }
+
+  /**
+   * Envoie un email de rappel KYC au cuisinier après une vente sans compte Connect prêt.
+   */
+  async sendCookKycReminderEmail(to: string, mealName: string, soldCount: number, remainingCount: number): Promise<void> {
+    const onboardingUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/connect-vendeur`;
+    const isLastWarning = remainingCount <= 0;
+
+    const subject = isLastWarning
+      ? 'Action requise : limite de ventes atteinte - SOLID\'EAT'
+      : `Rappel : finalisez votre KYC pour recevoir vos reversements - SOLID'EAT`;
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #2C3E50; max-width: 600px; margin: 0 auto; border: 1px solid #ECF0F1; border-radius: 8px; padding: 20px;">
+        <h1 style="color: #FF6B35; font-size: 24px; margin-top: 0;">SOLID'EAT</h1>
+        <h2 style="font-size: 18px; border-bottom: 2px solid #FF6B35; padding-bottom: 8px;">${isLastWarning ? 'Limite technique atteinte' : 'Paiement reçu – action requise'}</h2>
+        <p style="font-size: 16px;">Bravo, votre repas <strong>"${mealName}"</strong> vient d'être vendu (5€).</p>
+        <p style="font-size: 16px;">
+          ${isLastWarning
+            ? 'Vous avez atteint la limite de <strong>3 repas vendus</strong> sans avoir finalisé votre inscription Stripe Connect. Vous ne pourrez plus mettre de repas en vente tant que votre KYC ne sera pas terminé.'
+            : `Pour l'instant, le reversement de votre revenu est en attente car votre vérification Stripe Connect (KYC) n'est pas finalisée. Vous pouvez encore vendre <strong>${remainingCount} repas${remainingCount > 1 ? 's' : ''}</strong> avant d'atteindre la limite technique.`}
+        </p>
+        <p style="margin-top: 24px; text-align: center;">
+          <a href="${onboardingUrl}" style="background-color: #FF6B35; color: #FFFFFF; text-decoration: none; padding: 14px 24px; border-radius: 6px; font-weight: bold; display: inline-block;">Finaliser mon inscription Stripe</a>
+        </p>
+        <p style="font-size: 14px; color: #7F8C8D; margin-top: 24px;">Cette vérification est obligatoire pour recevoir automatiquement vos reversements sur votre compte bancaire.</p>
+        <hr style="border: none; border-top: 1px solid #ECF0F1; margin-top: 30px;" />
+        <p style="font-size: 12px; color: #7F8C8D; text-align: center; margin-bottom: 0;">
+          Vous recevez cet e-mail suite à une activité sur votre compte SOLID'EAT.
+        </p>
+      </div>
+    `;
+
+    const text = isLastWarning
+      ? `Limite atteinte. Finalisez votre inscription Stripe Connect : ${onboardingUrl}`
+      : `Paiement reçu pour "${mealName}" (${soldCount} repas vendu${soldCount > 1 ? 's' : ''}). Finalisez votre KYC Stripe pour recevoir vos reversements : ${onboardingUrl}`;
 
     await this.sendMail(to, subject, html, text, true);
   }

@@ -44,6 +44,24 @@ export default function SellerConnect({ __forceStatus }: SellerConnectProps) {
     loadStatus();
   }, [navigate, __forceStatus]);
 
+  // Au retour de Stripe (?status=success), forcer une resync avec un délai
+  // car Stripe peut mettre quelques secondes à propager le statut active.
+  useEffect(() => {
+    if (!isSuccess || __forceStatus) return;
+
+    let attempts = 0;
+    const maxAttempts = 6;
+    const interval = setInterval(() => {
+      attempts += 1;
+      loadStatus();
+      if (attempts >= maxAttempts) {
+        clearInterval(interval);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isSuccess, __forceStatus]);
+
   const loadStatus = async () => {
     try {
       setLoading(true);

@@ -269,12 +269,24 @@ export class StripeController {
 
     const reservation = await prisma.reservation.findUnique({
       where: { id: reservationId },
-      include: { meal: true },
+      include: {
+        meal: {
+          include: {
+            cook: true,
+          },
+        },
+      },
     });
 
     if (!reservation || reservation.paymentStatus !== 'PENDING') {
       return;
     }
+
+    const { stripeService } = await import('../services/stripe.service');
+    const cookAccountId = reservation.meal.cook.stripeConnectedAccountId;
+    const isPayoutReady = cookAccountId
+      ? await stripeService.isConnectedAccountReady(cookAccountId)
+      : false;
 
     await prisma.$transaction([
       prisma.reservation.update({
@@ -283,6 +295,8 @@ export class StripeController {
           paymentStatus: 'PAID',
           stripePaymentIntentId: paymentIntent.id,
           payoutAmount: 4.0,
+          payoutReady: isPayoutReady,
+          payoutPendingReason: isPayoutReady ? null : 'kyc_incomplete',
         },
       }),
       prisma.transaction.create({
@@ -300,6 +314,45 @@ export class StripeController {
         },
       }),
     ]);
+
+    // Si le compte Connect n'est pas prêt, incrémenter le compteur du cuisinier
+    // et envoyer un email de rappel KYC. Après 3 repas vendus sans KYC, bloquer
+    // les futures mises en ligne de repas payants.
+    if (!isPayoutReady) {
+      const updatedUser = await prisma.user.update({
+        where: { id: reservation.meal.cookId },
+        data: {
+          paidMealsSoldBeforePayoutReady: {
+            increment: 1,
+          },
+        },
+      });
+
+      const limit = 3;
+      const soldCount = updatedUser.paidMealsSoldBeforePayoutReady;
+      const remainingCount = Math.max(0, limit - soldCount);
+      const shouldBlock = soldCount >= limit;
+
+      if (shouldBlock) {
+        await prisma.user.update({
+          where: { id: reservation.meal.cookId },
+          data: { paidMealsPayoutBlocked: true },
+        });
+      }
+
+      if (reservation.meal.cook.email) {
+        emailService
+          .sendCookKycReminderEmail(
+            reservation.meal.cook.email,
+            reservation.meal.name,
+            soldCount,
+            remainingCount
+          )
+          .catch(() => {
+            // Erreur silencieuse
+          });
+      }
+    }
 
     // Notifier le cuisinier que le repas est payé
     await notificationService.createNotification(
@@ -331,17 +384,28 @@ export class StripeController {
    */
   private async handleConnectAccountUpdated(account: Stripe.Account): Promise<void> {
     // Détermine si l'onboarding est terminé : compte capable de recevoir des transferts.
-    const transfersCap = account.capabilities?.transfers;
-    const onboardingComplete =
-      (transfersCap === 'active' || transfersCap === 'pending') &&
-      account.details_submitted === true;
+    // Un compte n'est considéré "prêt" que si la capability transfers est active.
+    const onboardingComplete = account.capabilities?.transfers === 'active';
 
+    // Mettre à jour tous les utilisateurs liés à ce compte Connect
     await prisma.user.updateMany({
       where: { stripeConnectedAccountId: account.id },
       data: {
         stripeConnectOnboardingComplete: onboardingComplete,
       },
     });
+
+    // Si le compte est désormais prêt, débloquer le compteur de repas vendus
+    // avant finalisation KYC : les reversements vont pouvoir reprendre.
+    if (onboardingComplete) {
+      await prisma.user.updateMany({
+        where: { stripeConnectedAccountId: account.id },
+        data: {
+          paidMealsPayoutBlocked: false,
+          paidMealsSoldBeforePayoutReady: 0,
+        },
+      });
+    }
   }
 }
 

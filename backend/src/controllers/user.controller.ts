@@ -405,6 +405,8 @@ export class UserController {
   /**
    * GET /users/me/connect-status
    * Renvoie l'état d'onboarding Stripe Connect de l'utilisateur.
+   * Si un compte existe, interroge Stripe en direct pour refléter immédiatement
+   * la vraie valeur de la capability transfers (utile au retour de l'onboarding).
    */
   async getConnectStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
@@ -422,11 +424,37 @@ export class UserController {
         return;
       }
 
+      let onboardingComplete = user.stripeConnectOnboardingComplete;
+      const accountId = user.stripeConnectedAccountId;
+
+      // Resync live avec Stripe si un compte est lié.
+      if (accountId) {
+        try {
+          const { stripeService } = await import('../services/stripe.service');
+          const isReady = await stripeService.isConnectedAccountReady(accountId);
+          onboardingComplete = isReady;
+
+          // Persister le statut s'il a changé (notamment active après onboarding).
+          if (isReady !== user.stripeConnectOnboardingComplete) {
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                stripeConnectOnboardingComplete: isReady,
+                paidMealsPayoutBlocked: isReady ? false : undefined,
+                paidMealsSoldBeforePayoutReady: isReady ? 0 : undefined,
+              },
+            });
+          }
+        } catch {
+          // En cas d'erreur Stripe, on conserve la valeur Prisma.
+        }
+      }
+
       res.json({
         success: true,
         data: {
-          accountId: user.stripeConnectedAccountId,
-          onboardingComplete: user.stripeConnectOnboardingComplete,
+          accountId,
+          onboardingComplete,
         },
       });
     } catch (error: any) {

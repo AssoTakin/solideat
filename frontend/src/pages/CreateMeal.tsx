@@ -126,6 +126,7 @@ export default function CreateMeal() {
   const [error, setError] = useState<string | null>(null);
   const [userSubscription, setUserSubscription] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [connectStatus, setConnectStatus] = useState<{ accountId: string | null; onboardingComplete: boolean } | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -243,6 +244,16 @@ export default function CreateMeal() {
       }
     } catch (error) {
       // Profil non disponible
+    }
+
+    // Charger le statut Stripe Connect pour l'avertissement KYC
+    try {
+      const connectRes = await api.get('/users/me/connect-status');
+      if (connectRes.data?.success) {
+        setConnectStatus(connectRes.data.data);
+      }
+    } catch (error) {
+      // Statut Connect non disponible
     }
   };
 
@@ -451,15 +462,19 @@ export default function CreateMeal() {
       // Gérer le prix : si premium et case "Vendre ce repas" cochée, prix fixe à 5€
       let priceValue: number | null = null;
       if (isPremium && step3Data.sellMeal) {
-        // Vérifier que le compte Stripe Connect est configuré
+        // Vérifier que le compte Stripe Connect est créé.
+        // Le KYC non finalisé ne bloque pas la mise en ligne, mais le cuisinier
+        // reçoit un rappel dans son espace perso. Après 3 ventes sans KYC finalisé,
+        // le backend bloque la création de repas payants.
         if (!userProfile?.stripeConnectedAccountId) {
           setError(
-            'Vous devez configurer votre compte de reversement Stripe avant de vendre des repas. Rendez-vous dans votre profil.'
+            'Vous devez créer votre compte de reversement Stripe avant de vendre des repas. Rendez-vous dans votre tableau de bord.'
           );
           window.scrollTo({ top: 0, behavior: 'smooth' });
           setLoading(false);
           return;
         }
+
         priceValue = 5; // Prix fixe selon spécifications : 5€ par repas
       }
 
@@ -1513,6 +1528,48 @@ export default function CreateMeal() {
                       La plateforme perçoit 1€ de frais de service ; les frais de transaction
                       Stripe (~0,33€) sont déduits du reversement.
                     </p>
+
+                    {/* Avertissement KYC si compte créé mais non finalisé */}
+                    {connectStatus?.accountId && !connectStatus?.onboardingComplete && (
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          padding: '10px 12px',
+                          backgroundColor: colors.warning + '15',
+                          border: `1px solid ${colors.warning}40`,
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          color: colors.warning,
+                          lineHeight: '1.5',
+                        }}
+                      >
+                        <strong>⚠️ Finalisez votre inscription Stripe</strong> pour recevoir automatiquement vos reversements.{' '}
+                        <Link to="/connect-vendeur" style={{ color: colors.warning, textDecoration: 'underline', fontWeight: 'bold' }}>
+                          Continuer l’onboarding →
+                        </Link>
+                      </div>
+                    )}
+
+                    {/* Blocage affiché si compte manquant */}
+                    {!connectStatus?.accountId && (
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          padding: '10px 12px',
+                          backgroundColor: colors.error + '15',
+                          border: `1px solid ${colors.error}40`,
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          color: colors.error,
+                          lineHeight: '1.5',
+                        }}
+                      >
+                        <strong>Compte Stripe requis</strong> pour vendre.{' '}
+                        <Link to="/connect-vendeur" style={{ color: colors.error, textDecoration: 'underline', fontWeight: 'bold' }}>
+                          Devenir vendeur →
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </label>
               </div>

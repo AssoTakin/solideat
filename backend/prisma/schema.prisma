@@ -45,6 +45,10 @@ model User {
   stripeSubscriptionStatus String? // statut brut Stripe (active, trialing, canceled...)
   subscriptionCancelAtPeriodEnd Boolean @default(false) // true si annulé mais actif jusqu'à la fin de période
 
+  // Reversements repas premium : nombre de repas vendus sans compte Connect prêt
+  paidMealsSoldBeforePayoutReady Int @default(0)
+  paidMealsPayoutBlocked Boolean @default(false)
+
   // Confidentialité
   hidePhoneNumber   Boolean   @default(true) // Premium uniquement
   incognitoMode     Boolean   @default(false) // Premium uniquement
@@ -176,6 +180,8 @@ model Reservation {
   stripePaymentIntentId String? @unique
   payoutAmount      Float?
   payoutTransferId  String?
+  payoutReady       Boolean  @default(false) // true si compte Connect prêt au moment du paiement
+  payoutPendingReason String? // ex: "kyc_incomplete"
   
   // Relations inverse
   transaction       Transaction?

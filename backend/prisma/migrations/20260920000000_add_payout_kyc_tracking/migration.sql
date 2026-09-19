@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "paidMealsSoldBeforePayoutReady" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "paidMealsPayoutBlocked" BOOLEAN NOT NULL DEFAULT false;
+
+-- AlterTable
+ALTER TABLE "Reservation" ADD COLUMN IF NOT EXISTS "payoutReady" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Reservation" ADD COLUMN IF NOT EXISTS "payoutPendingReason" TEXT;

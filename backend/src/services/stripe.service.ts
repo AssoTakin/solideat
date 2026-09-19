@@ -351,8 +351,9 @@ export class StripeService {
   async isConnectedAccountReady(accountId: string): Promise<boolean> {
     try {
       const account = await stripe.accounts.retrieve(accountId);
-      const transfers = account.capabilities?.transfers;
-      return transfers === 'active' || transfers === 'pending';
+      // Un destination charge exige la capability 'transfers' active.
+      // Le statut 'pending' ne suffit pas : Stripe refuse le transfert.
+      return account.capabilities?.transfers === 'active';
     } catch {
       return false;
     }

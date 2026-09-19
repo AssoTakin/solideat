@@ -21,7 +21,13 @@ export class MealService {
     if (data.price !== null && data.price !== undefined && data.price > 0) {
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { subscriptionType: true },
+        select: {
+          subscriptionType: true,
+          stripeConnectedAccountId: true,
+          stripeConnectOnboardingComplete: true,
+          paidMealsSoldBeforePayoutReady: true,
+          paidMealsPayoutBlocked: true,
+        },
       });
 
       // Seuls les membres premium peuvent vendre des repas
@@ -38,17 +44,24 @@ export class MealService {
         );
       }
 
-      // Le cuisinier doit avoir un compte Stripe Connect configuré pour vendre
-      const userWithStripe = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { stripeConnectedAccountId: true },
-      });
-
-      if (!userWithStripe?.stripeConnectedAccountId) {
+      // Le cuisinier doit avoir un compte Stripe Connect créé pour vendre.
+      // Le KYC non finalisé ne bloque pas la mise en ligne, mais un rappel est
+      // affiché dans l'espace perso. Après 3 repas vendus sans KYC finalisé,
+      // la création de repas payants est bloquée jusqu'à finalisation.
+      if (!user.stripeConnectedAccountId) {
         throw new Error(
-          'Vous devez configurer votre compte Stripe Connect avant de vendre des repas.'
+          'Vous devez créer votre compte Stripe Connect avant de vendre des repas. Rendez-vous dans votre tableau de bord.'
         );
       }
+
+      if (user.paidMealsPayoutBlocked) {
+        throw new Error(
+          'Vous avez atteint la limite de 3 repas vendus sans finalisation de votre KYC Stripe. Finalisez votre compte vendeur dans votre tableau de bord pour continuer à vendre.'
+        );
+      }
+
+      // Avertissement : si le KYC n'est pas finalisé, le reversement sera en attente.
+      // Ce n'est pas bloquant ici, mais le frontend informe l'utilisateur.
     }
 
     // Calculer la date d'expiration (preparationDate + 72h)
