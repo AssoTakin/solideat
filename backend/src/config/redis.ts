@@ -12,6 +12,8 @@ export const redis = new Redis(redisUrl, {
   maxRetriesPerRequest: 3,
   lazyConnect: true,
   enableOfflineQueue: false,
+  // En test, on désactive les reconnexions infinies qui laissent des handles ouverts
+  retryStrategy: process.env.NODE_ENV === 'test' ? () => null : undefined,
 });
 
 // Logs utiles pour le debug local/prod ; ne cassent pas les tests car le client est lazy.

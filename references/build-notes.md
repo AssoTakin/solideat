@@ -4,16 +4,28 @@
 **Repo** : github.com/AssoTakin/solideat  
 **Branche active** : `dev/local-work`  
 **Branche production** : `main`  
-**Dernière mise à jour** : 2026-08-20
+**Dernière mise à jour** : 2026-09-14
 
 ---
 
-## 🩺 Santé production
+## 🩺 Santé production (2026-09-14)
 
-| Service | URL | Statut |
-|---|---|---|
-| Frontend | https://solid-eat.com | HTTP 200 |
-| Backend | https://api.solid-eat.com | HTTP 200 |
+|| Service | URL | Statut |
+||---|---|---|
+|| Frontend | https://solid-eat.com | HTTP 200 |
+|| Backend | https://api.solid-eat.com | HTTP 200 |
+|| Backend health DB | https://api.solid-eat.com/health | database: connected |
+|| Staging | https://solideat-staging-staging.up.railway.app/health | HTTP 200 |
+
+### Tests backend
+- **166/166 passent** ✅
+- Build frontend : ✅
+
+### Écarts détectés pendant la vérification E2E
+- Le backend ne dispose pas encore des routes Stripe Connect pour les cuisiniers (`/api/stripe/connect-account`, `/api/stripe/onboarding-link`, `/api/stripe/connect-status`).
+- La création d’un repas premium (5€) est bloquée en production par cette absence.
+- Le webhook `account.updated` Stripe n’a pas de handler backend visible.
+- Le frontend mentionne Stripe Connect (page `SellerConnect`, `PremiumMealSaleAudit`) mais le backend ne l’expose pas.
 
 ---
 
@@ -40,7 +52,7 @@ git pull --ff-only origin dev/local-work
 | Sprints terminés | 10/10 (P0 complété) |
 | User stories | 44/54 (~81 %) |
 | Points | ~212/250 (~85 %) |
-| Tests unitaires | 38/40 (95 %) |
+| Tests unitaires | 124/124 passent (100 %) |
 | Compilation | ✅ Backend + Frontend |
 
 ### Sprints terminés
@@ -66,7 +78,21 @@ git pull --ff-only origin dev/local-work
 - ~~Expiration bonus (US-051)~~ ✅ — job quotidien `bonus.jobs.ts`
 - ~~Renouvellement abonnements (US-054)~~ ✅ — job quotidien `subscription.jobs.ts`, respecte `cancelAtPeriodEnd`
 
+### Fix tests - 2026-08-25
+
+- Problème : `npm test` restait bloqué après avoir passé 124/124 tests à cause de handles asynchrones non fermés.
+- Cause racine : ioredis tente des reconnexions infinies dans l'environnement de test (où Redis n'est pas disponible), laissant des sockets ouverts à chaque test qui importe un service utilisant le cache.
+- Solution propre : ajout de `retryStrategy: () => null` dans `backend/src/config/redis.ts` quand `NODE_ENV === 'test'`. Pas de `forceExit`.
+- Résultat : `npm test` passe en ~8 s sans timeout et sans forcer la sortie.
+
 ### Fichiers clés modifiés ce tour
+
+- `backend/src/config/redis.ts` : désactive les reconnexions Redis en test
+- `backend/jest.config.js` : retire le `forceExit` temporaire
+- `docs/dev/AVANCEMENT_GLOBAL.md` : compteur tests 124/124
+- `references/build-notes.md` : fix tests documenté
+
+### Fichiers clés modifiés tour précédent
 
 - `backend/prisma/schema.prisma` : champs `stripeSubscriptionStatus`, `subscriptionCancelAtPeriodEnd`
 - `backend/src/services/subscription.service.ts` : `cancelSubscription`, `reactivateSubscription`, statut retourné
@@ -81,6 +107,10 @@ git pull --ff-only origin dev/local-work
 - `backend/src/services/email.service.ts` : email réactivation abonnement
 - `frontend/src/services/subscription.service.ts` : méthode `reactivateSubscription`, types étendus
 - `frontend/src/pages/SubscriptionPlans.tsx` : UI réactivation + bannière "annulation programmée"
+
+- `backend/src/controllers/stripe.controller.ts`
+- `frontend/src/pages/ReserveMeal.tsx`
+- `frontend/src/pages/CreateMeal.tsx`
 
 ---
 

@@ -171,8 +171,8 @@ export class SubscriptionService {
         process.env.STRIPE_SECRET_KEY === 'sk_test_...' || 
         process.env.STRIPE_SECRET_KEY.includes('placeholder');
 
-      if (process.env.NODE_ENV !== 'production' || isPlaceholder) {
-        // En développement sans clés valides, simuler la réussite en retournant l'URL locale directe de succès (avec mock-session-id)
+      if (isPlaceholder || process.env.STRIPE_MOCK_CHECKOUT === 'true') {
+        // Fallback mock uniquement si la clé est un placeholder ou si on force explicitement le mock
         return { url: `${frontendUrl}/subscriptions/success?session_id=mock_session_${Date.now()}&mockPlan=${planType}` };
       }
       throw stripeError;

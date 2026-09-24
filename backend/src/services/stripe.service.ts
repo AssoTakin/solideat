@@ -113,6 +113,23 @@ export class StripeService {
   }
 
   /**
+   * Récupère les détails d'un compte Stripe Connect.
+   */
+  async getAccountDetails(accountId: string): Promise<any> {
+    const account = await stripe.accounts.retrieve(accountId);
+    return {
+      id: account.id,
+      type: account.type,
+      email: account.email,
+      charges_enabled: account.charges_enabled,
+      payouts_enabled: account.payouts_enabled,
+      details_submitted: account.details_submitted,
+      capabilities: account.capabilities,
+      requirements: account.requirements,
+    };
+  }
+
+  /**
    * Récupère le price ID selon le type d'abonnement
    */
   getPriceId(subscriptionType: SubscriptionType): string {
@@ -202,10 +219,15 @@ export class StripeService {
    */
   getSubscriptionEndDate(subscription: Stripe.Subscription): Date {
     const periodEnd = (subscription as any).current_period_end;
-    if (!periodEnd) {
-      throw new Error('current_period_end non disponible dans la subscription');
+    if (periodEnd) {
+      return new Date(periodEnd * 1000);
     }
-    return new Date(periodEnd * 1000);
+    // Fallback : offre de lancement avec trial_end
+    const trialEnd = (subscription as any).trial_end;
+    if (trialEnd) {
+      return new Date(trialEnd * 1000);
+    }
+    throw new Error('current_period_end non disponible dans la subscription');
   }
 
   /**
@@ -234,21 +256,36 @@ export class StripeService {
     // Le cuisinier reçoit le montant total moins la commission Solideat qui inclut les frais Stripe
     // Destination charge : Stripe prélève ses frais sur le montant total; l'application fee reste nette pour Solideat
 
-    return await stripe.paymentIntents.create({
+    // Vérifier que le compte Connect est prêt avant d'utiliser un destination charge.
+    // Si le KYC Connect n'est pas finalisé, on crée un PaymentIntent standard et on
+    // effectuera le reversement manuellement après récupération (transfert de 4€ au cuisinier).
+    const isCookReady = await this.isConnectedAccountReady(cookConnectedAccountId);
+
+    const params: Stripe.PaymentIntentCreateParams = {
       amount: amountCents,
       currency: 'eur',
       customer: buyerCustomerId,
       application_fee_amount: platformFeeCents,
-      transfer_data: {
-        destination: cookConnectedAccountId,
-      },
       metadata: {
         reservationId,
         type: 'meal_payment',
         netToCookCents: amountCents - platformFeeCents,
       },
       automatic_payment_methods: { enabled: true },
-    });
+    };
+
+    if (isCookReady) {
+      params.transfer_data = { destination: cookConnectedAccountId };
+    } else {
+      // Compte Connect non prêt : pas de destination charge ni de application fee
+      // car ils nécessitent une capability transfers active. Le paiement est encaissé
+      // sur le compte plateforme et le reversement sera fait manuellement après pickup.
+      delete (params as any).application_fee_amount;
+      params.metadata!.cookConnectedAccountId = cookConnectedAccountId;
+      params.metadata!.transfersBypassed = 'true';
+    }
+
+    return await stripe.paymentIntents.create(params);
   }
 
   /**
@@ -314,8 +351,9 @@ export class StripeService {
   async isConnectedAccountReady(accountId: string): Promise<boolean> {
     try {
       const account = await stripe.accounts.retrieve(accountId);
-      const transfers = account.capabilities?.transfers;
-      return transfers === 'active' || transfers === 'pending';
+      // Un destination charge exige la capability 'transfers' active.
+      // Le statut 'pending' ne suffit pas : Stripe refuse le transfert.
+      return account.capabilities?.transfers === 'active';
     } catch {
       return false;
     }

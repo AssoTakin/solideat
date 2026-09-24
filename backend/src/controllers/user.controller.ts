@@ -32,6 +32,8 @@ export class UserController {
           addressCity: true,
           latitude: true,
           longitude: true,
+          stripeConnectedAccountId: true,
+          stripeConnectOnboardingComplete: true,
           subscriptionType: true,
           subscriptionStart: true,
           subscriptionEnd: true,
@@ -362,7 +364,7 @@ export class UserController {
 
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { email: true, stripeConnectedAccountId: true },
+        select: { email: true, stripeConnectedAccountId: true, stripeConnectOnboardingComplete: true },
       });
 
       if (!user) {
@@ -376,12 +378,12 @@ export class UserController {
         accountId = account.id;
         await prisma.user.update({
           where: { id: userId },
-          data: { stripeConnectedAccountId: accountId },
+          data: { stripeConnectedAccountId: accountId, stripeConnectOnboardingComplete: false },
         });
       }
 
-      const refreshUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/dashboard?connect=refresh`;
-      const returnUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/dashboard?connect=success`;
+      const refreshUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/connect-vendeur?status=refresh`;
+      const returnUrl = `${process.env.FRONTEND_URL || 'https://solid-eat.com'}/connect-vendeur?status=success`;
       const accountLink = await stripeService.createAccountLink(accountId, refreshUrl, returnUrl);
 
       res.json({
@@ -389,12 +391,76 @@ export class UserController {
         data: {
           url: accountLink.url,
           accountId,
+          onboardingComplete: user.stripeConnectOnboardingComplete,
         },
       });
     } catch (error: any) {
       res.status(500).json({
         success: false,
         error: error.message || 'Erreur lors de la création du compte Stripe Connect',
+      });
+    }
+  }
+
+  /**
+   * GET /users/me/connect-status
+   * Renvoie l'état d'onboarding Stripe Connect de l'utilisateur.
+   * Si un compte existe, interroge Stripe en direct pour refléter immédiatement
+   * la vraie valeur de la capability transfers (utile au retour de l'onboarding).
+   */
+  async getConnectStatus(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          stripeConnectedAccountId: true,
+          stripeConnectOnboardingComplete: true,
+        },
+      });
+
+      if (!user) {
+        res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
+        return;
+      }
+
+      let onboardingComplete = user.stripeConnectOnboardingComplete;
+      const accountId = user.stripeConnectedAccountId;
+
+      // Resync live avec Stripe si un compte est lié.
+      if (accountId) {
+        try {
+          const { stripeService } = await import('../services/stripe.service');
+          const isReady = await stripeService.isConnectedAccountReady(accountId);
+          onboardingComplete = isReady;
+
+          // Persister le statut s'il a changé (notamment active après onboarding).
+          if (isReady !== user.stripeConnectOnboardingComplete) {
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                stripeConnectOnboardingComplete: isReady,
+                paidMealsPayoutBlocked: isReady ? false : undefined,
+                paidMealsSoldBeforePayoutReady: isReady ? 0 : undefined,
+              },
+            });
+          }
+        } catch {
+          // En cas d'erreur Stripe, on conserve la valeur Prisma.
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          accountId,
+          onboardingComplete,
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur lors de la récupération du statut Connect',
       });
     }
   }

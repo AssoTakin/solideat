@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src'],
+  roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   transform: {
     '^.+\\.ts$': 'ts-jest',
@@ -20,4 +20,5 @@ module.exports = {
   },
 
   testPathIgnorePatterns: ['/node_modules/', '/src/e2e/'],
-}
+  setupFiles: ['<rootDir>/tests/setup-env.ts'],
+};

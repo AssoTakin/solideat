@@ -133,10 +133,10 @@
 - **Sprints complétés** : 10/10 (P0 complété)
 - **User Stories complétées** : 44 stories
 - **Points complétés** : ~212 points
-- **Tests unitaires** : 38/40 passent (95%)
+| Tests unitaires | 124/124 passent (100 %) |
 - **Compilation** : ✅ Backend et Frontend compilent sans erreurs
 
 ---
 
 **Document maintenu par** : SolidProjectBot  
-**Dernière mise à jour** : 2026-08-20
+**Dernière mise à jour** : 2026-08-25

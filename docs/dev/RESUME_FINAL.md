@@ -59,9 +59,25 @@
 - ✅ **MessageService** : 7 tests
 - ✅ **ReviewService** : 5 tests
 
-**Total** : **38 tests unitaires passent** sur 40 (95%) ✅
+**Total** : **166 tests unitaires et d'intégration passent** sur 166 ✅
 
-**2 tests en cours de correction** (détection numéros téléphone - non bloquant)
+| Service | Tests |
+| :-- | :-- |
+| AuthService | 9 ✅ |
+| MealService | 11 ✅ |
+| ReservationService | 6 ✅ |
+| MessageService | 7 ✅ |
+| ReviewService | 5 ✅ |
+| SanctionService | ✅ |
+| DashboardService | ✅ |
+| AntiGaspiService | ✅ |
+| BonusDonorService | ✅ |
+| BadgeService | ✅ |
+| GeolocationService | ✅ |
+| EnvironmentalService | ✅ |
+| SubscriptionService | ✅ |
+| Stripe renewal webhook | ✅ |
+| Stripe Connect onboarding | ✅ |
 
 ---
 
@@ -102,9 +118,9 @@ Selon les priorités :
 - **Sprints complétés** : 8 sprints
 - **User Stories complétées** : 31 stories
 - **Points complétés** : 143 points
-- **Tests unitaires** : 38/40 passent (95%)
+- **Tests unitaires** : 166/166 passent ✅
 - **Compilation** : ✅ Backend et Frontend compilent sans erreurs
-- **Commits** : Tous les commits effectués sur branche `develop`
+- **Commits** : Tous les commits effectués sur branche `dev/local-work`
 
 ---
 
@@ -123,13 +139,14 @@ Selon les priorités :
 
 ## ⚠️ POINTS À COMPLÉTER
 
-1. **Tests** : 2 tests à corriger (non bloquant)
-2. **Services externes** : Configurer vraies clés API
-3. **Base de données** : Créer migrations Prisma
-4. **Templates emails** : Finaliser tous les templates
-5. **Stripe** : Intégration complète abonnements
-6. **Sanctions** : Service complet de gestion des sanctions
-7. **Badges** : Système d'attribution automatique
+1. ✅ ~~Tests~~ : 166/166 passent
+2. ✅ ~~Services externes~~ : Clés Stripe test configurées sur Railway ; clés VAPID générées et configurées en staging
+3. ✅ ~~Base de données~~ : Migrations Prisma à jour (incl. `stripeConnectOnboardingComplete`)
+4. ⬜ **Templates emails** : Finaliser tous les templates
+5. ✅ ~~Stripe~~ : Intégration abonnements + Connect en place
+6. ✅ ~~Sanctions~~ : Service complet de gestion des sanctions
+7. ✅ ~~Badges~~ : Système d'attribution automatique + page `/premium` frontend
+8. ⬜ **Push notifications prod** : Déployer clés VAPID réelles et valider le service worker sur mobile/desktop
 
 ---
 
